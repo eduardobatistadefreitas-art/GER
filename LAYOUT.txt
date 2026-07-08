@@ -1,0 +1,17 @@
+GER/
+│
+├── engine/
+│   └── ger_engine.py        # núcleo S26-B.2
+│
+├── analysis/
+│   └── S26_B2_2_modal_audit.py
+│
+├── experiments/
+│   ├── S26_B2_1.py
+│   └── S26_B2_2.py
+│
+├── results/
+│   └── raw_data/
+│
+└── reports/
+    └── S26_B2_2_report.md
