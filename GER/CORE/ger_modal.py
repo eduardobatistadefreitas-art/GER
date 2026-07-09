@@ -287,3 +287,81 @@ def analyze_modal_state(
                 probability
             )
     }
+# =========================================================
+# Snapshot completo da simulação
+# =========================================================
+
+from GER_CORE.ger_metrics import (
+    compute_hamiltonian,
+    compute_l2_norm,
+    compute_max_amplitude,
+)
+
+
+def build_snapshot(
+    step,
+    time,
+    gamma,
+    velocity,
+    laplacian,
+    beta,
+    potential,
+    eigenvectors,
+    theta,
+):
+    """
+    Constrói um snapshot completo do estado da simulação.
+
+    Este formato é utilizado pelo GER CORE durante toda
+    a evolução temporal.
+    """
+
+    modal = analyze_modal_state(
+        gamma,
+        eigenvectors,
+    )
+
+    snapshot = {
+
+        "step": step,
+
+        "time": time,
+
+        "energy": compute_hamiltonian(
+            gamma,
+            velocity,
+            laplacian,
+            beta,
+            potential,
+        ),
+
+        "l2": compute_l2_norm(gamma),
+
+        "amplitude": compute_max_amplitude(gamma),
+
+        "dominant_mode":
+            modal["dominant_mode"],
+
+        "modal_center":
+            modal["modal_center"],
+
+        "modal_width":
+            modal["modal_width"],
+
+        "spectral_entropy":
+            modal["spectral_entropy"],
+
+        "participation_ratio":
+            modal["participation_ratio"],
+
+        "probability":
+            modal["probability"],
+
+        "modal_energy":
+            modal["modal_energy"],
+
+        "spectral_bands":
+            modal["spectral_bands"],
+    }
+
+    return snapshot
