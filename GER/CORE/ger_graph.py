@@ -1,28 +1,20 @@
-%%writefile ger_graph.py
+%%writefile GER_CORE/ger_graph.py
 
 """
 =========================================================
 GER CORE
 Arquivo : ger_graph.py
 =========================================================
-...
-"""
-=========================================================
-GER CORE
-Arquivo : ger_graph.py
-=========================================================
 
-Geometria discreta da Geometria Espectral Relacional.
+Módulo de construção geométrica.
 
-Este módulo implementa:
+Responsável por:
 
-• Grafo periódico F₁
-• Laplaciano discreto
-• Base espectral
-• Distância periódica
-• Pacotes gaussianos iniciais
-
-Todas as funções aqui são independentes da dinâmica.
+- Grafo periódico F1
+- Matriz Laplaciana
+- Coordenadas angulares
+- Base espectral
+- Condição inicial gaussiana
 """
 
 from __future__ import annotations
@@ -32,111 +24,75 @@ import scipy.linalg as la
 
 
 # =========================================================
-# Construção do Grafo
+# Construção da rede
 # =========================================================
 
-def build_ring_graph(n: int):
+def build_ring_graph(n):
     """
-    Constrói o grafo periódico F₁.
+    Constrói o grafo periódico F1.
 
-    Parameters
-    ----------
-    n : int
-        Número de vértices.
+    Retorna:
 
-    Returns
-    -------
-    adjacency : ndarray
-        Matriz de adjacência.
+    A:
+        matriz de adjacência
 
-    laplacian : ndarray
-        Laplaciano discreto.
+    L:
+        Laplaciano discreto
 
-    theta : ndarray
-        Coordenadas angulares dos vértices.
+    theta:
+        coordenadas angulares
     """
 
-    if n < 3:
-        raise ValueError(
-            "O grafo periódico deve possuir pelo menos 3 vértices."
-        )
-
-    adjacency = np.zeros((n, n))
+    A = np.zeros((n, n))
 
     for i in range(n):
 
-        adjacency[i, (i + 1) % n] = 1.0
-        adjacency[i, (i - 1) % n] = 1.0
+        A[i, (i + 1) % n] = 1.0
+        A[i, (i - 1) % n] = 1.0
 
-    degree = np.diag(np.sum(adjacency, axis=1))
 
-    laplacian = degree - adjacency
+    D = np.diag(
+        np.sum(A, axis=1)
+    )
+
+
+    L = D - A
+
 
     theta = np.linspace(
         0.0,
-        2.0 * np.pi,
+        2.0*np.pi,
         n,
         endpoint=False
     )
 
-    return adjacency, laplacian, theta
+
+    return A, L, theta
+
 
 
 # =========================================================
-# Base Espectral
+# Base espectral
 # =========================================================
 
-def spectral_basis(laplacian):
+def spectral_basis(L):
     """
-    Calcula a base espectral do Laplaciano.
-
-    Parameters
-    ----------
-    laplacian : ndarray
-
-    Returns
-    -------
-    eigenvalues : ndarray
-
-    eigenvectors : ndarray
+    Diagonalização do Laplaciano.
     """
 
-    eigenvalues, eigenvectors = la.eigh(laplacian)
+    eigenvalues, eigenvectors = la.eigh(L)
 
-    eigenvalues[np.abs(eigenvalues) < 1e-12] = 0.0
+    eigenvalues[
+        np.abs(eigenvalues) < 1e-12
+    ] = 0.0
+
 
     return eigenvalues, eigenvectors
 
 
-# =========================================================
-# Distância Periódica
-# =========================================================
-
-def periodic_distance(theta, center):
-    """
-    Distância angular mínima em uma circunferência.
-
-    Parameters
-    ----------
-    theta : ndarray
-
-    center : float
-
-    Returns
-    -------
-    ndarray
-    """
-
-    delta = np.abs(theta - center)
-
-    return np.minimum(
-        delta,
-        2.0 * np.pi - delta
-    )
-
 
 # =========================================================
-# Pacote Inicial
+# Condição inicial
 # =========================================================
 
 def gaussian_packet(
@@ -145,31 +101,11 @@ def gaussian_packet(
     sigma=0.10
 ):
     """
-    Constrói um pacote gaussiano periódico.
-
-    Parameters
-    ----------
-    theta : ndarray
-
-    center : float
-
-    sigma : float
-
-    Returns
-    -------
-    gamma : ndarray
+    Pulso gaussiano inicial.
     """
 
-    distance = periodic_distance(
-        theta,
-        center
+    return np.exp(
+        -(theta-center)**2
+        /
+        (2*sigma**2)
     )
-
-    gamma = np.exp(
-        -(distance ** 2) /
-        (2.0 * sigma ** 2)
-    )
-
-    gamma /= np.max(gamma)
-
-    return gamma
