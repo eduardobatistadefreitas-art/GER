@@ -1,17 +1,34 @@
 GER/
 │
-├── engine/
-│   └── ger_engine.py        # núcleo S26-B.2
+├── GER_CORE/
+│   ├── ger_graph.py
+│   ├── ger_potential.py
+│   ├── ger_metrics.py
+│   ├── ger_modal.py
+│   ├── ger_snapshot.py
+│   ├── ger_engine.py
+│   ├── ger_validation.py
+│   └── bootstrap.py
 │
-├── analysis/
-│   └── S26_B2_2_modal_audit.py
+├── EXPERIMENTS/
+│   └── S26/
+│       ├── S26_B21.py
+│       ├── S26_B22.py
+│       ├── S26_B23.py
+│       ├── S26_B24.py
+│       ├── S26_B25.py
+│       └── ...
 │
-├── experiments/
-│   ├── S26_B2_1.py
-│   └── S26_B2_2.py
+├── REPORTS/
+│   ├── figures/
+│   ├── tables/
+│   └── logs/
 │
-├── results/
-│   └── raw_data/
+├── DOCUMENTATION/
+│   ├── journal.tex
+│   ├── main.tex
+│   └── paper_v2.pdf
 │
-└── reports/
-    └── S26_B2_2_report.md
+├── LICENSE
+├── README.md
+└── requirements.txt
