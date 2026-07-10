@@ -39,7 +39,7 @@ from GER_CORE.ger_metrics import (
     check_divergence,
 )
 
-from GER_CORE.ger_modal import (
+from GER_CORE.ger_snapshot import (
     build_snapshot,
 )
 
@@ -328,4 +328,4 @@ def run_engine(
 
         "diverged": diverged,
 
-        }
+    }
