@@ -1,0 +1,12 @@
+import os
+
+# 1. Cria a pasta física GER_CORE no painel esquerdo do Colab (se ela não existir)
+pasta = "GER_CORE"
+if not os.path.exists(pasta):
+    os.makedirs(pasta)
+    print(f"✅ Pasta '{pasta}' criada com sucesso no ambiente!")
+else:
+    print(f"ℹ️ A pasta '{pasta}' já existe no ambiente.")
+
+# 2. Mostra onde ela está localizada
+print("Diretório atual de trabalho:", os.getcwd())
