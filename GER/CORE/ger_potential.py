@@ -40,7 +40,7 @@ def potential_A(gamma):
 
     force = gamma**3
 
-    energy = 0.25 * gamma**4
+    energy = -0.25 * gamma**4
 
     return force, energy
 
