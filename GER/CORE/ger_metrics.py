@@ -1,5 +1,5 @@
-%%writefile GER_CORE/ger_metrics.py
 
+%%writefile GER_CORE/ger_metrics.py
 """
 =========================================================
 GER CORE
@@ -8,7 +8,7 @@ Arquivo : ger_metrics.py
 
 Métricas globais da Geometria Espectral Relacional.
 
-Este módulo implementa:
+Implementa:
 
 • Energia Hamiltoniana
 • Norma L²
@@ -16,18 +16,19 @@ Este módulo implementa:
 • Erro relativo de energia
 • Critério automático de divergência
 
-Todas as auditorias utilizam estas rotinas.
+GER CORE v1.0
+=========================================================
 """
 
 from __future__ import annotations
 
 import numpy as np
 
-from ger_potential import Potential
+from GER_CORE.ger_potential import Potential
 
 
 # =========================================================
-# Configurações globais
+# Constantes
 # =========================================================
 
 ENERGY_TOL = 1e-4
@@ -57,7 +58,7 @@ def compute_l2_norm(gamma):
 
 def compute_max_amplitude(gamma):
     """
-    Valor absoluto máximo do campo.
+    Máxima amplitude absoluta do campo.
     """
 
     gamma = np.asarray(gamma)
@@ -74,45 +75,63 @@ def compute_hamiltonian(
     velocity,
     laplacian,
     beta,
-    potential="A"
+    potential="A",
 ):
     """
-    Energia Hamiltoniana completa.
+    Calcula a energia Hamiltoniana discreta.
 
     H =
-        Energia cinética
-      + Energia elástica
-      + Energia potencial não linear
+        T
+      + E_elástica
+      + E_não_linear
+
+    Para comparações entre diferentes tamanhos
+    de rede, utiliza-se a densidade média de
+    energia.
     """
 
     gamma = np.asarray(gamma)
-
     velocity = np.asarray(velocity)
 
-    kinetic = 0.5 * np.sum(velocity**2)
+    kinetic = (
+        0.5
+        * np.mean(velocity**2)
+    )
 
-    elastic = 0.5 * gamma @ (laplacian @ gamma)
+    elastic = (
+        0.5
+        * np.mean(
+            gamma * (laplacian @ gamma)
+        )
+    )
 
     _, potential_energy = Potential.evaluate(
         gamma,
-        potential
+        potential,
     )
 
-    nonlinear = beta * np.sum(potential_energy)
+    nonlinear = (
+        beta
+        * np.mean(potential_energy)
+    )
 
-    return kinetic + elastic + nonlinear
+    return (
+        kinetic
+        + elastic
+        + nonlinear
+    )
 
 
 # =========================================================
-# Erro relativo de energia
+# Erro relativo
 # =========================================================
 
 def relative_energy_error(
     reference_energy,
-    current_energy
+    current_energy,
 ):
     """
-    Erro relativo da energia Hamiltoniana.
+    Erro relativo da energia.
     """
 
     return abs(
@@ -123,37 +142,32 @@ def relative_energy_error(
 
 
 # =========================================================
-# Critério automático de divergência
+# Divergência
 # =========================================================
 
 def check_divergence(
     gamma,
-    energy_error
+    energy_error,
 ):
     """
-    Detecta automaticamente explosões numéricas.
+    Detecta explosões numéricas.
     """
 
     amplitude = compute_max_amplitude(gamma)
 
     if amplitude > DIVERGENCE_AMPLITUDE:
-
         return True
 
     if np.isnan(amplitude):
-
         return True
 
     if np.isinf(amplitude):
-
         return True
 
     if np.isnan(energy_error):
-
         return True
 
     if np.isinf(energy_error):
-
         return True
 
     return False
