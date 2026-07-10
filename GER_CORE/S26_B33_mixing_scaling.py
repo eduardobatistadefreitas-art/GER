@@ -88,17 +88,17 @@ def print_mixing_scaling(result):
     print()
 
     for name in [
-
         "entropy",
         "width",
         "amplitude"
-
     ]:
 
         r = result[name]
 
         print(name.upper())
 
-        print(
-            "alpha =",
-            r["
+        print("alpha =", r["alpha"])
+        print("C =", r["C"])
+        print("R² =", r["R2"])
+
+        print()
