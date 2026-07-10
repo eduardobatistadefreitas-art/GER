@@ -23,14 +23,14 @@ from __future__ import annotations
 import numpy as np
 
 
-from ger_graph import (
+from GER_CORE.ger_graph import (
     build_ring_graph,
     spectral_basis,
     gaussian_packet
 )
 
 
-from ger_engine import (
+from GER_CORE.ger_engine import (
     run_engine
 )
 
