@@ -5,25 +5,45 @@ import numpy as np
 
 # ============================================================
 # S26-B35
-# Persistence Metrics
-# Observatório de estados persistentes
+# Persistence Observatory
+#
+# Observáveis:
+# Rloc
+# Dspec
+# Hshape
+# Cauto
+# Entropia auxiliar
 # ============================================================
 
 
-def temporal_residual(gamma_t, gamma_next, dt):
-    """
-    Mede a variação temporal normalizada do campo.
+def safe_normalize(x):
 
-    R_gamma -> 0 indica baixa evolução instantânea.
-    """
+    norm = np.linalg.norm(x)
+
+    if norm < 1e-15:
+        return x * 0.0
+
+    return x / norm
+
+
+
+# ------------------------------------------------------------
+# 1) Resíduo local temporal
+# ------------------------------------------------------------
+
+def compute_Rloc(
+    gamma_prev,
+    gamma_now,
+    dt
+):
 
     numerator = np.linalg.norm(
-        gamma_next - gamma_t
+        gamma_now - gamma_prev
     )
 
     denominator = (
         dt *
-        np.linalg.norm(gamma_t)
+        np.linalg.norm(gamma_now)
         + 1e-15
     )
 
@@ -31,238 +51,206 @@ def temporal_residual(gamma_t, gamma_next, dt):
 
 
 
-def finite_difference(values, dt):
-    """
-    Derivada temporal discreta.
-    """
+# ------------------------------------------------------------
+# 2) Divergência espectral Jensen-Shannon
+# ------------------------------------------------------------
 
-    values = np.asarray(values)
+def compute_Dspec(
+    p_prev,
+    p_now
+):
 
-    return np.gradient(
-        values,
-        dt
+    p_prev = np.asarray(p_prev)
+    p_now = np.asarray(p_now)
+
+    m = 0.5 * (
+        p_prev + p_now
+    )
+
+    def kl(p, q):
+
+        mask = p > 0
+
+        return np.sum(
+            p[mask] *
+            np.log(
+                p[mask] /
+                (q[mask] + 1e-15)
+            )
+        )
+
+    return 0.5 * (
+        kl(p_prev, m)
+        +
+        kl(p_now, m)
     )
 
 
 
-def persistence_derivatives(
-    entropy,
-    width,
-    amplitude,
-    participation,
+# ------------------------------------------------------------
+# 3) Variação do Participation Ratio
+# ------------------------------------------------------------
+
+def compute_Hshape(
+    PR_prev,
+    PR_now,
     dt
 ):
-    """
-    Calcula taxas de variação das métricas espectrais.
-    """
 
-    return {
-
-        "d_entropy_dt":
-            finite_difference(
-                entropy,
-                dt
-            ),
-
-        "d_width_dt":
-            finite_difference(
-                width,
-                dt
-            ),
-
-        "d_amplitude_dt":
-            finite_difference(
-                amplitude,
-                dt
-            ),
-
-        "d_PR_dt":
-            finite_difference(
-                participation,
-                dt
-            )
-    }
+    return (
+        PR_now - PR_prev
+    ) / dt
 
 
 
-def autocorrelation(
-    gamma_history,
-    lag
+# ------------------------------------------------------------
+# 4) Coerência com estado inicial
+# ------------------------------------------------------------
+
+def compute_Cauto(
+    gamma_initial,
+    gamma_now
 ):
-    """
-    Autocorrelação temporal do campo.
 
-    Valores próximos de 1:
-    forte persistência.
-
-    Oscilações:
-    possível regime periódico.
-    """
-
-    gamma_history = np.asarray(
-        gamma_history
+    a = np.linalg.norm(
+        gamma_initial
     )
 
-    if lag >= len(gamma_history):
-        return np.nan
-
-
-    x = gamma_history[:-lag]
-    y = gamma_history[lag:]
-
-
-    numerator = np.mean(
-        x * y
+    b = np.linalg.norm(
+        gamma_now
     )
 
-    denominator = (
-        np.mean(x*x)
-        + 1e-15
-    )
+    if a < 1e-15 or b < 1e-15:
+        return 0.0
 
-    return numerator / denominator
+    return np.dot(
+        gamma_initial,
+        gamma_now
+    ) / (a*b)
 
 
 
-def stationary_score(
-    residual,
-    d_entropy,
-    d_width,
-    tolerance=1e-3
+# ------------------------------------------------------------
+# 5) Entropia espectral auxiliar
+# ------------------------------------------------------------
+
+def compute_entropy(
+    probability
 ):
-    """
-    Classificador neutro.
 
-    Não identifica fenômenos.
-    Apenas organiza regimes.
-    """
-
-    residual_small = (
-        np.mean(np.abs(residual))
-        < tolerance
+    p = np.asarray(
+        probability
     )
 
-    entropy_small = (
-        np.mean(np.abs(d_entropy))
-        < tolerance
+    mask = p > 0
+
+    n = len(p)
+
+    if n <= 1:
+        return 0.0
+
+    S = -np.sum(
+        p[mask] *
+        np.log(
+            p[mask]
+        )
     )
 
-    width_small = (
-        np.mean(np.abs(d_width))
-        < tolerance
-    )
-
-
-    if (
-        residual_small
-        and entropy_small
-        and width_small
-    ):
-
-        return "PERSISTENT_CANDIDATE"
-
-
-    elif (
-        entropy_small
-        and width_small
-    ):
-
-        return "STATISTICAL_STABILITY"
-
-
-    elif not np.isnan(
-        np.mean(residual)
-    ):
-
-        return "TRANSIENT"
-
-
-    else:
-
-        return "UNSTABLE"
+    return S / np.log(n)
 
 
 
-def summarize_persistence(
-    residual,
-    derivatives
+# ------------------------------------------------------------
+# Observatório completo
+# ------------------------------------------------------------
+
+def run_persistence_observatory(
+    snapshots,
+    dt
 ):
-    """
-    Resumo automático da auditoria.
-    """
 
-    return {
+    results = {
 
-        "mean_R_gamma":
-            np.mean(
-                residual
-            ),
-
-        "max_R_gamma":
-            np.max(
-                residual
-            ),
-
-        "mean_dS":
-            np.mean(
-                np.abs(
-                    derivatives[
-                        "d_entropy_dt"
-                    ]
-                )
-            ),
-
-        "mean_dW":
-            np.mean(
-                np.abs(
-                    derivatives[
-                        "d_width_dt"
-                    ]
-                )
-            ),
-
-        "mean_dA":
-            np.mean(
-                np.abs(
-                    derivatives[
-                        "d_amplitude_dt"
-                    ]
-                )
-            ),
-
-        "mean_dPR":
-            np.mean(
-                np.abs(
-                    derivatives[
-                        "d_PR_dt"
-                    ]
-                )
-            )
+        "Rloc": [],
+        "Dspec": [],
+        "Hshape": [],
+        "Cauto": [],
+        "entropy": []
 
     }
 
 
+    gamma_initial = np.asarray(
+        snapshots[0]["gamma"]
+    )
 
-def print_persistence_report(
-    summary,
-    classification
-):
+    for i in range(
+        1,
+        len(snapshots)
+    ):
 
-    print("\n")
-    print("="*50)
-    print("PERSISTENCE AUDIT")
-    print("="*50)
+        prev = snapshots[i-1]
+        now = snapshots[i]
 
-    for key, value in summary.items():
 
-        print(
-            f"{key}: {value:.6e}"
+        gamma_prev = np.asarray(
+            prev["gamma"]
+        )
+
+        gamma_now = np.asarray(
+            now["gamma"]
         )
 
 
-    print("\nCLASSIFICATION:")
-    print(
-        classification
-    )
+        results["Rloc"].append(
 
-    print("="*50)
+            compute_Rloc(
+                gamma_prev,
+                gamma_now,
+                dt
+            )
+
+        )
+
+
+        results["Dspec"].append(
+
+            compute_Dspec(
+                prev["probability"],
+                now["probability"]
+            )
+
+        )
+
+
+        results["Hshape"].append(
+
+            compute_Hshape(
+                prev["participation_ratio"],
+                now["participation_ratio"],
+                dt
+            )
+
+        )
+
+
+        results["Cauto"].append(
+
+            compute_Cauto(
+                gamma_initial,
+                gamma_now
+            )
+
+        )
+
+
+        results["entropy"].append(
+
+            compute_entropy(
+                now["probability"]
+            )
+
+        )
+
+
+    return results
