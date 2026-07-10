@@ -35,12 +35,12 @@ e executa validação automática.
 # Imports principais
 # =========================================================
 
-from ger_engine import (
+from GER_CORE.ger_engine import (
     run_engine
 )
 
 
-from ger_validation import (
+from GER_CORE.ger_validation import (
     validate_GER_CORE
 )
 
