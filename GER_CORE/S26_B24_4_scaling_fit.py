@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B24_4_scaling_fit.py
-
 import numpy as np
 
 
