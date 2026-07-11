@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B35_persistence_metrics.py
-
 import numpy as np
 
 
