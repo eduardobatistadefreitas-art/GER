@@ -1,5 +1,3 @@
-%%writefile GER_CORE/ger_validation.py
-
 """
 =========================================================
 GER CORE
