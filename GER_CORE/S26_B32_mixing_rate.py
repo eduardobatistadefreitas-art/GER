@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B32_mixing_rate.py
-
 import numpy as np
 
 
