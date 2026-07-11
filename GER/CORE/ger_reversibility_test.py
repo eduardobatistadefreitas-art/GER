@@ -1,5 +1,3 @@
-%%writefile GER_CORE/ger_reversibility_test.py
-
 """
 =========================================================
 GER CORE
