@@ -2,166 +2,291 @@
 
 import numpy as np
 
-from GER_CORE.ger_engine import run_engine
-
-from GER_CORE.S26_B35_persistence_metrics import (
-    temporal_residual,
-    persistence_derivatives,
-    autocorrelation,
-    summarize_persistence
-)
-
 
 # ============================================================
 # S26-B36
 # Stationary Scan
-# Busca inicial de regimes persistentes
+#
+# Classificação de regimes dinâmicos
+#
+# Entrada:
+# observables B35
+#
+# Saída:
+# regime matemático
+# persistence score
+# estatísticas assintóticas
 # ============================================================
 
 
-def run_stationary_scan(
-    betas,
-    steps=2000,
-    dt=1e-4
+
+def linear_slope(values):
+
+    values = np.asarray(values)
+
+    if len(values) < 2:
+        return 0.0
+
+    x = np.arange(len(values))
+
+    coef = np.polyfit(
+        x,
+        values,
+        1
+    )
+
+    return coef[0]
+
+
+
+def persistence_score(
+    Rloc,
+    Dspec,
+    Hshape,
+    Cauto,
+    dt
 ):
-    """
-    Executa varredura de persistência
-    em regimes conhecidos de beta.
-    """
 
-    results = {}
+    return (
+        abs(Cauto)
+        *
+        np.exp(
+            -(
+                dt*Rloc
+                +
+                Dspec
+                +
+                dt*abs(Hshape)
+            )
+        )
+    )
 
 
-    for beta in betas:
 
-        print("\n")
-        print("="*50)
-        print(f"BETA = {beta}")
-        print("="*50)
+def compute_statistics(
+    obs,
+    K=10
+):
 
+    data = {}
 
-        output = run_engine(
-            beta=beta,
-            steps=steps,
-            dt=dt,
-            return_history=True
+    for key in obs:
+
+        data[key] = np.asarray(
+            obs[key]
         )
 
 
-        gamma_history = np.asarray(
-            output["gamma_history"]
-        )
+    window = {}
+
+    for key in data:
+
+        window[key] = data[key][-K:]
 
 
-        entropy = np.asarray(
-            output["entropy"]
-        )
 
-        width = np.asarray(
-            output["width"]
-        )
+    stats = {
 
-        amplitude = np.asarray(
-            output["amplitude"]
-        )
+        "mean_Rloc":
+            np.mean(
+                window["Rloc"]
+            ),
 
-        PR = np.asarray(
-            output["PR"]
-        )
+        "mean_Dspec":
+            np.mean(
+                window["Dspec"]
+            ),
 
-
-        residual = []
-
-
-        for i in range(
-            len(gamma_history)-1
-        ):
-
-            residual.append(
-                temporal_residual(
-                    gamma_history[i],
-                    gamma_history[i+1],
-                    dt
+        "mean_Hshape":
+            np.mean(
+                np.abs(
+                    window["Hshape"]
                 )
+            ),
+
+        "var_Rloc":
+            np.var(
+                window["Rloc"]
+            ),
+
+        "var_Dspec":
+            np.var(
+                window["Dspec"]
+            ),
+
+        "slope_Rmacro":
+            linear_slope(
+                window["Rmacro"]
+            ),
+
+        "slope_Cauto":
+            linear_slope(
+                window["Cauto"]
+            ),
+
+        "slope_entropy":
+            linear_slope(
+                window["entropy"]
             )
 
+    }
 
-        residual = np.asarray(
-            residual
+
+    P = []
+
+    for i in range(len(window["Rloc"])):
+
+        P.append(
+
+            persistence_score(
+                window["Rloc"][i],
+                window["Dspec"][i],
+                window["Hshape"][i],
+                window["Cauto"][i],
+                1.0
+            )
+
         )
 
 
-        derivatives = persistence_derivatives(
-            entropy,
-            width,
-            amplitude,
-            PR,
-            dt
-        )
+    stats["persistence"] = np.asarray(P)
+
+    stats["mean_P"] = np.mean(P)
+
+    stats["var_P"] = np.var(P)
 
 
-        summary = summarize_persistence(
-            residual,
-            derivatives
-        )
-
-
-        auto = autocorrelation(
-            gamma_history,
-            lag=100
-        )
-
-
-        summary["autocorrelation"] = auto
-
-
-        results[beta] = summary
-
-
-        print(
-            f"mean R_gamma = "
-            f"{summary['mean_R_gamma']:.6e}"
-        )
-
-        print(
-            f"mean |dS/dt| = "
-            f"{summary['mean_dS']:.6e}"
-        )
-
-        print(
-            f"mean |dW/dt| = "
-            f"{summary['mean_dW']:.6e}"
-        )
-
-        print(
-            f"R_auto(100) = "
-            f"{auto:.6e}"
-        )
-
-
-    return results
+    return stats
 
 
 
-def print_stationary_scan(
-    results
+def classify_regime(
+    stats,
+    epsilon=1e-3
 ):
 
-    print("\n")
-    print("="*60)
-    print("PERSISTENCE SCAN")
-    print("="*60)
+
+    # ----------------------------
+    # Persistente
+    # ----------------------------
+
+    if (
+
+        stats["mean_Rloc"] <= epsilon
+
+        and
+
+        stats["mean_Dspec"] <= epsilon
+
+        and
+
+        stats["mean_Hshape"] <= epsilon
+
+        and
+
+        abs(stats["slope_Rmacro"])
+        <= epsilon
+
+    ):
+
+        return "PERSISTENTE"
 
 
-    for beta, data in results.items():
 
-        print("\n")
-        print(
-            f"β={beta}"
+    # ----------------------------
+    # Instável
+    # ----------------------------
+
+    if (
+
+        stats["mean_Rloc"] > 1.0
+
+        or
+
+        stats["var_Rloc"]
+        >
+        1/epsilon
+
+    ):
+
+        return "INSTAVEL"
+
+
+
+    # ----------------------------
+    # Transitório
+    # ----------------------------
+
+    if (
+
+        abs(
+            stats["slope_entropy"]
         )
+        >
+        epsilon
 
-        for key,value in data.items():
+        or
 
-            print(
-                f"{key}: {value:.6e}"
-            )
+        stats["mean_Dspec"]
+        >
+        epsilon
+
+    ):
+
+        return "TRANSITORIO"
+
+
+
+    # ----------------------------
+    # Oscilatório
+    # ----------------------------
+
+    if (
+
+        stats["var_Dspec"]
+        >
+        epsilon
+
+    ):
+
+        return "OSCILATORIO"
+
+
+
+    return "TRANSITORIO"
+
+
+
+def run_stationary_scan(
+    observables,
+    K=10,
+    epsilon=1e-3
+):
+
+
+    stats = compute_statistics(
+        observables,
+        K
+    )
+
+
+    regime = classify_regime(
+        stats,
+        epsilon
+    )
+
+
+    return {
+
+        "regime": regime,
+
+        "persistence_score":
+            stats["mean_P"],
+
+        "persistence_variance":
+            stats["var_P"],
+
+        "statistics":
+            stats
+
+    }
