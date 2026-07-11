@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B34_scaling_robustness.py
-
 import numpy as np
 
 from GER_CORE.S26_B31_modal_transfer import run_modal_transfer
