@@ -1,5 +1,3 @@
-%%writefile GER_CORE/ger_symmetry_test.py
-
 """
 =========================================================
 GER CORE
