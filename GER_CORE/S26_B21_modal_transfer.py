@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B21_modal_transfer.py
-
 """
 =========================================================
 GER CORE
