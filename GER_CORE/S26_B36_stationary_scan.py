@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B36_stationary_scan.py
-
 import numpy as np
 
 # ============================================================
