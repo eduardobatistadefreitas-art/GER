@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B24_3_critical_curve.py
-
 import numpy as np
 
 from GER_CORE.ger_engine import run_engine
