@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B25_critical_scaling_refinement.py
-
 import numpy as np
 
 
