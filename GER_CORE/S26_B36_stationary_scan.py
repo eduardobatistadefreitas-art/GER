@@ -6,6 +6,9 @@ import numpy as np
 # ============================================================
 # S26-B36
 # Stationary Scan
+#
+# Classificação algorítmica de regimes
+# baseada no observatório B35
 # ============================================================
 
 
@@ -18,18 +21,32 @@ def linear_slope(values):
 
     x = np.arange(len(values))
 
-    return np.polyfit(
+    coef = np.polyfit(
         x,
         values,
         1
-    )[0]
+    )
+
+    return coef[0]
 
 
-def persistence_score(
+
+def mean_abs(x):
+
+    return np.mean(
+        np.abs(
+            np.asarray(x)
+        )
+    )
+
+
+
+def compute_persistence_score(
     Rloc,
     Dspec,
-    delta_PR,
-    Cauto
+    Hshape,
+    Cauto,
+    dt
 ):
 
     return (
@@ -37,25 +54,29 @@ def persistence_score(
         *
         np.exp(
             -(
-                Rloc
+                dt * Rloc
                 +
                 Dspec
                 +
-                np.abs(delta_PR)
+                dt * np.abs(Hshape)
             )
         )
     )
 
 
-def compute_statistics(
+
+def stationary_scan(
     observables,
-    K=None
+    dt,
+    K=None,
+    epsilon=1e-8
 ):
 
     if K is None:
-        K = len(observables["Rloc"])
+        K = len(
+            observables["Rloc"]
+        )
 
-    stats = {}
 
     data = {}
 
@@ -65,27 +86,49 @@ def compute_statistics(
             observables[key]
         )[-K:]
 
-    stats["mean_Rloc"] = np.mean(data["Rloc"])
-    stats["mean_Dspec"] = np.mean(data["Dspec"])
 
-    stats["mean_delta_PR"] = np.mean(
-        np.abs(data["Hshape"])
-    )
+    # -------------------------
+    # Estatísticas
+    # -------------------------
 
-    stats["var_Rloc"] = np.var(data["Rloc"])
-    stats["var_Dspec"] = np.var(data["Dspec"])
+    statistics = {
 
-    stats["slope_Rmacro"] = linear_slope(
-        data["Rmacro"]
-    )
+        "mean_Rloc":
+            np.mean(data["Rloc"]),
 
-    stats["slope_Cauto"] = linear_slope(
-        data["Cauto"]
-    )
+        "mean_Dspec":
+            np.mean(data["Dspec"]),
 
-    stats["slope_entropy"] = linear_slope(
-        data["entropy"]
-    )
+        "mean_Hshape":
+            mean_abs(data["Hshape"]),
+
+        "var_Rloc":
+            np.var(data["Rloc"]),
+
+        "var_Dspec":
+            np.var(data["Dspec"]),
+
+        "slope_Rmacro":
+            linear_slope(
+                data["Rmacro"]
+            ),
+
+        "slope_Cauto":
+            linear_slope(
+                data["Cauto"]
+            ),
+
+        "slope_entropy":
+            linear_slope(
+                data["entropy"]
+            )
+
+    }
+
+
+    # -------------------------
+    # Persistence score
+    # -------------------------
 
     P = []
 
@@ -93,113 +136,97 @@ def compute_statistics(
 
         P.append(
 
-            persistence_score(
-
+            compute_persistence_score(
                 data["Rloc"][i],
-
                 data["Dspec"][i],
-
                 data["Hshape"][i],
-
-                data["Cauto"][i]
-
+                data["Cauto"][i],
+                dt
             )
 
         )
 
+
     P = np.asarray(P)
 
-    stats["mean_P"] = np.mean(P)
-    stats["var_P"] = np.var(P)
 
-    return stats, P
+    statistics["mean_P"] = np.mean(P)
+    statistics["var_P"] = np.var(P)
 
 
-def classify_regime(
 
-    stats,
-
-    epsilon=1e-8
-
-):
+    # -------------------------
+    # Classificação
+    # -------------------------
 
     if (
 
-        stats["mean_Dspec"] < epsilon
+        statistics["mean_Rloc"] < epsilon
         and
-        stats["mean_delta_PR"] < 1e-3
+        statistics["mean_Dspec"] < epsilon
         and
-        stats["var_P"] < 1e-6
+        statistics["mean_Hshape"] < epsilon
 
     ):
 
-        return "PERSISTENTE"
+        regime = "PERSISTENTE"
 
-    if (
 
-        stats["mean_delta_PR"] > 1e-3
+
+    elif (
+
+        statistics["mean_Hshape"] > epsilon
         and
-        stats["slope_Cauto"] < -epsilon
+        statistics["slope_Cauto"] < -epsilon
 
     ):
 
-        return "TRANSITORIO"
+        regime = "TRANSITORIO"
 
-    if (
 
-        stats["var_Dspec"] > epsilon
 
-    ):
+    elif (
 
-        return "OSCILATORIO"
-
-    if (
-
-        stats["var_Rloc"] > 1/epsilon
+        statistics["mean_Rloc"] > epsilon
+        and
+        statistics["var_Dspec"] > epsilon
 
     ):
 
-        return "INSTAVEL"
-
-    return "TRANSITORIO"
+        regime = "OSCILATORIO"
 
 
-def run_stationary_scan(
 
-    observables,
+    elif (
 
-    K=None,
+        statistics["var_Rloc"] > 1/epsilon
 
-    epsilon=1e-8
+    ):
 
-):
+        regime = "INSTAVEL"
 
-    stats, P = compute_statistics(
 
-        observables,
 
-        K
+    else:
 
-    )
+        regime = "TRANSITORIO"
 
-    regime = classify_regime(
 
-        stats,
-
-        epsilon
-
-    )
 
     return {
 
         "regime": regime,
 
-        "persistence_score": stats["mean_P"],
+        "persistence_score":
+            statistics["mean_P"],
 
-        "persistence_variance": stats["var_P"],
+        "persistence_variance":
+            statistics["var_P"],
 
-        "statistics": stats,
+        "statistics":
+            statistics,
 
-        "persistence_history": P
+        "persistence_history":
+            P
 
     }
