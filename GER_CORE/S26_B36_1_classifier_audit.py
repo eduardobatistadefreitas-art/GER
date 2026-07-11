@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B36_1_classifier_audit.py
-
 import numpy as np
 
 
