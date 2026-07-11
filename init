@@ -1,8 +1,0 @@
-%%writefile GER_CORE/__init__.py
-
-"""
-GER CORE
-
-Biblioteca computacional da
-Geometria Espectral Relacional.
-"""
