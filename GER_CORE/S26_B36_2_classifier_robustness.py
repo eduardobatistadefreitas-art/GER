@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B36_2_classifier_robustness.py
-
 import numpy as np
 
 
