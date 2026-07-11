@@ -1,5 +1,3 @@
-%%writefile GER_CORE/ger_potential.py
-
 """
 =========================================================
 GER CORE
