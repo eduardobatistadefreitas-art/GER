@@ -12,6 +12,7 @@ import numpy as np
 # Dspec
 # Hshape
 # Cauto
+# Rmacro
 # Entropia auxiliar
 # ============================================================
 
@@ -24,7 +25,6 @@ def safe_normalize(x):
         return x * 0.0
 
     return x / norm
-
 
 
 # ------------------------------------------------------------
@@ -48,7 +48,6 @@ def compute_Rloc(
     )
 
     return numerator / denominator
-
 
 
 # ------------------------------------------------------------
@@ -86,7 +85,6 @@ def compute_Dspec(
     )
 
 
-
 # ------------------------------------------------------------
 # 3) Variação do Participation Ratio
 # ------------------------------------------------------------
@@ -100,7 +98,6 @@ def compute_Hshape(
     return (
         PR_now - PR_prev
     ) / dt
-
 
 
 # ------------------------------------------------------------
@@ -126,12 +123,29 @@ def compute_Cauto(
     return np.dot(
         gamma_initial,
         gamma_now
-    ) / (a*b)
-
+    ) / (a * b)
 
 
 # ------------------------------------------------------------
-# 5) Entropia espectral auxiliar
+# 5) Deslocamento do centro modal
+# ------------------------------------------------------------
+
+def compute_Rmacro(
+    center_prev,
+    center_now,
+    dt,
+    n
+):
+
+    return abs(
+        center_now - center_prev
+    ) / (
+        dt * n
+    )
+
+
+# ------------------------------------------------------------
+# 6) Entropia espectral auxiliar
 # ------------------------------------------------------------
 
 def compute_entropy(
@@ -159,7 +173,6 @@ def compute_entropy(
     return S / np.log(n)
 
 
-
 # ------------------------------------------------------------
 # Observatório completo
 # ------------------------------------------------------------
@@ -175,10 +188,10 @@ def run_persistence_observatory(
         "Dspec": [],
         "Hshape": [],
         "Cauto": [],
+        "Rmacro": [],
         "entropy": []
 
     }
-
 
     gamma_initial = np.asarray(
         snapshots[0]["gamma"]
@@ -189,9 +202,8 @@ def run_persistence_observatory(
         len(snapshots)
     ):
 
-        prev = snapshots[i-1]
+        prev = snapshots[i - 1]
         now = snapshots[i]
-
 
         gamma_prev = np.asarray(
             prev["gamma"]
@@ -200,7 +212,6 @@ def run_persistence_observatory(
         gamma_now = np.asarray(
             now["gamma"]
         )
-
 
         results["Rloc"].append(
 
@@ -212,7 +223,6 @@ def run_persistence_observatory(
 
         )
 
-
         results["Dspec"].append(
 
             compute_Dspec(
@@ -221,7 +231,6 @@ def run_persistence_observatory(
             )
 
         )
-
 
         results["Hshape"].append(
 
@@ -233,7 +242,6 @@ def run_persistence_observatory(
 
         )
 
-
         results["Cauto"].append(
 
             compute_Cauto(
@@ -243,6 +251,16 @@ def run_persistence_observatory(
 
         )
 
+        results["Rmacro"].append(
+
+            compute_Rmacro(
+                prev["modal_center"],
+                now["modal_center"],
+                dt,
+                len(gamma_now)
+            )
+
+        )
 
         results["entropy"].append(
 
@@ -251,6 +269,5 @@ def run_persistence_observatory(
             )
 
         )
-
 
     return results
