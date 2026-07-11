@@ -1,4 +1,3 @@
-%%writefile GER_CORE/ger_convergence.py
 """
 =========================================================
 GER CORE
