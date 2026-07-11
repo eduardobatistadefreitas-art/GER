@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B33_mixing_scaling.py
-
 import numpy as np
 
 
