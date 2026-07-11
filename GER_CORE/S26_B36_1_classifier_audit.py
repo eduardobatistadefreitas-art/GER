@@ -4,18 +4,18 @@ import numpy as np
 
 
 # ============================================================
-# S26-B36_1
+# S26-B36.1
+# Classificador de Regimes Dinâmicos
 #
-# Stationary Scan / Classifier Audit
+# Auditoria do Stationary Scan
 #
 # Entrada:
-# observables B35
+# observáveis B35
 #
 # Saída:
-# regime dinâmico
+# regime matemático
 # persistence score
-# estatísticas assintóticas
-#
+# estatísticas
 # ============================================================
 
 
@@ -23,18 +23,16 @@ def linear_slope(values):
 
     values = np.asarray(values)
 
+    x = np.arange(len(values))
+
     if len(values) < 2:
         return 0.0
 
-    x = np.arange(len(values))
-
-    coef = np.polyfit(
+    return np.polyfit(
         x,
         values,
         1
-    )
-
-    return coef[0]
+    )[0]
 
 
 
@@ -46,97 +44,56 @@ def compute_persistence(
     dt
 ):
 
-    delta_PR = np.abs(
-        Hshape * dt
-    )
+    return (
 
-
-    P = (
         np.abs(Cauto)
+
         *
+
         np.exp(
             -(
                 dt * Rloc
                 +
                 Dspec
                 +
-                delta_PR
+                dt * np.abs(Hshape)
             )
         )
+
     )
-
-
-    return P
 
 
 
 def classify_regime(
     obs,
-    dt=1e-4,
-    window=None
+    dt,
+    K=None
 ):
 
-
-    data = {}
-
-    for key,value in obs.items():
-
-        data[key] = np.asarray(value)
+    if K is None:
+        K = len(obs["Rloc"])
 
 
-
-    size = len(
-        data["Rloc"]
+    Rloc = np.asarray(
+        obs["Rloc"][-K:]
     )
 
-
-    if window is None:
-
-        window = size
-
-
-
-    # janela terminal
-
-    sl = slice(
-        max(0,size-window),
-        size
+    Dspec = np.asarray(
+        obs["Dspec"][-K:]
     )
 
-
-    Rloc = data["Rloc"][sl]
-    Dspec = data["Dspec"][sl]
-    Hshape = data["Hshape"][sl]
-    Cauto = data["Cauto"][sl]
-
-
-    if "Rmacro" in data:
-
-        Rmacro = data["Rmacro"][sl]
-
-    else:
-
-        Rmacro = np.zeros_like(Rloc)
-
-
-    if "entropy" in data:
-
-        entropy = data["entropy"][sl]
-
-    else:
-
-        entropy = np.zeros_like(Rloc)
-
-
-
-    # diferenças físicas
-
-    delta_PR = np.abs(
-        Hshape * dt
+    Hshape = np.asarray(
+        obs["Hshape"][-K:]
     )
 
+    Cauto = np.asarray(
+        obs["Cauto"][-K:]
+    )
 
-    # persistence
+    Rmacro = np.asarray(
+        obs["Rmacro"][-K:]
+    )
+
 
     P = compute_persistence(
         Rloc,
@@ -152,111 +109,70 @@ def classify_regime(
     var_P = np.var(P)
 
 
+    eps = 1e-6
 
-    # erro numérico adaptativo
 
-    epsilon = max(
-        1e-10,
-        np.std(P)
+    mean_Rloc = np.mean(Rloc)
+    mean_Dspec = np.mean(Dspec)
+    mean_Hshape = np.mean(
+        np.abs(Hshape)
     )
 
 
+    slope_Cauto = linear_slope(
+        Cauto
+    )
 
-    statistics = {
-
-        "mean_Rloc":
-            np.mean(Rloc),
-
-        "mean_Dspec":
-            np.mean(Dspec),
-
-        "mean_delta_PR":
-            np.mean(delta_PR),
-
-        "var_Rloc":
-            np.var(Rloc),
-
-        "var_Dspec":
-            np.var(Dspec),
-
-        "slope_Rmacro":
-            linear_slope(Rmacro),
-
-        "slope_Cauto":
-            linear_slope(Cauto),
-
-        "slope_entropy":
-            linear_slope(entropy),
-
-        "mean_P":
-            mean_P,
-
-        "var_P":
-            var_P
-
-    }
+    slope_Rmacro = linear_slope(
+        Rmacro
+    )
 
 
-
-    # ========================================================
-    # Classificador
-    # ========================================================
+    var_Rloc = np.var(Rloc)
+    var_Dspec = np.var(Dspec)
 
 
-    # Persistente:
-    #
-    # alta memória
-    # pouca mudança espectral
-    #
+    # ------------------------------------------------
+    # Classificação hierárquica
+    # ------------------------------------------------
+
 
     if (
-
         mean_P > 0.99
-
         and
-
-        np.mean(delta_PR)
-        < 1e-3
-
+        var_P < 1e-5
     ):
 
         regime = "PERSISTENTE"
 
 
+    elif (
+        mean_Rloc > eps
+        and
+        mean_Dspec > eps
+        and
+        slope_Cauto < -eps
+    ):
 
-    # Oscilatório:
+        regime = "TRANSITORIO"
+
 
     elif (
-
-        mean_P > 0.5
-
+        mean_Rloc > eps
         and
-
-        np.var(Cauto)
-        > epsilon
-
+        var_Dspec > eps
     ):
 
         regime = "OSCILATORIO"
 
 
-
-    # Instável:
-
     elif (
-
-        np.mean(Rloc)
-        > 10
-
+        mean_Rloc > 1
         or
-
-        np.var(Rloc)
-        > 1
-
+        var_Rloc > 1
     ):
 
         regime = "INSTAVEL"
-
 
 
     else:
@@ -267,17 +183,51 @@ def classify_regime(
 
     return {
 
+
         "regime":
             regime,
+
 
         "persistence_score":
             mean_P,
 
+
         "persistence_variance":
             var_P,
 
+
         "statistics":
-            statistics,
+        {
+
+            "mean_Rloc":
+                mean_Rloc,
+
+            "mean_Dspec":
+                mean_Dspec,
+
+            "mean_Hshape":
+                mean_Hshape,
+
+            "var_Rloc":
+                var_Rloc,
+
+            "var_Dspec":
+                var_Dspec,
+
+            "slope_Rmacro":
+                slope_Rmacro,
+
+            "slope_Cauto":
+                slope_Cauto,
+
+            "mean_P":
+                mean_P,
+
+            "var_P":
+                var_P
+
+        },
+
 
         "persistence_history":
             P
