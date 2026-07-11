@@ -1,5 +1,3 @@
-
-%%writefile GER_CORE/ger_metrics.py
 """
 =========================================================
 GER CORE
