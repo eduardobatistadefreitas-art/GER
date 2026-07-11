@@ -1,5 +1,3 @@
-%%writefile GER_CORE/S26_B29_asymptotic_scaling.py
-
 from GER_CORE.S26_B24_3_critical_curve import (
     find_critical_dt
 )
