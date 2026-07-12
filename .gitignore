@@ -1,2 +1,19 @@
+# Python
 __pycache__/
 *.py[c]
+
+# Colab / Jupyter
+.ipynb_checkpoints/
+
+# Sistema
+.DS_Store
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Distribuição
+build/
+dist/
+*.egg-info/
