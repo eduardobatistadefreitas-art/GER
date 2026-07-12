@@ -90,3 +90,15 @@ def stationary_scan(observables, dt, K=None, epsilon=1e-8):
         "persistence_history": P
     }
     
+# ============================================================
+# API pública
+# ============================================================
+
+def run_stationary_scan(*args, **kwargs):
+    """
+    Interface oficial do GER para o Stationary Scan.
+
+    Wrapper da função stationary_scan().
+    Mantido para padronização da API do framework.
+    """
+    return stationary_scan(*args, **kwargs)
