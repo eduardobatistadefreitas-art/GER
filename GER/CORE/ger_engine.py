@@ -26,23 +26,23 @@ from __future__ import annotations
 
 import numpy as np
 
-from GER_CORE.ger_graph import (
+from GER.CORE.ger_graph import (
     build_ring_graph,
     spectral_basis,
     gaussian_packet,
 )
 
-from GER_CORE.ger_metrics import (
+from GER.CORE.ger_metrics import (
     compute_hamiltonian,
     relative_energy_error,
     check_divergence,
 )
 
-from GER_CORE.ger_snapshot import (
+from GER.CORE.ger_snapshot import (
     build_snapshot,
 )
 
-from GER_CORE.ger_potential import (
+from GER.CORE.ger_potential import (
     Potential,
 )
 
