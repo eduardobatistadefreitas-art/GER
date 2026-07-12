@@ -97,10 +97,5 @@ def stationary_scan(observables, dt, K=None, epsilon=1e-8):
 def run_stationary_scan(*args, **kwargs):
     """
     Interface pública oficial do Stationary Scan.
-
-    Esta função constitui a API estável do framework GER.
-    A implementação permanece encapsulada em
-    `stationary_scan()`, permitindo futuras alterações
-    internas sem quebrar compatibilidade.
     """
     return stationary_scan(*args, **kwargs)
