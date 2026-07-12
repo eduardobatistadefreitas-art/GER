@@ -10,9 +10,11 @@ Uso:
 
     python bootstrap.py
 
-ou no Google Colab:
+ou via:
 
-    %run GER_CORE/bootstrap.py
+    from GER.CORE.bootstrap import initialize
+
+    initialize()
 
 
 Carrega:
@@ -33,13 +35,12 @@ e executa validação automática.
 # Imports principais
 # =========================================================
 
-from GER_CORE.ger_engine import (
-    run_engine
+from GER.CORE.ger_engine import (
+    run_engine,
 )
 
-
-from GER_CORE.ger_validation import (
-    validate_GER_CORE
+from GER.CORE.ger_validation import (
+    validate_GER_CORE,
 )
 
 
