@@ -231,3 +231,18 @@ def classify_regime(
             P
 
     }
+    
+    # ============================================================
+# API Pública Oficial do GER
+# ============================================================
+
+def run_classifier_audit(*args, **kwargs):
+    """
+    Interface pública oficial do Classifier Audit.
+
+    Esta função constitui a API estável do framework GER.
+    A implementação permanece encapsulada em
+    `classify_regime()`, permitindo futuras alterações
+    internas sem quebrar compatibilidade.
+    """
+    return classify_regime(*args, **kwargs)
