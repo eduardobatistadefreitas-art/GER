@@ -24,19 +24,19 @@ from __future__ import annotations
 import numpy as np
 
 
-from GER_CORE.ger_graph import (
+from GER.CORE.ger_graph import (
     build_ring_graph,
     spectral_basis,
     gaussian_packet
 )
 
 
-from GER_CORE.ger_engine import (
+from GER.CORE.ger_engine import (
     initialize_verlet
 )
 
 
-from GER_CORE.ger_potential import (
+from GER.CORE.ger_potential import (
     Potential
 )
 

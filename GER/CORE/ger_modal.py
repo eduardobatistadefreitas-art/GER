@@ -289,7 +289,7 @@ def analyze_modal_state(
 # Snapshot completo da simulação
 # =========================================================
 
-from GER_CORE.ger_metrics import (
+from GER.CORE.ger_metrics import (
     compute_hamiltonian,
     compute_l2_norm,
     compute_max_amplitude,

@@ -19,13 +19,13 @@ Responsabilidades:
 from __future__ import annotations
 
 
-from GER_CORE.ger_metrics import (
+from GER.CORE.ger_metrics import (
     compute_hamiltonian,
     compute_l2_norm,
     compute_max_amplitude
 )
 
-from GER_CORE.ger_modal import (
+from GER.CORE.ger_modal import (
     analyze_modal_state
 )
 

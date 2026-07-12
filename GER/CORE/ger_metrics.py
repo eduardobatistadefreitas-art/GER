@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from GER_CORE.ger_potential import Potential
+from GER.CORE.ger_potential import Potential
 
 
 # =========================================================
