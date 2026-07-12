@@ -1,0 +1,1 @@
+Esta pasta contém artefatos científicos associados ao projeto GER. O registro oficial dos resultados experimentais permanece no Overleaf, enquanto esta pasta armazena versões de apoio, exportações e arquivos relacionados ao repositório.
