@@ -239,7 +239,5 @@ def classify_regime(
 def run_classifier_audit(obs, dt, K=None):
     """
     Interface pública oficial do Classifier Audit.
-
-    Esta função constitui a API estável do framework GER.
     """
     return classify_regime(obs, dt, K=K)
