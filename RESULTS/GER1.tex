@@ -1,0 +1,1675 @@
+\documentclass[11pt,a4paper]{article}
+
+% ------------------------------------------------
+% Pacotes básicos
+% ------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+
+\geometry{
+    margin=2.5cm
+}
+
+
+% ------------------------------------------------
+% Informações do documento
+% ------------------------------------------------
+
+\title{
+Geometria Espectral Relacional\\
+Série S26-B\\
+Regime Não Linear e Auditorias Dinâmicas
+}
+
+\author{
+Eduardo Batista de Freitas 
+}
+
+\date{\today}
+
+
+% ------------------------------------------------
+% Documento
+% ------------------------------------------------
+
+\begin{document}
+
+\maketitle
+
+
+\begin{abstract}
+
+Este documento apresenta a continuidade experimental da
+Geometria Espectral Relacional após a validação numérica
+do regime linear.
+
+A série S26-B investiga a introdução controlada de termos
+não lineares, a estabilidade dinâmica, a redistribuição
+espectral de energia e a possível existência de estados
+estacionários do operador relacional.
+
+\end{abstract}
+
+
+
+\tableofcontents
+
+
+\section{Introdução}
+
+A série S26-B representa a transição entre a validação
+do regime linear e a investigação sistemática da dinâmica
+não linear.
+
+O ciclo anterior estabeleceu a confiabilidade do motor
+computacional através da conservação Hamiltoniana,
+convergência temporal e validação espectral.
+
+A presente etapa mantém a mesma estrutura relacional,
+introduzindo parâmetros não lineares controlados.
+
+
+\section{Objetivos}
+
+Os objetivos principais são:
+
+\begin{itemize}
+
+\item determinar regimes estáveis de evolução não linear;
+
+\item caracterizar redistribuição de energia no espaço espectral;
+
+\item medir taxas de mistura modal;
+
+\item investigar estados persistentes;
+
+\item analisar dependência topológica futura.
+
+\end{itemize}
+
+
+
+\section{Metodologia}
+
+A evolução permanece baseada no operador relacional
+discreto e sua decomposição espectral.
+
+A dinâmica é integrada utilizando o mesmo formalismo
+numérico validado na etapa linear.
+
+
+\section{Resultados}
+
+Esta seção será preenchida após a consolidação das
+auditorias S26-B.
+
+\section{Auditoria 12 — Robustez Temporal em Regime Não Linear}
+
+A robustez temporal do integrador foi avaliada no regime
+fortemente não linear, utilizando $\beta=100$.
+
+Foram comparados diferentes passos temporais:
+
+\[
+\Delta t =
+5\times10^{-5},
+2.5\times10^{-5},
+1.25\times10^{-5},
+6.25\times10^{-6}
+\]
+
+Observou-se redução sistemática do erro relativo de energia
+com o refinamento temporal, indicando convergência compatível
+com um integrador de segunda ordem.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\toprule
+$\Delta t$ & Erro & Amplitude & Entropia & Largura\\
+\midrule
+$5e-5$ & 3.58 & 1.678 & 2.913 & 11.011\\
+$2.5e-5$ & 0.384 & 1.133 & 2.765 & 9.136\\
+$1.25e-5$ & 0.080 & 1.031 & 2.731 & 8.767\\
+$6.25e-6$ & 0.019 & 1.007 & 2.723 & 8.681\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O resultado indica que as alterações observadas no regime
+fortemente não linear para passos temporais maiores são
+efeitos de discretização e não mudanças estruturais do sistema.
+
+\section{Auditoria 13 — Dependência com o parâmetro $\beta$}
+
+Foi realizada uma análise paramétrica do comportamento
+dinâmico em função do parâmetro não linear $\beta$.
+
+Foram avaliados os valores:
+
+\[
+\beta =
+0.1,\ 0.25,\ 0.5,\ 1.0,\ 2.0
+\]
+
+Os resultados obtidos foram:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\toprule
+$\beta$ & Energia & Amplitude & Modo Dominante & PR\\
+\midrule
+0.1 & -2.55e-2 & 1.0126 & 0 & 1.00003\\
+0.25 & -6.76e-2 & 1.0318 & 0 & 1.00003\\
+0.5 & -1.49e-1 & 1.0646 & 0 & 1.00003\\
+1.0 & -3.65e-1 & 1.1336 & 0 & 1.00004\\
+2.0 & -1.13 & 1.2871 & 0 & 1.00006\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+Observou-se uma redução monotônica da energia com o
+aumento de $\beta$:
+
+\[
+\frac{\partial E}{\partial \beta}<0
+\]
+
+no intervalo analisado.
+
+A amplitude final apresentou crescimento progressivo,
+enquanto o modo espectral dominante permaneceu invariável:
+
+\[
+m_{\mathrm{dominante}}=0
+\]
+
+O índice de participação modal permaneceu próximo de:
+
+\[
+PR \approx 1
+\]
+
+indicando ausência de mistura modal significativa no regime
+avaliado.
+
+\section{Discussão}
+
+A interpretação dos resultados será realizada somente
+após a conclusão das auditorias previstas.
+
+
+\section{Conclusão}
+
+A série S26-B encontra-se em desenvolvimento.
+
+% Remova a linha antiga e adicione uma quebra de página 
+% para o Journal começar perfeitamente como uma nova parte do documento
+\section{Auditoria 13.1 — Análise de Sensibilidade ao Parâmetro $\beta$}
+
+A análise da dependência com o parâmetro não linear
+$\beta$ foi realizada utilizando os resultados da Auditoria 13.
+
+No intervalo:
+
+\[
+0.1 \leq \beta \leq 2.0
+\]
+
+observou-se redução monotônica da energia:
+
+\[
+\frac{\partial E}{\partial\beta}<0
+\]
+
+para todos os pontos avaliados.
+
+A amplitude final apresentou aumento relativo de:
+
+\[
+\frac{\Delta A}{A_0}=27.106\%
+\]
+
+mantendo, entretanto, a estrutura espectral estável.
+
+O modo dominante permaneceu invariável:
+
+\[
+m_{\mathrm{dominante}}=0
+\]
+
+em toda a faixa analisada.
+
+O índice de participação modal apresentou pequena variação:
+
+\[
+\Delta PR =
+3.29\times10^{-5}
+\]
+
+com valor médio:
+
+\[
+\overline{PR}=1.000039
+\]
+
+indicando ausência de redistribuição modal significativa.
+\section{Auditoria 14 — Transição de Regime Não Linear}
+
+A varredura inicial do parâmetro $\beta$ indicou
+estabilidade espectral até aproximadamente
+$\beta=10$.
+
+Nesse intervalo:
+
+\[
+m_{\mathrm{dominante}}=0
+\]
+
+permaneceu constante e o índice de participação modal
+apresentou pequena variação.
+
+Para valores superiores observou-se crescimento extremo
+da energia e ocorrência de overflow numérico, indicando
+necessidade de refinamento temporal antes de qualquer
+interpretação estrutural.
+\section{Auditoria 13 — Dependência entre Escala Não Linear e Resolução Temporal}
+
+A análise de estabilidade S26-B24 investigou a relação entre
+a intensidade não linear do sistema, representada pelo parâmetro
+$\beta$, e o passo temporal de integração $\Delta t$.
+
+Os resultados mostram que regimes aparentemente divergentes
+para passos temporais elevados recuperam estabilidade quando
+a resolução temporal é refinada.
+
+Observou-se uma dependência qualitativa:
+
+\[
+\beta \uparrow
+\Rightarrow
+\Delta t_{crit} \downarrow
+\]
+
+indicando a existência de uma escala temporal crítica associada
+à intensidade dinâmica do operador relacional.
+
+O fenômeno sugere que a variável temporal não atua apenas como
+parâmetro externo de evolução, mas pode estar acoplada à própria
+estrutura dinâmica do sistema.
+
+Para $\beta=20$, por exemplo, o regime
+$\Delta t=2.5\times10^{-4}$ apresentou divergência,
+enquanto os passos
+
+\[
+1.25\times10^{-4},
+6.25\times10^{-5},
+3.125\times10^{-5}
+\]
+
+mantiveram estabilidade.
+
+Esse comportamento indica que parte das instabilidades observadas
+em regimes fortemente não lineares são associadas à resolução
+temporal insuficiente e não necessariamente à ausência de estados
+dinâmicos estáveis.
+\begin{table}[h]
+\centering
+\begin{tabular}{cccc}
+\toprule
+$\beta$ & $\Delta t$ crítico aproximado & Estável & Observação\\
+\midrule
+10 & 2.5e-4 & Sim & Alta deformação\\
+20 & 1.25e-4 & Sim & Transição\\
+30 & 1.25e-4 & Sim & Forte não linearidade\\
+50 & 1.25e-4 & Sim & Regime extremo\\
+\bottomrule
+\end{tabular}
+\end{table}
+\section{Auditoria 14 — Escala Crítica Temporal}
+
+A análise da curva crítica temporal investigou a dependência
+entre o parâmetro não linear $\beta$ e o maior passo temporal
+compatível com estabilidade dinâmica.
+
+Os resultados indicam uma redução sistemática do limite temporal
+com o aumento da intensidade não linear:
+
+\[
+\beta \uparrow
+\Rightarrow
+\Delta t_{crit}\downarrow
+\]
+
+A fronteira observada apresenta comportamento em patamares:
+
+\[
+5\times10^{-4}
+\rightarrow
+2.5\times10^{-4}
+\rightarrow
+1.25\times10^{-4}
+\]
+
+sugerindo que o sistema possui escalas temporais críticas
+associadas ao regime dinâmico.
+
+A observação não estabelece uma lei fundamental, mas indica
+uma possível relação entre intensidade relacional e resolução
+temporal necessária para preservar estabilidade.
+\section{Auditoria 15 — Lei de Escala Temporal Crítica}
+
+A curva de estabilidade temporal foi analisada através de um
+ajuste em escala logarítmica.
+
+Assumindo uma relação fenomenológica:
+
+\[
+\Delta t_{crit}=C\beta^{-\alpha}
+\]
+
+foi realizado um ajuste linear no espaço:
+
+\[
+\log(\Delta t_{crit})
+=
+\log(C)-\alpha\log(\beta)
+\]
+
+Os resultados obtidos foram:
+
+\[
+\alpha=0.41696
+\]
+
+\[
+C=5.5049\times10^{-4}
+\]
+
+com coeficiente de determinação:
+
+\[
+R^2=0.9270
+\]
+
+O resultado indica uma dependência sistemática entre a
+intensidade não linear $\beta$ e a escala temporal crítica.
+
+A relação observada é compatível com uma lei de potência
+aproximada:
+
+\[
+\Delta t_{crit}
+\propto
+\beta^{-0.417}
+\]
+
+Entretanto, este resultado permanece como uma caracterização
+empírica do modelo S26-B, devendo ser submetido a testes com
+maior faixa de parâmetros e diferentes topologias.
+\section{Auditoria 16 — Transição de Regime na Escala Temporal Crítica}
+
+A análise refinada da dependência entre o parâmetro não linear
+$\beta$ e o passo temporal crítico revelou dois regimes distintos.
+
+Para baixos valores de $\beta$, observou-se um platô de estabilidade:
+
+\[
+\Delta t_{crit}\approx constante
+\]
+
+indicando que a limitação temporal não depende fortemente da
+não linearidade nesse intervalo.
+
+Entretanto, para o regime de maior intensidade não linear,
+o ajuste indicou:
+
+\[
+\Delta t_{crit}\propto\beta^{-0.495}
+\]
+
+comportamento próximo de:
+
+\[
+\Delta t_{crit}\propto\beta^{-1/2}
+\]
+
+Os resultados sugerem uma transição entre um regime dominado
+pela estabilidade estrutural e outro dominado pela escala
+dinâmica não linear.
+\section{Auditoria 17 — Localização da Transição de Estabilidade}
+
+A varredura refinada do parâmetro não linear $\beta$ revelou uma
+mudança no limite temporal de estabilidade.
+
+Para:
+
+\[
+\beta \leq 12
+\]
+
+observou-se:
+
+\[
+\Delta t_{crit}=2.5\times10^{-4}
+\]
+
+Enquanto para:
+
+\[
+\beta \geq 14
+\]
+
+o limite observado tornou-se:
+
+\[
+\Delta t_{crit}=1.25\times10^{-4}
+\]
+
+A região de transição encontra-se aproximadamente em:
+
+\[
+12 < \beta_c < 14
+\]
+
+indicando uma possível mudança de regime dinâmico.
+\section{Auditoria 18 — Refinamento da Fronteira Crítica}
+
+A investigação da região próxima ao ponto de transição
+previamente identificado revelou que a mudança no limite temporal
+não ocorre de forma abrupta.
+
+A análise refinada:
+
+\[
+12\leq\beta\leq14
+\]
+
+mostrou manutenção do limite:
+
+\[
+\Delta t_{crit}=2.5\times10^{-4}
+\]
+
+até aproximadamente:
+
+\[
+\beta\approx13.5
+\]
+
+seguida por uma redução gradual:
+
+\[
+\Delta t_{crit}=2.0\times10^{-4}
+\]
+
+em:
+
+\[
+\beta=14
+\]
+
+O resultado indica um regime de crossover entre estabilidade
+estrutural e limitação dinâmica, em vez de uma transição
+descontínua.
+\section{Auditoria 19 — Mapeamento do Crossover Temporal}
+
+A região de transição entre o regime de estabilidade estrutural
+e o regime dominado pela não linearidade foi investigada através
+de uma varredura refinada.
+
+Os resultados mostraram uma redução gradual do passo temporal
+crítico:
+
+\[
+\Delta t_{crit}=2.25\times10^{-4}
+\]
+
+para:
+
+\[
+14\leq\beta\leq16
+\]
+
+e:
+
+\[
+\Delta t_{crit}=2.0\times10^{-4}
+\]
+
+para:
+
+\[
+17\leq\beta\leq20
+\]
+
+A ausência de uma descontinuidade indica um crossover dinâmico
+em vez de uma transição abrupta.
+
+O comportamento sugere a existência de uma região intermediária
+entre o regime de baixa não linearidade e o regime assintótico de
+alta intensidade.
+\section{Auditoria 13 — Mapa de Estabilidade Temporal}
+
+A estabilidade do integrador foi investigada em função da intensidade
+não linear $\beta$.
+
+Inicialmente observou-se um regime de estabilidade praticamente
+independente de $\beta$, seguido por uma região de transição e,
+posteriormente, por um regime assintótico no qual o passo temporal
+crítico diminui sistematicamente com o aumento da não linearidade.
+
+Os experimentos permitiram identificar três regiões distintas:
+
+\begin{enumerate}
+
+\item Regime de platô ($\beta \lesssim 13.5$);
+
+\item Regime de transição ($14 \lesssim \beta \lesssim 25$);
+
+\item Regime assintótico ($\beta \gtrsim 25$).
+
+\end{enumerate}
+
+No regime assintótico foi ajustada uma lei de potência da forma
+
+\[
+\Delta t_{\mathrm{crit}}
+=
+C
+\beta^{-\alpha}.
+\]
+
+Foram obtidos os seguintes resultados experimentais:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccc}
+\toprule
+Intervalo & $\alpha$ & $R^2$\\
+\midrule
+$25 \leq \beta \leq 100$ & 0.483 & 0.932\\
+$\beta \geq 30$ & 0.535 & 0.941\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Os dois ajustes apresentam expoentes próximos de $1/2$, indicando que,
+na região fortemente não linear investigada, o passo temporal crítico é
+compatível com uma dependência aproximadamente proporcional a
+
+\[
+\Delta t_{\mathrm{crit}}
+\propto
+\beta^{-1/2}.
+\]
+
+Este comportamento foi obtido exclusivamente a partir das simulações
+numéricas do modelo e caracteriza o regime assintótico observado para a
+implementação atual.
+
+A etapa de validação numérica foi concluída com a caracterização do
+domínio de estabilidade temporal do integrador, incluindo a identificação
+de um regime de platô, uma região de transição e um regime assintótico
+compatível com uma lei de potência aproximadamente proporcional a
+$\Delta t_{\mathrm{crit}}\propto\beta^{-1/2}$.
+
+Com esta infraestrutura validada, as próximas auditorias concentram-se
+na caracterização espectral da dinâmica relacional, iniciando a Fase B2
+do projeto.
+% ------------------------------------------------
+\section{S26-B34.1 — Robustez Temporal das Leis de Mistura Espectral}
+
+A auditoria S26-B34.1 foi realizada para verificar se as leis
+de escala obtidas anteriormente na S26-B33 representam uma
+propriedade intrínseca do sistema ou um efeito associado à
+discretização temporal.
+
+Foram recalculados os expoentes de crescimento das taxas máximas
+de mistura espectral para diferentes passos temporais:
+
+\[
+\Delta t =
+2.50\times10^{-4},
+1.25\times10^{-4},
+6.25\times10^{-5},
+3.125\times10^{-5}
+\]
+
+considerando as relações de escala:
+
+\[
+\max\left(\frac{dS}{dt}\right)
+\propto \beta^{\alpha_S}
+\]
+
+\[
+\max\left(\frac{dW}{dt}\right)
+\propto \beta^{\alpha_W}
+\]
+
+\[
+\max\left(\frac{dA}{dt}\right)
+\propto \beta^{\alpha_A}
+\]
+
+Os resultados obtidos foram:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cccc}
+\toprule
+$\Delta t$ &
+$\alpha_S$ &
+$\alpha_W$ &
+$\alpha_A$
+\\
+\midrule
+$2.50e-4$ &
+2.2227 &
+1.7034 &
+1.8755
+\\
+
+$1.25e-4$ &
+1.1847 &
+1.0625 &
+1.1275
+\\
+
+$6.25e-5$ &
+1.0450 &
+1.0278 &
+1.0288
+\\
+
+$3.13e-5$ &
+1.0115 &
+1.0263 &
+1.0070
+\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+Observa-se uma convergência sistemática dos expoentes conforme
+o refinamento temporal.
+
+Os valores inicialmente superlineares encontrados em passos
+temporais maiores não permanecem no limite de resolução temporal
+adequada, indicando que representam efeitos de sub-resolução
+numérica.
+
+
+No regime temporalmente convergido, os expoentes aproximam-se de:
+
+\[
+\alpha_S \approx 1
+\]
+
+\[
+\alpha_W \approx 1
+\]
+
+\[
+\alpha_A \approx 1
+\]
+
+
+Portanto, a caracterização corrigida da dinâmica espectral indica
+crescimento aproximadamente linear das taxas de mistura com o
+parâmetro não linear:
+
+\[
+\max\left(\frac{dS}{dt}\right)
+\sim \beta
+\]
+
+\[
+\max\left(\frac{dW}{dt}\right)
+\sim \beta
+\]
+
+\[
+\max\left(\frac{dA}{dt}\right)
+\sim \beta
+\]
+
+
+Este resultado substitui a interpretação preliminar da S26-B33,
+demonstrando que auditorias de convergência são essenciais para
+distinguir leis dinâmicas reais de efeitos introduzidos pela
+discretização numérica.
+
+
+\subsection{Conclusão parcial}
+
+A auditoria S26-B34.1 confirma que a intensidade da mistura
+espectral possui comportamento aproximadamente linear com a
+não linearidade no regime resolvido numericamente.
+
+As próximas etapas da S26-B34 investigarão a robustez espacial
+e a dependência com a condição inicial, variando respectivamente
+o tamanho da rede e a largura inicial do pacote.
+
+% ------------------------------------------------
+\section{S26-B34.2 — Robustez Espacial das Leis de Escala}
+
+Após a validação temporal realizada na S26-B34.1, foi investigada
+a dependência das leis de escala em relação à resolução espacial
+da rede relacional.
+
+Foram utilizados diferentes tamanhos de rede:
+
+\[
+n = 128,\ 256,\ 512
+\]
+
+mantendo o regime temporal convergido:
+
+\[
+\Delta t = 6.25\times10^{-5}
+\]
+
+Os expoentes obtidos foram:
+
+\[
+\begin{array}{c|ccc}
+n &
+\alpha_S &
+\alpha_W &
+\alpha_A
+\\
+\hline
+
+128 &
+1.0456 &
+1.0285 &
+1.0288
+\\
+
+256 &
+1.0450 &
+1.0278 &
+1.0288
+\\
+
+512 &
+1.0448 &
+1.0095 &
+1.0288
+\\
+
+\end{array}
+\]
+
+Observa-se estabilidade dos expoentes com o aumento da resolução
+espacial.
+
+A entropia espectral e a amplitude apresentam variação inferior ao
+limite esperado para discretização numérica, enquanto a largura
+modal converge para valores próximos da unidade.
+
+Portanto, a dependência aproximadamente linear:
+
+\[
+\alpha_S\approx\alpha_W\approx\alpha_A\approx1
+\]
+
+permanece após refinamento espacial.
+
+Este resultado confirma que a lei de escala observada não é um
+artefato específico do tamanho da rede utilizada.
+% ------------------------------------------------
+\section{S26-B34 — Auditoria de Robustez das Leis de Mistura Espectral}
+
+A etapa S26-B34 teve como objetivo verificar se as leis de escala
+observadas na caracterização espectral dependem de parâmetros
+numéricos ou de escolhas específicas da simulação.
+
+Foram realizadas três auditorias independentes:
+
+\begin{itemize}
+
+\item robustez temporal;
+
+\item robustez espacial;
+
+\item robustez da condição inicial.
+
+\end{itemize}
+
+
+\subsection{S26-B34.1 — Robustez Temporal}
+
+Inicialmente, a S26-B33 apresentou expoentes superiores à unidade
+para as taxas de mistura espectral.
+
+Para verificar se esse comportamento era estrutural ou um efeito
+de discretização, foram realizados refinamentos sucessivos do
+passo temporal.
+
+Os expoentes obtidos foram:
+
+\[
+\begin{array}{c|ccc}
+\Delta t &
+\alpha_S &
+\alpha_W &
+\alpha_A
+\\
+\hline
+
+2.50e-4 &
+2.2227 &
+1.7034 &
+1.8755
+\\
+
+1.25e-4 &
+1.1847 &
+1.0625 &
+1.1275
+\\
+
+6.25e-5 &
+1.0450 &
+1.0278 &
+1.0288
+\\
+
+3.13e-5 &
+1.0115 &
+1.0263 &
+1.0070
+\\
+
+\end{array}
+\]
+
+Observou-se convergência dos expoentes para valores próximos da
+unidade quando o regime temporal foi resolvido adequadamente.
+
+Portanto, os valores superlineares iniciais foram classificados
+como efeitos de sub-resolução temporal.
+
+
+\subsection{S26-B34.2 — Robustez Espacial}
+
+Após a convergência temporal, foi investigada a dependência das
+leis de escala com o tamanho da rede.
+
+Foram utilizados:
+
+\[
+n=128,\ 256,\ 512
+\]
+
+mantendo:
+
+\[
+\Delta t=6.25\times10^{-5}
+\]
+
+Os resultados foram:
+
+\[
+\begin{array}{c|ccc}
+n &
+\alpha_S &
+\alpha_W &
+\alpha_A
+\\
+\hline
+
+128 &
+1.0456 &
+1.0285 &
+1.0288
+\\
+
+256 &
+1.0450 &
+1.0278 &
+1.0288
+\\
+
+512 &
+1.0448 &
+1.0095 &
+1.0288
+\\
+
+\end{array}
+\]
+
+A variação espacial apresentou impacto desprezível nos expoentes,
+indicando independência da discretização espacial no regime testado.
+
+
+\subsection{S26-B34.3 — Robustez da Condição Inicial}
+
+Finalmente, foi avaliada a influência da largura inicial do pacote
+relacional.
+
+Foram utilizados:
+
+\[
+\sigma=10,\ 20,\ 40
+\]
+
+com os demais parâmetros mantidos constantes.
+
+Os resultados foram:
+
+\[
+\begin{array}{c|ccc}
+\sigma &
+\alpha_S &
+\alpha_W &
+\alpha_A
+\\
+\hline
+
+10 &
+1.0401 &
+1.0274 &
+1.0288
+\\
+
+20 &
+1.0450 &
+1.0278 &
+1.0288
+\\
+
+40 &
+1.0473 &
+1.0280 &
+1.0288
+\\
+
+\end{array}
+\]
+
+
+A estabilidade dos expoentes frente à variação da condição inicial
+indica que a lei observada não depende de uma configuração inicial
+específica.
+
+
+\subsection{Conclusão da Auditoria S26-B34}
+
+As três auditorias realizadas demonstram que a dependência observada
+das taxas de mistura espectral permanece estável frente às principais
+fontes de variação numérica investigadas.
+
+No regime resolvido:
+
+\[
+\alpha_S\approx\alpha_W\approx\alpha_A\approx1
+\]
+
+resultando em uma dependência aproximadamente linear:
+
+\[
+\frac{dM}{dt}\sim\beta
+\]
+
+onde $M$ representa as métricas espectrais monitoradas.
+
+A S26-B34 transforma a observação preliminar da S26-B33 em uma
+caracterização robusta, eliminando interpretações associadas à
+discretização temporal, espacial ou à condição inicial.
+
+Com esta etapa concluída, a Fase B2 — Caracterização Espectral —
+é considerada encerrada.
+
+A próxima fase investigará a existência de estados persistentes,
+auto-localização e possíveis estados estacionários do operador
+relacional.
+
+\section{S26-B35 — Observatório de Persistência Dinâmica}
+
+\subsection{Motivação}
+
+Após a conclusão das etapas de validação numérica do motor dinâmico
+(S26-V) e da caracterização espectral do regime não linear, inicia-se
+a investigação sistemática de regimes persistentes no espaço de estados.
+
+As etapas anteriores estabeleceram a confiabilidade do integrador,
+a conservação das quantidades globais dentro da precisão numérica
+esperada e a capacidade do observatório espectral de acompanhar a
+redistribuição modal da dinâmica.
+
+A presente etapa não busca identificar fenômenos específicos, mas
+classificar matematicamente a evolução temporal do campo relacional
+$\Gamma$ através de invariantes e funcionais quantitativos.
+
+O objetivo é responder:
+
+\[
+\text{A trajetória dinâmica permanece transitória, recorrente ou persistente?}
+\]
+
+sem introduzir hipóteses externas ao formalismo.
+
+% ----------------------------------------------------------
+
+\subsection{Formulação Matemática}
+
+O sistema investigado permanece definido pelo operador dinâmico:
+
+\[
+\ddot{\Gamma}
+=
+-\alpha L\Gamma
++
+\beta F(\Gamma)
+\]
+
+onde:
+
+\begin{itemize}
+    \item $\Gamma \in \mathbb{R}^{n}$ representa o vetor de estado;
+    \item $L$ representa o operador relacional discreto;
+    \item $F(\Gamma)$ representa o termo não linear;
+    \item $\beta$ controla a intensidade do acoplamento não linear.
+\end{itemize}
+
+A evolução numérica produz uma sequência discreta de estados:
+
+\[
+\Gamma(t_0),
+\Gamma(t_1),
+...
+\Gamma(t_m)
+\]
+
+sobre a qual são definidos observáveis temporais e espectrais.
+
+% ----------------------------------------------------------
+
+\subsection{Observáveis de Persistência}
+
+\subsubsection{Resíduo Local Temporal}
+
+A primeira métrica mede a variação instantânea normalizada do campo:
+
+\[
+R_{loc}(t)
+=
+\frac{
+\|\Gamma(t+\Delta t)-\Gamma(t)\|_2
+}{
+\Delta t\|\Gamma(t)\|_2+\epsilon
+}
+\]
+
+Valores reduzidos indicam pequena evolução local do vetor de estado,
+enquanto valores elevados indicam regimes de rápida transformação.
+
+O observável não classifica o comportamento como estável ou instável
+isoladamente, sendo utilizado em conjunto com os demais funcionais.
+
+% ----------------------------------------------------------
+
+\subsubsection{Divergência Espectral}
+
+A distribuição modal normalizada é definida como:
+
+\[
+p_k(t)
+=
+\frac{
+|\hat{\Gamma}_k(t)|^2
+}{
+\sum_j |\hat{\Gamma}_j(t)|^2
+}
+\]
+
+A variação espectral entre passos consecutivos é medida pela
+divergência Jensen-Shannon:
+
+\[
+D_{spec}
+=
+JS
+(
+p(t),
+p(t+\Delta t)
+)
+\]
+
+Essa métrica quantifica a reorganização da energia no espaço espectral.
+
+% ----------------------------------------------------------
+
+\subsubsection{Evolução da Forma Espectral}
+
+A distribuição espacial da energia modal é acompanhada pelo
+Participation Ratio:
+
+\[
+PR(t)
+=
+\frac{
+1
+}{
+\sum_k p_k(t)^2
+}
+\]
+
+A variação temporal é definida como:
+
+\[
+H_{shape}
+=
+\frac{
+PR(t+\Delta t)-PR(t)
+}{
+\Delta t
+}
+\]
+
+Este observável mede expansão ou contração efetiva da ocupação modal.
+
+% ----------------------------------------------------------
+
+\subsubsection{Coerência Temporal}
+
+A memória do estado inicial é medida pela correlação:
+
+\[
+C_{auto}(t)
+=
+\frac{
+\Gamma(0)\cdot\Gamma(t)
+}{
+\|\Gamma(0)\|_2
+\|\Gamma(t)\|_2
+}
+\]
+
+Valores próximos de unidade indicam preservação da direção inicial
+do vetor de estado, enquanto oscilações ou redução indicam perda de
+correlação temporal.
+
+% ----------------------------------------------------------
+
+\subsubsection{Entropia Espectral}
+
+A entropia normalizada é definida por:
+
+\[
+S(t)
+=
+-\frac{
+\sum_k p_k(t)\log(p_k(t))
+}{
+\log(n)
+}
+\]
+
+Este funcional quantifica a distribuição relativa da energia entre os
+modos disponíveis.
+
+A entropia é interpretada exclusivamente como medida de dispersão
+espectral.
+
+% ----------------------------------------------------------
+
+\subsubsection{Distância de Energia Modal}
+
+Como complemento à divergência espectral, define-se:
+
+\[
+D_E(t)
+=
+\left\|
+E_k(t+\Delta t)
+-
+E_k(t)
+\right\|_2
+\]
+
+onde:
+
+\[
+E_k(t)
+=
+\frac{
+|\hat{\Gamma}_k(t)|^2
+}{
+\sum_j |\hat{\Gamma}_j(t)|^2
+}
+\]
+
+Este observável fornece uma medida direta da alteração da distribuição
+energética modal.
+
+% ----------------------------------------------------------
+
+\subsection{Classificação de Regimes Dinâmicos}
+
+Os observáveis anteriores permitem uma classificação puramente
+algorítmica:
+
+\begin{itemize}
+
+\item \textbf{Regime Transitório:}
+as métricas permanecem com variação significativa no tempo.
+
+\item \textbf{Regime Persistente:}
+as métricas coletivas apresentam estabilização dentro de uma tolerância
+definida.
+
+\item \textbf{Regime Oscilatório:}
+as métricas permanecem limitadas, porém apresentam recorrência temporal.
+
+\item \textbf{Regime Instável:}
+as métricas apresentam crescimento não controlado ou divergência
+numérica.
+
+\end{itemize}
+
+Nenhuma dessas classificações implica interpretação fenomenológica.
+
+% ----------------------------------------------------------
+
+\subsection{Critério Metodológico}
+
+A etapa S26-B35 estabelece um observatório de persistência dinâmica.
+
+O objetivo é determinar propriedades internas da trajetória no espaço
+de estados:
+
+\[
+\Gamma(t)
+\rightarrow
+\{\mathcal{M}_1(t),
+\mathcal{M}_2(t),
+...,
+\mathcal{M}_n(t)\}
+\]
+
+onde cada $\mathcal{M}$ representa um funcional mensurável do sistema.
+
+A análise permanece restrita ao formalismo discreto:
+
+\begin{itemize}
+    \item vetor de estado em $\mathbb{R}^{n}$;
+    \item operador relacional discreto;
+    \item espectro do operador;
+    \item invariantes temporais e energéticos.
+\end{itemize}
+
+A interpretação dos resultados será realizada somente após a auditoria
+dos dados produzidos pelo observatório.
+
+% ==========================================================
+\subsection{Extensão do Observatório: Centro Modal}
+
+Como complemento ao conjunto de observáveis de persistência foi
+introduzido o resíduo de deslocamento do centro modal.
+
+Seja
+
+\[
+C_m(t)
+\]
+
+o centro modal calculado pelo observatório espectral.
+
+Define-se
+
+\[
+R_{macro}
+=
+\frac{
+|C_m(t+\Delta t)-C_m(t)|
+}{
+n\,\Delta t
+}
+\]
+
+onde \(n\) representa o número de graus de liberdade da malha.
+
+Este observável mede exclusivamente a migração global do centro da
+distribuição modal, permanecendo independente das alterações internas da
+largura espectral.
+
+Dessa forma torna-se possível distinguir entre:
+
+\begin{itemize}
+
+\item redistribuição interna da energia modal;
+
+\item translação global do espectro.
+
+\end{itemize}
+
+Os dois processos são matematicamente independentes.
+
+% ----------------------------------------------------------
+
+\subsection{Auditoria Numérica do Observatório}
+
+O conjunto de observáveis foi aplicado inicialmente ao regime
+\(\beta=1\).
+
+Obtiveram-se os seguintes resultados médios:
+
+\[
+\langle R_{loc}\rangle
+=
+7.56\times10^{-2}
+\]
+
+\[
+\langle D_{spec}\rangle
+=
+2.71\times10^{-11}
+\]
+
+\[
+\langle H_{shape}\rangle
+=
+3.51\times10^{-1}
+\]
+
+\[
+\langle C_{auto}\rangle
+=
+0.99999999995
+\]
+
+\[
+\langle R_{macro}\rangle
+=
+8.83\times10^{-4}
+\]
+
+A entropia espectral permaneceu praticamente constante durante toda a
+janela observada, apresentando desvio padrão da ordem de
+
+\[
+10^{-6}.
+\]
+
+% ----------------------------------------------------------
+
+\subsection{Consistência Interna}
+
+Os observáveis apresentaram comportamento mutuamente consistente.
+
+Observou-se simultaneamente:
+
+\begin{itemize}
+
+\item evolução temporal não nula do vetor de estado
+(\(R_{loc}>0\));
+
+\item divergência espectral praticamente nula;
+
+\item deslocamento praticamente nulo do centro modal;
+
+\item manutenção quase perfeita da autocorrelação temporal;
+
+\item estabilidade da entropia espectral.
+
+\end{itemize}
+
+Esses resultados indicam que, dentro da janela temporal investigada,
+a trajetória permanece confinada a uma região extremamente restrita do
+espaço de estados, preservando praticamente inalterada sua estrutura
+modal global.
+
+Tal comportamento não constitui demonstração da existência de estados
+estacionários, mas caracteriza um candidato para investigação
+sistemática na etapa S26-B36.
+
+% ----------------------------------------------------------
+
+\subsection{Conclusão da Etapa S26-B35}
+
+A etapa S26-B35 estabelece um observatório permanente de persistência
+dinâmica baseado em observáveis independentes definidos sobre o espaço
+físico e o espaço espectral.
+
+O módulo passa a integrar permanentemente a biblioteca do projeto,
+fornecendo os funcionais utilizados pelas etapas posteriores de
+classificação dinâmica.
+
+A etapa é considerada encerrada após a validação numérica dos
+observáveis e sua incorporação definitiva ao ambiente experimental.
+
+%=========================================================
+\subsection{S26-B36 — Auditoria do Classificador de Regimes}
+
+A etapa S26-B36 introduziu a primeira camada de classificação
+automática dos regimes dinâmicos produzidos pelo Observatório de
+Persistência desenvolvido na etapa S26-B35.
+
+O objetivo desta fase não consiste em descobrir novos fenômenos
+físicos, mas em verificar se os observáveis coletivos são suficientes
+para distinguir diferentes comportamentos assintóticos da dinâmica.
+
+A classificação é realizada exclusivamente a partir dos observáveis
+internos calculados durante a simulação, sem utilização de parâmetros
+externos ou limiares fenomenológicos.
+
+%---------------------------------------------------------
+
+\subsubsection{Critério de Classificação}
+
+A decisão passa a ser baseada sobre uma janela terminal da evolução
+numérica.
+
+São utilizados:
+
+\[
+\langle R_{loc}\rangle,
+\]
+
+\[
+\langle D_{spec}\rangle,
+\]
+
+\[
+\langle |\Delta PR| \rangle,
+\]
+
+\[
+Var(R_{loc}),
+\]
+
+\[
+Var(D_{spec}),
+\]
+
+bem como as inclinações temporais das métricas coletivas.
+
+Optou-se por utilizar diretamente
+
+\[
+\Delta PR
+=
+PR(t+\Delta t)-PR(t),
+\]
+
+em substituição ao funcional
+
+\[
+H_{shape}
+=
+\frac{\Delta PR}{\Delta t},
+\]
+
+na etapa de classificação.
+
+Essa alteração elimina a dependência artificial introduzida pelo passo
+temporal, preservando apenas a variação física efetiva do suporte
+espectral.
+
+%---------------------------------------------------------
+
+\subsubsection{Persistence Score}
+
+O índice agregado de persistência permanece definido por
+
+\[
+P(t)
+=
+|C_{auto}(t)|
+\exp
+\left[
+-
+\left(
+\Delta t\,R_{loc}
++
+D_{spec}
++
+|\Delta PR|
+\right)
+\right].
+\]
+
+Esta forma apresenta as propriedades:
+
+\begin{itemize}
+
+\item
+\(0\le P\le1\);
+
+\item
+continuidade;
+
+\item
+invariância de escala;
+
+\item
+ausência de pesos arbitrários.
+
+\end{itemize}
+
+Dessa forma o escore resume a estabilidade coletiva da trajetória em um
+único funcional escalar.
+
+%---------------------------------------------------------
+
+\subsubsection{Primeira Auditoria Numérica}
+
+Aplicando o classificador ao conjunto produzido pelo observatório
+S26-B35 obteve-se:
+
+\[
+P
+=
+0.99995731040597,
+\]
+
+com variância
+
+\[
+Var(P)
+=
+4.03\times10^{-10}.
+\]
+
+As médias dos principais observáveis foram
+
+\[
+\langle R_{loc}\rangle
+=
+7.56\times10^{-2},
+\]
+
+\[
+\langle D_{spec}\rangle
+=
+2.71\times10^{-11},
+\]
+
+\[
+\langle |\Delta PR|\rangle
+=
+3.51\times10^{-5}.
+\]
+
+O coeficiente de autocorrelação permaneceu praticamente unitário ao
+longo de toda a janela terminal.
+
+%---------------------------------------------------------
+
+\subsubsection{Interpretação}
+
+A auditoria evidencia que o sistema permanece extremamente próximo de um
+estado estacionário coletivo.
+
+Entretanto,
+
+\[
+R_{loc}\neq0,
+\]
+
+mostrando que pequenas variações microscópicas continuam presentes.
+
+Consequentemente, o termo
+\emph{persistente}
+não significa ausência completa de evolução, mas sim estabilidade das
+coordenadas coletivas do sistema.
+
+A distinção entre estabilidade macroscópica e flutuação microscópica
+passa a constituir um dos principais resultados metodológicos da série
+S26.
+
+%---------------------------------------------------------
+
+\subsubsection{Resultado}
+
+O classificador identificou automaticamente o regime
+
+\[
+\boxed{\text{PERSISTENTE}}
+\]
+
+para a dinâmica analisada.
+
+Este resultado valida simultaneamente:
+
+\begin{itemize}
+
+\item
+o Observatório de Persistência (S26-B35);
+
+\item
+o Persistence Score;
+
+\item
+a árvore de decisão implementada na etapa S26-B36.
+
+\end{itemize}
+
+A próxima etapa investigará a robustez desta classificação sob
+variações de resolução numérica, tamanho da malha e intensidade do
+parâmetro não linear, estabelecendo o mapa completo de regimes
+dinâmicos do sistema GER.
+
+
+\newpage
+\input{journal}
+
+\end{document}
