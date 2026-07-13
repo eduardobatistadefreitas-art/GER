@@ -169,7 +169,7 @@ def analyse_geometry(dataset):
 
     )
 
-        return {
+    return {
 
         "n_signatures": len(dataset),
 
