@@ -2021,6 +2021,71 @@ Geométricas produzidas pelos Operadores Geométricos Fundamentais?}
 A resposta a essa questão torna-se condição necessária para o desenvolvimento
 das futuras teorias de equivalência estrutural, estabilidade dedutiva e
 dedutibilidade no âmbito da Geometria Espectral Relacional.
+\subsection{Experimento S26-B37-3 --- Geometria Global das Assinaturas}
+
+Após a constatação de que a estrutura de vizinhança depende da métrica
+adotada, foi realizado um experimento destinado a caracterizar a geometria
+global induzida pela distância euclidiana sobre o espaço das Assinaturas
+Geométricas.
+
+Diferentemente dos experimentos anteriores, que analisavam propriedades
+locais, este experimento avaliou todos os pares de assinaturas produzidos
+durante a simulação, acumulando as contribuições relativas de cada Operador
+Geométrico Fundamental para a distância média observada.
+
+Foram executadas sucessivamente três campanhas experimentais contendo
+1000, 2500 e 5000 assinaturas.
+
+Os resultados convergiram para a mesma distribuição estatística, indicando
+estabilidade numérica do observável.
+
+A contribuição média observada foi aproximadamente:
+
+\[
+\begin{array}{c|c}
+\text{Operador} & \text{Contribuição Média} \\
+\hline
+\mathrm{diameter} & \approx 1\% \\
+\mathrm{convergence} & \approx 99\% \\
+\mathrm{recurrence} & \approx 0\% \\
+\mathrm{drift} & \approx 0\%
+\end{array}
+\]
+
+A convergência dos resultados para diferentes tamanhos de amostra indica
+que esta distribuição não constitui um artefato estatístico da geração
+aleatória utilizada no experimento.
+
+\subsection{Consequência Experimental}
+
+O experimento demonstra que a métrica euclidiana induz uma geometria global
+fortemente anisotrópica sobre o espaço das Assinaturas Geométricas.
+
+Nesta geometria, a contribuição média do operador
+\texttt{convergence} domina praticamente toda a distância entre
+assinaturas, enquanto os demais Operadores Geométricos Fundamentais
+apresentam contribuição global desprezível.
+
+Este resultado não constitui uma propriedade dos Operadores Geométricos
+Fundamentais, mas da métrica utilizada para comparar assinaturas.
+
+Consequentemente, a escolha da métrica deixa de ser um detalhe de
+implementação e passa a constituir parte integrante da formulação
+matemática do módulo S26-B37.
+
+\subsection{Problema Científico}
+
+Os resultados experimentais obtidos conduzem ao seguinte problema
+fundamental:
+
+\begin{quote}
+\emph{Construir uma métrica estrutural para o espaço das Assinaturas
+Geométricas cuja geometria resulte da teoria dos Operadores Geométricos
+Fundamentais e não apenas da escala numérica de seus observáveis.}
+\end{quote}
+
+Este problema passa a orientar o desenvolvimento das etapas seguintes do
+S26-B37.
 
 
 
