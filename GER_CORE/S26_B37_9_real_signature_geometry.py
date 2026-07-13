@@ -198,7 +198,7 @@ def print_report(report):
 
     print()
 
-        print("Generated signatures :",
+    print("Generated signatures :",
 
           report["n_signatures"])
 
