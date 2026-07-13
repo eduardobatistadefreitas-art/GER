@@ -2087,6 +2087,124 @@ Fundamentais e não apenas da escala numérica de seus observáveis.}
 Este problema passa a orientar o desenvolvimento das etapas seguintes do
 S26-B37.
 
+\subsection{Experimento S26-B37-6 --- Avaliação da Métrica Euclidiana Normalizada}
+
+Após a caracterização da geometria global induzida pela distância
+euclidiana, foi investigada uma primeira métrica candidata destinada a
+eliminar a anisotropia observada.
+
+A métrica considerada consiste na distância euclidiana aplicada às
+componentes da Assinatura Geométrica após normalização individual de cada
+Operador Geométrico Fundamental pela respectiva faixa observada durante o
+experimento.
+
+Mantendo exatamente o mesmo protocolo experimental utilizado no
+Experimento S26-B37-3, foram realizadas quatro campanhas contendo
+1000, 2500, 5000 e 10000 assinaturas geométricas sintéticas.
+
+Para cada campanha foi calculada a contribuição média relativa de cada
+Operador Geométrico Fundamental para a geometria global induzida pela
+nova métrica.
+
+Os resultados obtidos foram:
+
+\[
+\begin{array}{c|cccc}
+\text{Amostras}
+&
+\mathrm{diameter}
+&
+\mathrm{convergence}
+&
+\mathrm{recurrence}
+&
+\mathrm{drift}
+\\
+\hline
+1000
+&
+25.39\%
+&
+24.87\%
+&
+24.06\%
+&
+25.68\%
+\\
+2500
+&
+25.08\%
+&
+24.99\%
+&
+25.15\%
+&
+24.78\%
+\\
+5000
+&
+24.93\%
+&
+25.08\%
+&
+24.70\%
+&
+25.29\%
+\\
+10000
+&
+25.21\%
+&
+24.84\%
+&
+25.25\%
+&
+24.70\%
+\end{array}
+\]
+
+Observa-se que os resultados convergem para uma distribuição
+estatisticamente estável próxima de uma contribuição uniforme entre os
+quatro Operadores Geométricos Fundamentais.
+
+\subsection{Consequência Experimental}
+
+Comparando diretamente os Experimentos S26-B37-3 e S26-B37-6, verifica-se
+que a forte anisotropia observada sob a distância euclidiana desaparece
+após a normalização das componentes da Assinatura Geométrica.
+
+Os resultados obtidos indicam que a dominância anteriormente atribuída ao
+operador \texttt{convergence} decorre predominantemente da diferença de
+escala numérica entre os observáveis, e não necessariamente de uma
+propriedade geométrica intrínseca da Assinatura.
+
+Este resultado constitui uma evidência experimental robusta, reproduzida
+para diferentes tamanhos de amostra, de que a escolha da métrica altera
+substancialmente a geometria induzida sobre o espaço das Assinaturas.
+
+\subsection{Estado Atual da Hipótese}
+
+Os experimentos realizados permitem estabelecer que a métrica euclidiana
+normalizada constitui uma candidata significativamente superior à métrica
+euclidiana convencional quanto ao equilíbrio geométrico das contribuições
+dos Operadores Geométricos Fundamentais.
+
+Entretanto, os resultados atuais não permitem concluir que esta seja a
+métrica estrutural definitiva do framework GER.
+
+Permanecem em aberto, entre outras, as seguintes questões:
+
+\begin{itemize}
+\item comportamento sob distribuições não uniformes das Assinaturas;
+\item comportamento para Assinaturas produzidas pelo motor físico do GER;
+\item existência de métricas estruturalmente superiores à normalização
+euclidiana.
+\end{itemize}
+
+Em consequência, a métrica euclidiana normalizada passa a constituir a
+primeira métrica candidata oficialmente aceita para investigação nas
+etapas subsequentes do módulo S26-B37, permanecendo sujeita às futuras
+auditorias experimentais do framework.
 
 
 
