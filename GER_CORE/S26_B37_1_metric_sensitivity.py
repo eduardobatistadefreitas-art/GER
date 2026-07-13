@@ -289,6 +289,47 @@ def run_metric_sensitivity(
         "normalized": normalized,
 
     }
+    # ============================================================
+# Auditoria Estatística
+# ============================================================
+
+def run_metric_sensitivity_audit(
+    repetitions=30,
+    samples=DEFAULT_SAMPLES,
+):
+
+    identical = 0
+    different = 0
+
+    for _ in range(repetitions):
+
+        results = run_metric_sensitivity(
+            samples=samples,
+        )
+
+        if (
+            results["euclidean"]["pair"]
+            ==
+            results["normalized"]["pair"]
+        ):
+
+            identical += 1
+
+        else:
+
+            different += 1
+
+    return {
+
+        "repetitions": repetitions,
+
+        "samples": samples,
+
+        "identical": identical,
+
+        "different": different,
+
+    }
   # ============================================================
 # Impressão
 # ============================================================
@@ -394,7 +435,75 @@ def print_report(results):
     print()
 
     print("=" * 60)
+# ============================================================
+# Impressão da Auditoria
+# ============================================================
 
+def print_audit(audit):
+
+    print()
+
+    print("=" * 60)
+
+    print("METRIC SENSITIVITY AUDIT")
+
+    print("=" * 60)
+
+    print()
+
+    print(f"Repetitions : {audit['repetitions']}")
+
+    print(f"Samples     : {audit['samples']}")
+
+    print()
+
+    print(f"YES : {audit['identical']}")
+
+    print(f"NO  : {audit['different']}")
+
+    print()
+
+    robustness = (
+
+        audit["different"]
+
+        /
+
+        audit["repetitions"]
+
+    )
+
+    print(
+
+        f"Robustness : {robustness:.3f}"
+
+    )
+
+    print()
+
+    if robustness >= 0.95:
+
+        print(
+
+            "Conclusion: "
+
+            "Metric sensitivity is robust."
+
+        )
+
+    else:
+
+        print(
+
+            "Conclusion: "
+
+            "Metric sensitivity is inconclusive."
+
+        )
+
+    print()
+
+    print("=" * 60)
 
 # ============================================================
 # Main
@@ -403,6 +512,8 @@ def print_report(results):
 def main(
 
     samples=DEFAULT_SAMPLES,
+
+    repetitions=30,
 
 ):
 
@@ -413,6 +524,16 @@ def main(
     )
 
     print_report(results)
+
+    audit = run_metric_sensitivity_audit(
+
+        repetitions=repetitions,
+
+        samples=samples,
+
+    )
+
+    print_audit(audit)
 
 
 # ============================================================
