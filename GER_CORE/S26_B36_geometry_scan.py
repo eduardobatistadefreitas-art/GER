@@ -273,23 +273,29 @@ def run_geometry_scan(
 
                 results.append({
 
-                    "beta": beta,
+    "simulation_id": len(results),
 
-                    "sigma": sigma,
+    "beta": beta,
 
-                    "potential": potential,
+    "sigma": sigma,
 
-                    "diameter": diameter,
+    "potential": potential,
 
-                    "convergence": convergence,
+    "dt": result["configuration"]["dt"],
 
-                    "recurrence": recurrence,
+    "window_size": len(trajectory),
 
-                    "drift": drift,
+    "diameter": diameter,
 
-                    "trajectory_length": trajectory_length,
+    "convergence": convergence,
 
-                })
+    "recurrence": recurrence,
+
+    "drift": drift,
+
+    "trajectory_length": trajectory_length,
+
+})
 
     return results
 
