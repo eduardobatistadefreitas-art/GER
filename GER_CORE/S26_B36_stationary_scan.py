@@ -280,40 +280,21 @@ def run_eligibility_operator(certificate):
 # ============================================================
 
 def run_structural_operator(certificate):
+    """
+    Structural Operator.
 
-    #
-    # MVP v0.3
-    #
-    # Nesta primeira implementação o operador apenas
-    # registra que todas as relações elegíveis estão
-    # aptas para análise estrutural.
-    #
-    # As futuras versões acrescentarão novas deduções
-    # (coerência, compatibilidade, tensão, etc.).
-    #
+    Reserved for future structural deductions.
 
-    for relation in certificate["relations"]:
+    According to the current B35 theory,
+    no structural deduction has been
+    formally established using only the
+    Geometry Signature.
 
-        if not relation["eligible"]:
-
-            continue
-
-        add_relation_evidence(
-
-            relation,
-
-            rule="StructuralInitialization",
-
-            status="SUPPORTED",
-
-            justification=(
-
-                "A relação foi aceita pelo "
-                "Operador Estrutural."
-
-            ),
-
-        )
+    Therefore this operator intentionally
+    leaves the Structural Certificate
+    unchanged.
+    """
+    return
 
 
 # ============================================================
