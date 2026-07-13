@@ -1,101 +1,327 @@
-import numpy as np
+import math
 
 # ============================================================
+# GER
 # S26-B36
+#
 # Stationary Scan
 #
-# Classificação algorítmica de regimes
-# baseada no observatório B35 - Corrigida para Robustez
+# MVP v0.1
+#
+# Implementação mínima do operador Ψ
+#
+# Entrada:
+#     Assinatura Geométrica
+#
+# Saída:
+#     Certificado Estrutural
+#
+# Este módulo NÃO classifica regimes.
 # ============================================================
 
-def linear_slope(values):
-    values = np.asarray(values)
-    if len(values) < 2:
-        return 0.0
-    x = np.arange(len(values))
-    coef = np.polyfit(x, values, 1)
-    return coef[0]
 
-def mean_abs(x):
-    return np.mean(np.abs(np.asarray(x)))
+OGF_KEYS = [
+    "diameter",
+    "convergence",
+    "recurrence",
+    "drift",
+]
 
-def compute_persistence_score(Rloc, Dspec, Hshape, Cauto, dt):
-    return np.abs(Cauto) * np.exp(-(dt * Rloc + Dspec + dt * np.abs(Hshape)))
 
-def stationary_scan(observables, dt, K=None, epsilon=1e-8):
-    if K is None:
-        K = len(observables["Rloc"])
+# ============================================================
+# Utilidades
+# ============================================================
 
-    data = {}
-    for key in observables:
-        data[key] = np.asarray(observables[key])[-K:]
-
-    # -------------------------
-    # Estatísticas
-    # -------------------------
-    statistics = {
-        "mean_Rloc": np.mean(data["Rloc"]),
-        "mean_Dspec": np.mean(data["Dspec"]),
-        "mean_Hshape": mean_abs(data["Hshape"]),
-        "var_Rloc": np.var(data["Rloc"]),
-        "var_Dspec": np.var(data["Dspec"]),
-        "slope_Rmacro": linear_slope(data["Rmacro"]),
-        "slope_Cauto": linear_slope(data["Cauto"]),
-        "slope_entropy": linear_slope(data["entropy"])
-    }
-
-    # -------------------------
-    # Persistence score
-    # -------------------------
-    P = []
-    for i in range(len(data["Rloc"])):
-        P.append(
-            compute_persistence_score(
-                data["Rloc"][i],
-                data["Dspec"][i],
-                data["Hshape"][i],
-                data["Cauto"][i],
-                dt
-            )
-        )
-    P = np.asarray(P)
-
-    statistics["mean_P"] = np.mean(P)
-    statistics["var_P"] = np.var(P)
-
-    # -------------------------
-    # Classificação Corrigida
-    # -------------------------
-    # 1. Instável: Se a variância local explodir
-    if statistics["var_Rloc"] > 1 / epsilon:
-        regime = "INSTAVEL"
-        
-    # 2. Persistente: Score de persistência quase perfeito e variância residual
-    elif statistics["mean_P"] > (1.0 - epsilon) and statistics["var_P"] < epsilon:
-        regime = "PERSISTENTE"
-        
-    # 3. Oscilatório: A persistência é alta/estável, mas a variância espectral indica ciclos ativos
-    elif statistics["var_P"] > 0.0 and statistics["var_Dspec"] > 1e-15:
-        regime = "OSCILATORIO"
-        
-    # 4. Transitório: Caso padrão de evolução suave
-    else:
-        regime = "TRANSITORIO"
+def _make_deduction(
+    rule,
+    status,
+    evidence,
+    justification,
+):
 
     return {
-        "regime": regime,
-        "persistence_score": statistics["mean_P"],
-        "persistence_variance": statistics["var_P"],
-        "statistics": statistics,
-        "persistence_history": P
+
+        "rule": rule,
+
+        "status": status,
+
+        "evidence": evidence,
+
+        "justification": justification,
+
     }
-    
+
+
 # ============================================================
-# API pública oficial do GER
+# Validação básica
 # ============================================================
 
-def run_stationary_scan(*args, **kwargs):
-    """
-    Interface pública oficial do Stationary Scan.
-    """
-    return stationary_scan(*args, **kwargs)
+def validate_signature(signature):
+
+    if not isinstance(signature, dict):
+        return False
+
+    for key in OGF_KEYS:
+
+        if key not in signature:
+            return False
+
+        value = signature[key]
+
+        if value is None:
+            return False
+
+        if not math.isfinite(float(value)):
+            return False
+
+    return True
+
+
+# ============================================================
+# Rule 001
+#
+# Signature Integrity
+# ============================================================
+
+def rule_signature_integrity(signature):
+
+    ok = validate_signature(signature)
+
+    return _make_deduction(
+
+        rule="SignatureIntegrity",
+
+        status="PASS" if ok else "FAIL",
+
+        evidence={
+            "available_keys": list(signature.keys())
+        },
+
+        justification=(
+            "Todos os Operadores Geométricos "
+            "Fundamentais estão presentes "
+            "e possuem valores finitos."
+            if ok
+            else
+            "Assinatura inválida."
+        ),
+
+    )
+
+
+# ============================================================
+# Rule 002
+#
+# OGF Compliance
+# ============================================================
+
+def rule_ogf_compliance(signature):
+
+    ok = set(signature.keys()) >= set(OGF_KEYS)
+
+    return _make_deduction(
+
+        rule="OGFCompliance",
+
+        status="PASS" if ok else "FAIL",
+
+        evidence={
+            "required": OGF_KEYS,
+        },
+
+        justification=(
+            "A assinatura contém os quatro "
+            "Operadores Geométricos Fundamentais."
+            if ok
+            else
+            "Assinatura incompatível com o OGF."
+        ),
+
+    )
+    # ============================================================
+# Rule 003
+#
+# Structural Validity
+# ============================================================
+
+def rule_structural_validity(signature):
+
+    if not validate_signature(signature):
+
+        return _make_deduction(
+
+            rule="StructuralValidity",
+
+            status="FAIL",
+
+            evidence={},
+
+            justification=(
+                "A assinatura não pode ser utilizada "
+                "pelo Stationary Scan."
+            ),
+
+        )
+
+    evidence = {
+
+        "diameter": signature["diameter"],
+
+        "convergence": signature["convergence"],
+
+        "recurrence": signature["recurrence"],
+
+        "drift": signature["drift"],
+
+    }
+
+    return _make_deduction(
+
+        rule="StructuralValidity",
+
+        status="PASS",
+
+        evidence=evidence,
+
+        justification=(
+            "A assinatura é estruturalmente válida "
+            "para aplicação do operador Ψ."
+        ),
+
+    )
+
+
+# ============================================================
+# Stationary Scan
+# ============================================================
+
+def stationary_scan(signature):
+
+    certificate = {
+
+        "signature": dict(signature),
+
+        "deductions": [],
+
+        "summary": {
+
+            "passed": 0,
+
+            "failed": 0,
+
+        }
+
+    }
+
+    rules = [
+
+        rule_signature_integrity,
+
+        rule_ogf_compliance,
+
+        rule_structural_validity,
+
+    ]
+
+    for rule in rules:
+
+        deduction = rule(signature)
+
+        certificate["deductions"].append(deduction)
+
+        if deduction["status"] == "PASS":
+
+            certificate["summary"]["passed"] += 1
+
+        else:
+
+            certificate["summary"]["failed"] += 1
+
+    return certificate
+
+
+# ============================================================
+# Impressão
+# ============================================================
+
+def print_certificate(certificate):
+
+    print("=" * 60)
+
+    print("STRUCTURAL CERTIFICATE")
+
+    print("=" * 60)
+
+    print()
+
+    print("Geometry Signature")
+
+    for key, value in certificate["signature"].items():
+
+        print(f"  {key:15s}: {value}")
+
+    print()
+
+    print("-" * 60)
+
+    print("Deductions")
+
+    print("-" * 60)
+
+    print()
+
+    for d in certificate["deductions"]:
+
+        print(f"Rule          : {d['rule']}")
+
+        print(f"Status        : {d['status']}")
+
+        print(f"Evidence      : {d['evidence']}")
+
+        print(f"Justification : {d['justification']}")
+
+        print("-" * 60)
+
+    s = certificate["summary"]
+
+    print()
+
+    print("Summary")
+
+    print(f"  PASS : {s['passed']}")
+
+    print(f"  FAIL : {s['failed']}")
+
+    print()
+
+    print("=" * 60)
+
+
+# ============================================================
+# Main
+# ============================================================
+
+def main():
+
+    signature = {
+
+        "diameter": 91.856401,
+
+        "convergence": 9421.862182,
+
+        "recurrence": 0.001282,
+
+        "drift": 0.999926,
+
+    }
+
+    certificate = stationary_scan(signature)
+
+    print_certificate(certificate)
+
+
+# ============================================================
+
+if __name__ == "__main__":
+
+    main()
