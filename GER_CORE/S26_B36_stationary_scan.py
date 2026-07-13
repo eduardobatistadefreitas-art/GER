@@ -16,6 +16,35 @@ import math
 # O módulo NÃO realiza classificação.
 # ============================================================
 
+# ============================================================
+# Operator Ψ
+#
+# Status:
+#     IMPLEMENTED
+#
+# Eligibility Operator:
+#     Implemented
+#
+# Structural Operator:
+#     Implemented
+#
+#     No structural rules have been formally
+#     established from the current OGF theory.
+#
+#     Therefore this operator intentionally
+#     performs no structural deductions.
+#
+# Consistency Operator:
+#     Implemented
+#
+# Current Scientific Status:
+#
+#     The architecture of Ψ is complete.
+#
+#     Future structural rules may be added
+#     without modifying the operator
+#     architecture.
+# ============================================================
 
 # ============================================================
 # Operadores Geométricos Fundamentais
