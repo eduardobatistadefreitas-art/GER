@@ -206,7 +206,40 @@ def run_state_vector_scan(
 # ------------------------------------------------------------
 
 def print_table(results):
+    
+import csv
+import os
 
+
+def save_csv(results, filename="RESULTS/S26_B36_state_vector.csv"):
+
+    if not results:
+        print("Nenhum resultado para salvar.")
+        return
+
+    os.makedirs(
+        os.path.dirname(filename),
+        exist_ok=True,
+    )
+
+    columns = list(results[0].keys())
+
+    with open(
+        filename,
+        "w",
+        newline="",
+    ) as f:
+
+        writer = csv.DictWriter(
+            f,
+            fieldnames=columns,
+        )
+
+        writer.writeheader()
+
+        writer.writerows(results)
+
+    print(f"\nCSV salvo em: {filename}")
     if not results:
         print("Nenhum resultado.")
         return
@@ -232,8 +265,10 @@ if __name__ == "__main__":
 
     table = run_state_vector_scan()
 
-    print_table(table)
+print_table(table)
 
-    print("=" * 60)
-    print(f"Simulações executadas: {len(table)}")
-    print("=" * 60)
+save_csv(table)
+
+print("=" * 60)
+print(f"Simulações executadas: {len(table)}")
+print("=" * 60)
