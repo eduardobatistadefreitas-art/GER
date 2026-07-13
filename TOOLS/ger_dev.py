@@ -70,3 +70,13 @@ def finish_update():
 
     _current_path = None
     _buffer = []
+
+def abort_update():
+
+    global _current_path
+    global _buffer
+
+    _current_path = None
+    _buffer = []
+
+    print("Atualização cancelada.")
