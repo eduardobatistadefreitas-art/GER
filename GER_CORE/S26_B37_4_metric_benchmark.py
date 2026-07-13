@@ -93,6 +93,40 @@ def euclidean_metric(
         (a["drift"] - b["drift"]) ** 2
 
     )
+    # ============================================================
+# Métricas para Auditoria do Benchmark
+# ============================================================
+
+def broken_metric_constant(
+    a,
+    b,
+):
+
+    return 1.0
+
+
+def broken_metric_signed(
+    a,
+    b,
+):
+
+    return (
+
+        a["diameter"]
+
+        -
+
+        b["diameter"]
+
+    )
+
+
+def broken_metric_random(
+    a,
+    b,
+):
+
+    return random.random()
   # ============================================================
 # Teste T1
 #
@@ -295,21 +329,38 @@ def print_report(certificate):
 
 def main():
 
-    certificate = run_metric_benchmark(
+    candidates = [
 
-        euclidean_metric,
+        ("Euclidean", euclidean_metric),
 
-    )
+        ("Broken Constant", broken_metric_constant),
 
-    print_report(
+        ("Broken Signed", broken_metric_signed),
 
-        certificate,
+        ("Broken Random", broken_metric_random),
 
-    )
+    ]
 
+    for name, metric in candidates:
 
-# ============================================================
+        print()
 
-if __name__ == "__main__":
+        print("=" * 60)
 
-    main()
+        print(name)
+
+        print("=" * 60)
+
+        print()
+
+        certificate = run_metric_benchmark(
+
+            metric,
+
+        )
+
+        print_report(
+
+            certificate,
+
+        )
