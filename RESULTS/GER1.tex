@@ -2205,6 +2205,137 @@ Em consequência, a métrica euclidiana normalizada passa a constituir a
 primeira métrica candidata oficialmente aceita para investigação nas
 etapas subsequentes do módulo S26-B37, permanecendo sujeita às futuras
 auditorias experimentais do framework.
+\subsection{Experimento S26-B37-8 --- Geometria Ordinal}
+
+Os resultados obtidos nos experimentos anteriores evidenciaram que a
+geometria induzida pela distância euclidiana depende fortemente tanto da
+escala numérica quanto da distribuição estatística dos Operadores
+Geométricos Fundamentais.
+
+Com o objetivo de investigar uma representação independente desses dois
+efeitos, foi introduzida uma representação ordinal das Assinaturas
+Geométricas.
+
+Nesta representação, cada componente da assinatura é substituída pela sua
+posição relativa (rank) dentro do conjunto de assinaturas geradas,
+eliminando simultaneamente a dependência de unidades físicas e qualquer
+transformação monotônica aplicada aos observáveis.
+
+Mantendo exatamente o mesmo protocolo experimental utilizado nos
+Experimentos S26-B37-6 e S26-B37-7, foram realizadas quatro campanhas com
+1000, 2500, 5000 e 10000 assinaturas sintéticas.
+
+Os resultados obtidos foram:
+
+\[
+\begin{array}{c|cccc}
+\text{Amostras}
+&
+\mathrm{diameter}
+&
+\mathrm{convergence}
+&
+\mathrm{recurrence}
+&
+\mathrm{drift}
+\\
+\hline
+1000
+&
+24.95\%
+&
+25.02\%
+&
+24.98\%
+&
+25.06\%
+\\
+2500
+&
+25.00\%
+&
+24.98\%
+&
+25.04\%
+&
+24.98\%
+\\
+5000
+&
+25.00\%
+&
+24.99\%
+&
+25.01\%
+&
+25.00\%
+\\
+10000
+&
+25.01\%
+&
+25.00\%
+&
+24.99\%
+&
+25.00\%
+\end{array}
+\]
+
+Em todas as campanhas experimentais a contribuição relativa dos quatro
+Operadores Geométricos Fundamentais permaneceu praticamente uniforme.
+
+O \emph{Contribution Spread} convergiu para aproximadamente
+
+\[
+0.03\%,
+\]
+
+valor significativamente inferior ao observado nas representações baseadas
+em valores absolutos ou valores normalizados.
+
+\subsection{Consequência Experimental}
+
+Os resultados obtidos indicam que a representação ordinal apresenta uma
+robustez experimental substancialmente superior às representações
+anteriormente investigadas.
+
+Nas distribuições consideradas neste trabalho, a geometria ordinal mostrou-se
+simultaneamente invariável às diferenças de escala numérica e robusta às
+mudanças das distribuições estatísticas dos observáveis.
+
+Este resultado não demonstra que a geometria estrutural do framework GER
+seja necessariamente ordinal.
+
+Entretanto, demonstra experimentalmente que, entre todas as representações
+investigadas até o presente momento, a representação ordinal apresenta a
+maior estabilidade geométrica.
+
+\subsection{Hipótese Experimental H3}
+
+Os resultados obtidos conduzem naturalmente à seguinte hipótese de trabalho:
+
+\begin{quote}
+\emph{A estrutura geométrica relevante das Assinaturas Geométricas pode
+estar associada predominantemente às relações de ordem entre os
+Operadores Geométricos Fundamentais, e não aos seus valores absolutos.}
+\end{quote}
+
+Esta hipótese permanece provisória e deverá ser submetida a um novo ciclo
+de auditoria utilizando Assinaturas Geométricas produzidas diretamente
+pelo motor físico do framework GER.
+
+\subsection{Próxima Etapa}
+
+Em consequência dos resultados obtidos, o próximo estágio do módulo
+S26-B37 deixa de utilizar assinaturas sintéticas como principal objeto de
+estudo.
+
+A etapa subsequente consistirá na validação empírica da hipótese ordinal
+utilizando exclusivamente Assinaturas Geométricas produzidas pelo próprio
+motor físico do framework GER, permitindo verificar se a robustez
+observada representa uma propriedade da representação ordinal ou uma
+propriedade intrínseca da dinâmica relacional investigada.
 
 
 
