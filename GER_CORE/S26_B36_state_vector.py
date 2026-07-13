@@ -1,24 +1,26 @@
+import csv
+import os
+
 import numpy as np
 
 from GER.CORE.ger_engine import run_engine
+
 from GER_CORE.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-
 # ============================================================
 # GER
+#
 # S26-B36
 #
 # State Vector Characterization
 #
-# Este módulo NÃO classifica regimes.
+# Não classifica regimes.
+# Não utiliza Stationary Scan.
 #
-# Seu objetivo é caracterizar o espaço de estados
-# produzido pelo motor atual do GER.
-#
-# A saída serve de base para a reconstrução científica
-# do Stationary Scan.
+# Apenas caracteriza o espaço de estados produzido
+# pelo motor atual do GER.
 # ============================================================
 
 
@@ -32,14 +34,12 @@ DEFAULT_BETAS = [
     10.0,
 ]
 
-
 DEFAULT_SIGMAS = [
     0.05,
     0.10,
     0.20,
     0.50,
 ]
-
 
 DEFAULT_POTENTIALS = [
     "A",
@@ -101,7 +101,7 @@ def compute_state_vector(observables, dt):
 
     state = {}
 
-    names = [
+    observables_names = [
 
         "Rloc",
         "Dspec",
@@ -112,7 +112,7 @@ def compute_state_vector(observables, dt):
 
     ]
 
-    for name in names:
+    for name in observables_names:
 
         values = np.asarray(
             observables[name],
@@ -120,9 +120,7 @@ def compute_state_vector(observables, dt):
         )
 
         state[f"mean_{name}"] = np.mean(values)
-
         state[f"var_{name}"] = np.var(values)
-
         state[f"slope_{name}"] = slope(values)
 
     P = compute_persistence(
@@ -131,12 +129,12 @@ def compute_state_vector(observables, dt):
     )
 
     state["mean_P"] = np.mean(P)
-
     state["var_P"] = np.var(P)
 
     return state
-  # ------------------------------------------------------------
-# Scan completo do espaço de estados
+
+# ------------------------------------------------------------
+# Scan do espaço de estados
 # ------------------------------------------------------------
 
 def run_state_vector_scan(
@@ -174,7 +172,12 @@ def run_state_vector_scan(
                         dt=dt,
                     )
 
-                except Exception:
+                except Exception as exc:
+
+                    print(
+                        f"[IGNORADO] beta={beta} sigma={sigma} "
+                        f"pot={potential} -> {exc}"
+                    )
 
                     continue
 
@@ -202,16 +205,32 @@ def run_state_vector_scan(
 
 
 # ------------------------------------------------------------
-# Impressão em formato CSV
+# Impressão
 # ------------------------------------------------------------
 
 def print_table(results):
-    
-import csv
-import os
+
+    if not results:
+        print("Nenhum resultado.")
+        return
+
+    columns = list(results[0].keys())
+
+    print(",".join(columns))
+
+    for row in results:
+
+        print(",".join(str(row[c]) for c in columns))
 
 
-def save_csv(results, filename="RESULTS/S26_B36_state_vector.csv"):
+# ------------------------------------------------------------
+# Salvar CSV
+# ------------------------------------------------------------
+
+def save_csv(
+    results,
+    filename="RESULTS/S26_B36_state_vector.csv",
+):
 
     if not results:
         print("Nenhum resultado para salvar.")
@@ -240,17 +259,6 @@ def save_csv(results, filename="RESULTS/S26_B36_state_vector.csv"):
         writer.writerows(results)
 
     print(f"\nCSV salvo em: {filename}")
-    if not results:
-        print("Nenhum resultado.")
-        return
-
-    columns = list(results[0].keys())
-
-    print(",".join(columns))
-
-    for row in results:
-
-        print(",".join(str(row[c]) for c in columns))
 
 
 # ------------------------------------------------------------
@@ -265,10 +273,10 @@ if __name__ == "__main__":
 
     table = run_state_vector_scan()
 
-print_table(table)
+    print_table(table)
 
-save_csv(table)
+    save_csv(table)
 
-print("=" * 60)
-print(f"Simulações executadas: {len(table)}")
-print("=" * 60)
+    print("=" * 60)
+    print(f"Simulações executadas: {len(table)}")
+    print("=" * 60)
