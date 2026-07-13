@@ -133,3 +133,100 @@ def main():
 if __name__ == "__main__":
 
     main()
+# ============================================================
+# Self Audit
+# ============================================================
+
+def audit_provider():
+
+    provider = B35SignatureProvider()
+
+    report = {
+
+        "implements_generate_signature":
+
+            hasattr(
+
+                provider,
+
+                "generate_signature",
+
+            ),
+
+        "implements_generate_signature_dataset":
+
+            hasattr(
+
+                provider,
+
+                "generate_signature_dataset",
+
+            ),
+
+        "implements_protocol":
+
+            isinstance(
+
+                provider,
+
+                SignatureProvider,
+
+            ),
+
+    }
+
+    return report
+
+
+# ============================================================
+# Main
+# ============================================================
+
+def main():
+
+    report = audit_provider()
+
+    print("=" * 60)
+
+    print("GER CORE")
+
+    print("B35 SIGNATURE PROVIDER")
+
+    print("=" * 60)
+
+    print()
+
+    print("Protocol Audit")
+
+    print("-" * 60)
+
+    for key, value in report.items():
+
+        print(
+
+            f"{key:<40}"
+
+            f"{'PASS' if value else 'FAIL'}"
+
+        )
+
+    print()
+
+    if all(report.values()):
+
+        print("Provider structure approved.")
+
+    else:
+
+        print("Provider structure rejected.")
+
+    print()
+
+    print("=" * 60)
+
+
+# ============================================================
+
+if __name__ == "__main__":
+
+    main()
