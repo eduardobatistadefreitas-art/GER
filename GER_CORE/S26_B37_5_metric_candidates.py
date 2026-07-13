@@ -216,19 +216,59 @@ def main():
 
     print()
 
+    dataset = [
+
+        {
+
+            "diameter": 10.0,
+
+            "convergence": 5000.0,
+
+            "recurrence": 0.30,
+
+            "drift": 0.70,
+
+        },
+
+        {
+
+            "diameter": 12.0,
+
+            "convergence": 5200.0,
+
+            "recurrence": 0.35,
+
+            "drift": 0.65,
+
+        },
+
+    ]
+
+    metrics = build_metrics(dataset)
+
+    a = dataset[0]
+
+    b = dataset[1]
+
     print("Registered Metrics")
 
     print("-" * 60)
 
-    for name in AVAILABLE_METRICS:
+    for name in metrics:
 
         print(name)
 
     print()
 
-    print("Normalized metric is created")
+    print("Example Distances")
 
-    print("dynamically from the dataset.")
+    print("-" * 60)
+
+    for name, metric in metrics.items():
+
+        value = metric(a, b)
+
+        print(f"{name:<15} {value:.12f}")
 
     print()
 
