@@ -6,25 +6,52 @@ import math
 #
 # Stationary Scan
 #
-# MVP v0.1
+# Versão: 0.3
 #
-# Implementação mínima do operador Ψ
+# Implementação oficial do operador Ψ.
 #
-# Entrada:
-#     Assinatura Geométrica
+# O módulo transforma uma Assinatura Geométrica em um
+# Certificado Estrutural através de operadores dedutivos.
 #
-# Saída:
-#     Certificado Estrutural
-#
-# Este módulo NÃO classifica regimes.
+# O módulo NÃO realiza classificação.
 # ============================================================
 
 
+# ============================================================
+# Operadores Geométricos Fundamentais
+# ============================================================
+
 OGF_KEYS = [
+
     "diameter",
+
     "convergence",
+
     "recurrence",
+
     "drift",
+
+]
+
+
+# ============================================================
+# Relações Fundamentais
+# ============================================================
+
+RELATIONS = [
+
+    ("diameter", "convergence"),
+
+    ("diameter", "recurrence"),
+
+    ("diameter", "drift"),
+
+    ("convergence", "recurrence"),
+
+    ("convergence", "drift"),
+
+    ("recurrence", "drift"),
+
 ]
 
 
@@ -33,10 +60,15 @@ OGF_KEYS = [
 # ============================================================
 
 def _make_deduction(
+
     rule,
+
     status,
+
     evidence,
+
     justification,
+
 ):
 
     return {
@@ -53,155 +85,52 @@ def _make_deduction(
 
 
 # ============================================================
-# Validação básica
+# Construção das Relações
 # ============================================================
 
-def validate_signature(signature):
+def build_relations(signature):
 
-    if not isinstance(signature, dict):
-        return False
+    relations = []
 
-    for key in OGF_KEYS:
+    for left, right in RELATIONS:
 
-        if key not in signature:
-            return False
+        relations.append({
 
-        value = signature[key]
+            "relation": f"{left}↔{right}",
 
-        if value is None:
-            return False
+            "available": (
 
-        if not math.isfinite(float(value)):
-            return False
+                left in signature and
+                right in signature
 
-    return True
-
-
-# ============================================================
-# Rule 001
-#
-# Signature Integrity
-# ============================================================
-
-def rule_signature_integrity(signature):
-
-    ok = validate_signature(signature)
-
-    return _make_deduction(
-
-        rule="SignatureIntegrity",
-
-        status="PASS" if ok else "FAIL",
-
-        evidence={
-            "available_keys": list(signature.keys())
-        },
-
-        justification=(
-            "Todos os Operadores Geométricos "
-            "Fundamentais estão presentes "
-            "e possuem valores finitos."
-            if ok
-            else
-            "Assinatura inválida."
-        ),
-
-    )
-
-
-# ============================================================
-# Rule 002
-#
-# OGF Compliance
-# ============================================================
-
-def rule_ogf_compliance(signature):
-
-    ok = set(signature.keys()) >= set(OGF_KEYS)
-
-    return _make_deduction(
-
-        rule="OGFCompliance",
-
-        status="PASS" if ok else "FAIL",
-
-        evidence={
-            "required": OGF_KEYS,
-        },
-
-        justification=(
-            "A assinatura contém os quatro "
-            "Operadores Geométricos Fundamentais."
-            if ok
-            else
-            "Assinatura incompatível com o OGF."
-        ),
-
-    )
-    # ============================================================
-# Rule 003
-#
-# Structural Validity
-# ============================================================
-
-def rule_structural_validity(signature):
-
-    if not validate_signature(signature):
-
-        return _make_deduction(
-
-            rule="StructuralValidity",
-
-            status="FAIL",
-
-            evidence={},
-
-            justification=(
-                "A assinatura não pode ser utilizada "
-                "pelo Stationary Scan."
             ),
 
-        )
+            "eligible": False,
 
-    evidence = {
+            "status": "UNANALYZED",
 
-        "diameter": signature["diameter"],
+            "evidence": [],
 
-        "convergence": signature["convergence"],
+        })
 
-        "recurrence": signature["recurrence"],
-
-        "drift": signature["drift"],
-
-    }
-
-    return _make_deduction(
-
-        rule="StructuralValidity",
-
-        status="PASS",
-
-        evidence=evidence,
-
-        justification=(
-            "A assinatura é estruturalmente válida "
-            "para aplicação do operador Ψ."
-        ),
-
-    )
+    return relations
 
 
 # ============================================================
-# Stationary Scan
+# Construção do Certificado
 # ============================================================
 
-def stationary_scan(signature):
+def create_certificate(signature):
 
-    certificate = {
+    return {
 
         "signature": dict(signature),
 
+        "relations": build_relations(signature),
+
         "deductions": [],
+
+        "consistency": {},
 
         "summary": {
 
@@ -209,33 +138,309 @@ def stationary_scan(signature):
 
             "failed": 0,
 
-        }
+        },
 
     }
 
-    rules = [
 
-        rule_signature_integrity,
+# ============================================================
+# Validação da Assinatura
+# ============================================================
 
-        rule_ogf_compliance,
+def validate_signature(signature):
 
-        rule_structural_validity,
+    if not isinstance(signature, dict):
 
-    ]
+        return False
 
-    for rule in rules:
+    for key in OGF_KEYS:
 
-        deduction = rule(signature)
+        if key not in signature:
 
-        certificate["deductions"].append(deduction)
+            return False
+
+        value = signature[key]
+
+        if value is None:
+
+            return False
+
+        if not math.isfinite(float(value)):
+
+            return False
+
+    return True
+
+
+# ============================================================
+# Registro de Evidências
+# ============================================================
+
+def add_relation_evidence(
+
+    relation,
+
+    rule,
+
+    status,
+
+    justification,
+
+    data=None,
+
+):
+
+    if data is None:
+
+        data = {}
+
+    relation["status"] = status
+
+    relation["evidence"].append({
+
+        "rule": rule,
+
+        "status": status,
+
+        "justification": justification,
+
+        "data": data,
+
+    })
+
+
+# ============================================================
+# Eligibility Operator
+# ============================================================
+
+def run_eligibility_operator(certificate):
+
+    signature = certificate["signature"]
+
+    valid = validate_signature(signature)
+
+    certificate["deductions"].append(
+
+        _make_deduction(
+
+            rule="SignatureIntegrity",
+
+            status="PASS" if valid else "FAIL",
+
+            evidence={
+
+                "available_keys": list(signature.keys())
+
+            },
+
+            justification=(
+
+                "A assinatura geométrica é válida."
+
+                if valid
+
+                else
+
+                "A assinatura geométrica é inválida."
+
+            ),
+
+        )
+
+    )
+
+    if not valid:
+
+        return
+
+    for relation in certificate["relations"]:
+
+        if relation["available"]:
+
+            relation["eligible"] = True
+
+            add_relation_evidence(
+
+                relation,
+
+                rule="StructuralAvailability",
+
+                status="ELIGIBLE",
+
+                justification=(
+
+                    "A relação é elegível para dedução "
+                    "estrutural."
+
+                ),
+
+            )
+            # ============================================================
+# Structural Operator
+# ============================================================
+
+def run_structural_operator(certificate):
+
+    #
+    # MVP v0.3
+    #
+    # Nesta primeira implementação o operador apenas
+    # registra que todas as relações elegíveis estão
+    # aptas para análise estrutural.
+    #
+    # As futuras versões acrescentarão novas deduções
+    # (coerência, compatibilidade, tensão, etc.).
+    #
+
+    for relation in certificate["relations"]:
+
+        if not relation["eligible"]:
+
+            continue
+
+        add_relation_evidence(
+
+            relation,
+
+            rule="StructuralInitialization",
+
+            status="SUPPORTED",
+
+            justification=(
+
+                "A relação foi aceita pelo "
+                "Operador Estrutural."
+
+            ),
+
+        )
+
+
+# ============================================================
+# Consistency Operator
+# ============================================================
+
+def run_consistency_operator(certificate):
+
+    relations = certificate["relations"]
+
+    eligible = sum(
+
+        relation["eligible"]
+
+        for relation in relations
+
+    )
+
+    supported = sum(
+
+        relation["status"] == "SUPPORTED"
+
+        for relation in relations
+
+    )
+
+    certificate["consistency"] = {
+
+        "eligible_relations": eligible,
+
+        "supported_relations": supported,
+
+        "consistent": (
+
+            eligible == supported
+
+        ),
+
+    }
+
+    certificate["deductions"].append(
+
+        _make_deduction(
+
+            rule="ConsistencyCheck",
+
+            status=(
+
+                "PASS"
+
+                if eligible == supported
+
+                else
+
+                "FAIL"
+
+            ),
+
+            evidence=dict(
+
+                certificate["consistency"]
+
+            ),
+
+            justification=(
+
+                "O Certificado Estrutural é "
+                "internamente consistente."
+
+                if eligible == supported
+
+                else
+
+                "Existem relações elegíveis "
+                "sem suporte estrutural."
+
+            ),
+
+        )
+
+    )
+
+
+# ============================================================
+# Deduction Engine
+# ============================================================
+
+def run_deduction_engine(certificate):
+
+    run_eligibility_operator(
+
+        certificate
+
+    )
+
+    run_structural_operator(
+
+        certificate
+
+    )
+
+    run_consistency_operator(
+
+        certificate
+
+    )
+    # ============================================================
+# Stationary Scan
+# ============================================================
+
+def stationary_scan(signature):
+
+    certificate = create_certificate(signature)
+
+    run_deduction_engine(certificate)
+
+    summary = certificate["summary"]
+
+    for deduction in certificate["deductions"]:
 
         if deduction["status"] == "PASS":
 
-            certificate["summary"]["passed"] += 1
+            summary["passed"] += 1
 
         else:
 
-            certificate["summary"]["failed"] += 1
+            summary["failed"] += 1
 
     return certificate
 
@@ -264,33 +469,73 @@ def print_certificate(certificate):
 
     print("-" * 60)
 
+    print("Relations")
+
+    print("-" * 60)
+
+    print()
+
+    for relation in certificate["relations"]:
+
+        print(
+
+            f"{relation['relation']:28s}"
+
+            f"{relation['status']}"
+
+        )
+
+        if relation["evidence"]:
+
+            for evidence in relation["evidence"]:
+
+                print(
+
+                    f"    -> {evidence['rule']}"
+
+                    f" ({evidence['status']})"
+
+                )
+
+    print()
+
+    print("-" * 60)
+
     print("Deductions")
 
     print("-" * 60)
 
     print()
 
-    for d in certificate["deductions"]:
+    for deduction in certificate["deductions"]:
 
-        print(f"Rule          : {d['rule']}")
+        print(f"Rule          : {deduction['rule']}")
 
-        print(f"Status        : {d['status']}")
+        print(f"Status        : {deduction['status']}")
 
-        print(f"Evidence      : {d['evidence']}")
+        print(f"Evidence      : {deduction['evidence']}")
 
-        print(f"Justification : {d['justification']}")
+        print(f"Justification : {deduction['justification']}")
 
         print("-" * 60)
 
-    s = certificate["summary"]
+    print()
+
+    print("Consistency")
+
+    for key, value in certificate["consistency"].items():
+
+        print(f"  {key:22s}: {value}")
 
     print()
 
+    summary = certificate["summary"]
+
     print("Summary")
 
-    print(f"  PASS : {s['passed']}")
+    print(f"  PASS : {summary['passed']}")
 
-    print(f"  FAIL : {s['failed']}")
+    print(f"  FAIL : {summary['failed']}")
 
     print()
 
