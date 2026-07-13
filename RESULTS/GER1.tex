@@ -1668,6 +1668,362 @@ variações de resolução numérica, tamanho da malha e intensidade do
 parâmetro não linear, estabelecendo o mapa completo de regimes
 dinâmicos do sistema GER.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{S26-B36 — Reconstrução Científica do Stationary Scan}
+
+A reconstrução do módulo S26-B36 foi conduzida como uma revisão conceitual completa da
+etapa originalmente denominada ``Classificador de Regimes''.
+
+As auditorias numéricas, a análise dos observáveis produzidos pelo S26-B35 e a formulação
+matemática desenvolvida durante esta reconstrução indicaram que o objeto de estudo do
+módulo não deve ser um observável individual nem o vetor de observáveis instantâneo.
+
+O objeto matemático do S26-B36 passa a ser a trajetória produzida pelo observatório.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Objeto Matemático}
+
+Seja
+
+\[
+x(t)\in\mathcal O
+\]
+
+o vetor de observáveis produzido pelo S26-B35.
+
+Define-se a trajetória observacional
+
+\[
+\gamma=\{x(t):t\in[t_0,t_f]\}\subset\mathcal O.
+\]
+
+O módulo S26-B36 passa a estudar propriedades geométricas globais da trajetória
+\(\gamma\), e não propriedades de um estado isolado.
+
+Consequentemente, um regime dinâmico deixa de ser interpretado como um atributo de um
+observável individual e passa a representar uma propriedade geométrica da trajetória no
+espaço de observação.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{GER-S26-B36-OGF}
+
+\subsection{Operadores Geométricos Fundamentais}
+
+O documento GER-S26-B36-OGF estabelece a interface matemática oficial entre o
+Observatório de Persistência (S26-B35) e o Stationary Scan.
+
+Todo operador geométrico fundamental do S26-B36 é definido como um funcional sobre a
+trajetória observacional
+
+\[
+\mathcal F[\gamma].
+\]
+
+Os operadores fundamentais são:
+
+\begin{itemize}
+\item Confinamento;
+\item Convergência;
+\item Recorrência;
+\item Deriva.
+\end{itemize}
+
+Esses operadores constituem a linguagem geométrica oficial utilizada pelo módulo.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Arquitetura Conceitual}
+
+A arquitetura científica do módulo passa a ser
+
+\[
+\text{Trajetória}
+\longrightarrow
+\text{Operadores Geométricos}
+\longrightarrow
+\text{Diagnóstico Geométrico}
+\longrightarrow
+\text{Classificação}.
+\]
+
+O diagnóstico produzido pelo Stationary Scan constitui uma inferência sobre a geometria da
+trajetória e não uma classificação direta dos operadores individualmente.
+
+Assim, nenhum operador isolado caracteriza um regime.
+
+Os regimes emergem da interpretação conjunta dos operadores geométricos fundamentais.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Consequência Metodológica}
+
+O State Vector permanece como parte integrante do observatório.
+
+Entretanto, sua função passa a ser exclusivamente descritiva.
+
+As estatísticas produzidas pelo S26-B35 resumem propriedades distintas da trajetória, mas
+não constituem, individualmente, critérios classificatórios.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Marco Científico --- Reconstrução do S26-B36}
+
+A reconstrução científica do S26-B36 foi considerada concluída com o congelamento do
+documento GER-S26-B36-OGF (Operadores Geométricos Fundamentais).
+
+A partir desta decisão, o objeto matemático oficial do módulo passa a ser a trajetória
+observacional produzida pelo S26-B35, e não mais observáveis individuais ou o State
+Vector instantâneo.
+
+Os operadores fundamentais (Confinamento, Convergência, Recorrência e Deriva)
+constituem a interface matemática oficial entre o Observatório e o Stationary Scan.
+
+Este documento estabelece a especificação matemática oficial do módulo, vigente até
+eventual revisão motivada por evidências experimentais reproduzíveis.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Princípio de Evolução Científica}
+
+A evolução futura do S26-B36 deverá ocorrer prioritariamente pela ampliação do domínio
+experimental e pela validação dos Operadores Geométricos Fundamentais.
+
+Alterações na teoria somente deverão ser consideradas quando evidências experimentais
+
+reproduzíveis demonstrarem incompatibilidade entre os operadores definidos no
+GER-S26-B36-OGF e o comportamento observado do sistema.
+
+Na ausência dessas evidências, modificações na implementação, nos algoritmos de
+aproximação ou nos parâmetros de calibração não constituem alterações da teoria.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Considerações Finais}
+
+A reconstrução do S26-B36 estabeleceu uma separação explícita entre observação,
+diagnóstico geométrico e classificação.
+
+A arquitetura científica do projeto passa a ser
+
+\[
+\text{Motor}
+\longrightarrow
+\text{Observatório}
+\longrightarrow
+\text{Trajetória}
+\longrightarrow
+\text{Operadores Geométricos}
+\longrightarrow
+\text{Diagnóstico Geométrico}
+\longrightarrow
+\text{Classificação}.
+\]
+
+Essa organização torna independentes a teoria, sua implementação computacional e sua
+calibração experimental, estabelecendo uma base metodológica para a evolução futura do
+GER.
+
+A partir deste marco, o desenvolvimento do S26-B36 deixa de consistir na descoberta de
+uma teoria e passa a concentrar-se na implementação, validação experimental e
+aperfeiçoamento computacional da teoria geométrica estabelecida pelo documento
+GER-S26-B36-OGF.
+
+\section{S26-B36 --- Implementação e Validação do Stationary Scan}
+
+Após o congelamento da especificação matemática estabelecida pelo documento
+GER-S26-B36-OGF, o desenvolvimento do módulo passou a concentrar-se
+exclusivamente na implementação computacional da arquitetura definida.
+
+O operador $\Psi$ foi implementado como o núcleo do \textit{Stationary Scan},
+recebendo exclusivamente a Assinatura Geométrica
+
+\[
+\mathcal{G}
+=
+(\mathrm{diameter},
+\mathrm{convergence},
+\mathrm{recurrence},
+\mathrm{drift})
+\]
+
+e produzindo um Certificado Estrutural de acordo com o axioma SS-1.
+
+Durante esta etapa foram implementados os três operadores internos da
+arquitetura:
+
+\begin{itemize}
+\item Eligibility Operator;
+\item Structural Operator;
+\item Consistency Operator.
+\end{itemize}
+
+O Eligibility Operator verifica a integridade da Assinatura Geométrica e a
+elegibilidade das relações fundamentais.
+
+O Structural Operator foi implementado como parte permanente da arquitetura.
+Entretanto, durante a implementação e auditoria verificou-se que a teoria
+vigente não fornece, até o presente momento, nenhuma dedução estrutural
+formalmente demonstrada utilizando exclusivamente os Operadores
+Geométricos Fundamentais.
+
+Consequentemente, o operador permanece implementado, porém sem Rules
+Estruturais ativas.
+
+Esta decisão preserva rigorosamente o axioma SS-1, impedindo que o módulo
+introduza conhecimento não demonstrado pela teoria.
+
+O Consistency Operator verifica a consistência interna do Certificado
+Estrutural, garantindo compatibilidade entre a implementação computacional
+e o estado atual da teoria.
+
+\subsection{Auditoria Oficial}
+
+Foi desenvolvido um módulo independente de auditoria destinado a verificar
+a conformidade da implementação com a especificação oficial do
+Stationary Scan.
+
+A auditoria valida:
+
+\begin{itemize}
+\item estrutura do Certificado Estrutural;
+\item construção das seis relações fundamentais;
+\item funcionamento do Eligibility Operator;
+\item consistência do Structural Operator;
+\item funcionamento do Consistency Operator;
+\item reprodutibilidade determinística do Certificado.
+\end{itemize}
+
+Todos os testes foram aprovados sem inconsistências.
+
+A implementação apresentou comportamento determinístico e reproduzível,
+produzindo certificados idênticos para assinaturas geométricas idênticas.
+
+\subsection{Conclusão da Etapa}
+
+A implementação computacional do módulo S26-B36 é considerada concluída.
+
+O operador $\Psi$ permanece arquiteturalmente congelado, estando preparado
+para receber futuras Rules Estruturais formalmente demonstradas sem que
+seja necessária qualquer alteração em sua arquitetura.
+
+Na ausência dessas Rules, o Structural Operator permanece corretamente
+implementado e cientificamente consistente com a teoria vigente.
+
+Com esta etapa encerrada, considera-se concluída a reconstrução científica,
+a implementação e a validação do S26-B36.
+
+A próxima etapa do projeto inicia o módulo S26-B37, responsável por utilizar
+o Certificado Estrutural produzido pelo Stationary Scan como entrada para a
+camada subsequente da arquitetura da Geometria Espectral Relacional.
+\section{Início do S26-B37 --- Geometria do Espaço das Assinaturas}
+
+Com a conclusão e validação oficial do módulo S26-B36, iniciou-se a investigação
+científica do módulo S26-B37.
+
+Diferentemente da etapa anterior, o objetivo inicial não consistiu em propor
+novos operadores dedutivos, mas em investigar propriedades fundamentais do
+próprio espaço das Assinaturas Geométricas.
+
+A primeira hipótese considerada foi a possibilidade de definir relações de
+equivalência estrutural entre assinaturas. Entretanto, verificou-se que essa
+questão depende previamente da existência de uma geometria bem definida sobre o
+espaço
+
+\[
+\mathcal{G}
+=
+(\mathrm{diameter},
+\mathrm{convergence},
+\mathrm{recurrence},
+\mathrm{drift}).
+\]
+
+Consequentemente, o primeiro objetivo do S26-B37 passou a ser a investigação
+experimental da geometria induzida pelas diferentes métricas possíveis sobre
+esse espaço.
+
+\subsection{Experimento S26-B37-0}
+
+Foi implementado o primeiro experimento destinado à validação da infraestrutura
+experimental do módulo.
+
+O experimento gerou um conjunto de assinaturas geométricas sintéticas e
+verificou:
+
+\begin{itemize}
+\item geração das assinaturas;
+\item representação canônica;
+\item detecção de colisões;
+\item cálculo de distâncias;
+\item geração automática de relatórios.
+\end{itemize}
+
+Para um conjunto de 1000 assinaturas observou-se:
+
+\begin{itemize}
+\item 1000 assinaturas distintas;
+\item nenhuma colisão;
+\item infraestrutura computacional validada.
+\end{itemize}
+
+Concluiu-se que o experimento validou a infraestrutura necessária para os
+experimentos subsequentes, não sendo ainda suficiente para estabelecer
+propriedades geométricas da teoria.
+
+\subsection{Experimento S26-B37-1}
+
+O segundo experimento investigou a influência da métrica adotada sobre a
+estrutura local do espaço das Assinaturas Geométricas.
+
+Utilizando exatamente o mesmo conjunto de assinaturas, foram comparadas duas
+métricas:
+
+\begin{itemize}
+\item distância euclidiana;
+\item distância euclidiana normalizada.
+\end{itemize}
+
+Para cada métrica foi determinado o par de assinaturas mais próximo.
+
+O resultado experimental mostrou que os pares obtidos pelas duas métricas foram
+distintos.
+
+Em outras palavras, a estrutura de vizinhança do espaço das Assinaturas depende
+da métrica utilizada.
+
+Este resultado constitui a primeira evidência experimental do S26-B37.
+
+\subsection{Consequência Científica}
+
+O experimento demonstra que a geometria do espaço das Assinaturas Geométricas
+não pode ser assumida implicitamente como euclidiana.
+
+Em consequência, qualquer teoria futura envolvendo:
+
+\begin{itemize}
+\item proximidade estrutural;
+\item estabilidade;
+\item continuidade;
+\item equivalência;
+\item dedutibilidade estrutural;
+\end{itemize}
+
+deverá ser formulada sobre uma métrica explicitamente definida.
+
+O resultado não identifica qual é a métrica canônica do espaço das
+Assinaturas, mas demonstra experimentalmente que essa escolha influencia a
+estrutura geométrica observada.
+
+\subsection{Questão Aberta}
+
+O primeiro problema científico formal do S26-B37 passa a ser:
+
+\begin{quote}
+\emph{Existe uma métrica estrutural canônica para o espaço das Assinaturas
+Geométricas produzidas pelos Operadores Geométricos Fundamentais?}
+\end{quote}
+
+A resposta a essa questão torna-se condição necessária para o desenvolvimento
+das futuras teorias de equivalência estrutural, estabilidade dedutiva e
+dedutibilidade no âmbito da Geometria Espectral Relacional.
+
+
+
 
 \newpage
 \input{journal}
