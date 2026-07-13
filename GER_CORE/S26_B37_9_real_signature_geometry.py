@@ -169,7 +169,9 @@ def analyse_geometry(dataset):
 
     )
 
-    return {
+        return {
+
+        "n_signatures": len(dataset),
 
         "pairs": n_pairs,
 
@@ -196,9 +198,9 @@ def print_report(report):
 
     print()
 
-    print("Generated signatures :",
+        print("Generated signatures :",
 
-          report["pairs"] + 1)
+          report["n_signatures"])
 
     print("Pairs analysed       :",
 
