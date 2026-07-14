@@ -82,6 +82,7 @@ def report_partition(
 
     report = summary(partition)
 
+    print("Operator :", operator)
     print("=" * 60)
     print("S27-E1")
     print("Partition Observatory")
@@ -108,3 +109,29 @@ def report_partition(
     print()
 
     print("=" * 60)
+
+# ============================================================
+# Test
+# ============================================================
+
+if __name__ == "__main__":
+
+    signatures = [
+
+        {"diameter": 1.0, "volume": 5.0, "recurrence": 0.20},
+        {"diameter": 1.0, "volume": 6.0, "recurrence": 0.30},
+        {"diameter": 2.0, "volume": 4.0, "recurrence": 0.20},
+        {"diameter": 2.0, "volume": 4.0, "recurrence": 0.40},
+        {"diameter": 3.0, "volume": 2.0, "recurrence": 0.50},
+
+    ]
+
+    partition = build_observable_partition(
+        signatures,
+        "diameter",
+    )
+
+    report_partition(
+        partition,
+        operator="D",
+    )
