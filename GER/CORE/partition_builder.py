@@ -21,7 +21,7 @@ Este módulo implementa exatamente essa construção.
 
 from collections import defaultdict
 
-from GER.CORE.partition import Partition
+from CORE.partition import Partition
 
 
 # ------------------------------------------------------------
