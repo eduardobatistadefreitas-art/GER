@@ -5,14 +5,19 @@ GER
 S27-E1
 
 Partition Observatory
+Partition Observatory
 
 Primeiro observatório experimental da Série S27.
 
-Objetivo:
+Objetivo
 
-Validar computacionalmente a construção de partições
-induzidas pelos Operadores Geométricos Fundamentais
-utilizando exclusivamente o motor consolidado da S26.
+Verificar se um Operador Geométrico Fundamental
+induz corretamente uma partição computacional
+sobre o conjunto de trajetórias produzidas
+pelo motor do GER.
+
+Nesta primeira versão apenas o operador D
+é utilizado.
 
 ============================================================
 """
@@ -30,7 +35,7 @@ from GER.CORE.signature_api import (
 # Partition
 # ============================================================
 
-def build_signature_partition(
+def build_observable_partition(
     trajectories,
     key,
 ):
@@ -72,6 +77,7 @@ def build_signature_partition(
 
 def report_partition(
     partition,
+    operator,
 ):
 
     report = summary(partition)
