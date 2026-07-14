@@ -2337,6 +2337,176 @@ motor físico do framework GER, permitindo verificar se a robustez
 observada representa uma propriedade da representação ordinal ou uma
 propriedade intrínseca da dinâmica relacional investigada.
 
+\section{Validação com Assinaturas Reais}
+
+Os experimentos anteriores demonstraram que a geometria ordinal apresenta
+robustez estatística quando aplicada a conjuntos sintéticos de Assinaturas
+Geométricas. Permanecia, entretanto, a questão fundamental de saber se tal
+robustez persistiria quando as assinaturas fossem produzidas pelo próprio
+motor físico do framework GER.
+
+Para responder essa questão foi introduzida uma interface pública para a
+geração de Assinaturas Geométricas, permitindo desacoplar os experimentos
+do módulo S26-B37 da implementação interna dos módulos B35 e B36.
+A partir dessa interface tornou-se possível utilizar diretamente o espaço
+de assinaturas produzido pelo mecanismo físico do GER.
+
+\subsection{S26-B37-9 --- Real Signature Geometry}
+
+O primeiro experimento utilizando exclusivamente assinaturas reais revelou
+um comportamento substancialmente distinto daquele observado nos conjuntos
+sintéticos.
+
+Enquanto os experimentos anteriores apresentavam contribuições praticamente
+uniformes entre os quatro Operadores Geométricos Fundamentais (OGFs), as
+assinaturas produzidas pelo GER exibiram forte anisotropia, sendo a métrica
+de convergência responsável por aproximadamente $99\%$ da contribuição
+geométrica total.
+
+Esse resultado demonstra que a isotropia observada anteriormente não pode
+ser automaticamente extrapolada para o espaço físico das assinaturas.
+
+\subsection{S26-B37-10 --- Standardized Signature Geometry}
+
+A anisotropia extrema observada no experimento anterior levantou a hipótese
+de que diferenças de escala entre os OGFs poderiam estar mascarando a
+estrutura geométrica real do espaço de assinaturas.
+
+Para investigar essa possibilidade, cada componente foi padronizada por
+meio da transformação estatística
+
+\[
+z=\frac{x-\mu}{\sigma},
+\]
+
+eliminando diferenças de unidades e amplitude entre os observáveis.
+
+Após essa transformação, a contribuição dominante da convergência deixou de
+existir. Entretanto, a geometria permaneceu anisotrópica, apresentando uma
+distribuição aproximada de
+
+\[
+21.5\%,\;
+21.5\%,\;
+19.2\%,\;
+37.8\%.
+\]
+
+Consequentemente, conclui-se que a diferença de escala explica apenas parte
+da anisotropia observada, permanecendo uma componente estrutural associada
+ao próprio espaço das assinaturas.
+
+\subsection{S26-B37-11 --- Signature Space Structure}
+
+Motivado pela persistência da anisotropia após a padronização, foi
+realizado um estudo estrutural do espaço das assinaturas por meio da matriz
+de correlação entre os quatro OGFs.
+
+A análise revelou uma organização altamente estruturada.
+
+Os observáveis \emph{Diameter} e \emph{Convergence} apresentaram correlação
+praticamente perfeita,
+
+\[
+\rho \approx 1.000,
+\]
+
+indicando forte redundância informacional para o conjunto de assinaturas
+investigado.
+
+Por outro lado, os observáveis \emph{Recurrence} e \emph{Drift}
+apresentaram forte anticorrelação,
+
+\[
+\rho \approx -0.831,
+\]
+
+enquanto \emph{Drift} mostrou-se praticamente independente tanto de
+\emph{Diameter} quanto de \emph{Convergence}.
+
+Esses resultados sugerem que o espaço das Assinaturas Geométricas não é
+composto por quatro direções independentes, mas apresenta pelo menos duas
+famílias naturais de observáveis: uma associada ao espalhamento global da
+trajetória e outra relacionada à sua dinâmica temporal.
+
+\subsection{Conclusões}
+
+Os experimentos realizados alteraram significativamente a interpretação
+geométrica do espaço das Assinaturas Geométricas.
+
+Primeiramente, verificou-se que a robustez ordinal obtida em conjuntos
+sintéticos não se reproduz diretamente nas assinaturas físicas produzidas
+pelo GER.
+
+Em seguida, demonstrou-se que a maior parte da anisotropia observada decorre
+das diferentes escalas dos observáveis, embora permaneça uma componente
+estrutural significativa após a padronização.
+
+Finalmente, a análise estrutural revelou forte redundância entre
+\emph{Diameter} e \emph{Convergence}, bem como uma relação inversa entre
+\emph{Recurrence} e \emph{Drift}, indicando que o espaço das assinaturas
+possui organização interna não trivial.
+
+Esses resultados estabelecem uma nova hipótese científica para os módulos
+subsequentes: a estrutura geométrica das Assinaturas Geométricas parece ser
+governada por um número efetivo de graus de liberdade inferior ao número de
+observáveis originalmente considerados.
+
+\section{Conclusão da Fase S26-B37}
+
+O módulo S26-B37 foi iniciado com o objetivo de investigar a existência de
+uma geometria natural no espaço das Assinaturas Geométricas produzidas pelo
+framework GER.
+
+Os experimentos iniciais estabeleceram a geometria ordinal como uma
+representação robusta para conjuntos sintéticos de assinaturas,
+demonstrando invariância em relação à normalização e elevada estabilidade
+estatística.
+
+Entretanto, a utilização de assinaturas produzidas diretamente pelo motor
+físico do GER revelou que o espaço geométrico real apresenta propriedades
+substancialmente distintas daquelas observadas em conjuntos artificiais.
+
+A análise subsequente demonstrou que parte dessa anisotropia decorre das
+diferentes escalas dos Observadores Geométricos Fundamentais (OGFs), mas
+também evidenciou a existência de uma estrutura geométrica residual que
+permanece mesmo após a padronização estatística das assinaturas.
+
+Finalmente, a auditoria estrutural do espaço das assinaturas revelou duas
+descobertas de caráter fundamental.
+
+A primeira consiste na existência de uma dependência linear praticamente
+determinística entre os observáveis \emph{Diameter} e
+\emph{Convergence}, indicando forte redundância informacional no conjunto
+de assinaturas atualmente produzido pelo GER.
+
+A segunda consiste na forte anticorrelação observada entre
+\emph{Recurrence} e \emph{Drift}, sugerindo a existência de famílias
+naturais de observáveis associadas a diferentes aspectos da dinâmica
+relacional.
+
+Esses resultados alteram significativamente a compreensão do espaço das
+Assinaturas Geométricas e indicam que sua estrutura interna possui um
+número efetivo de graus de liberdade inferior ao número de observáveis
+originalmente considerados.
+
+Dessa forma, considera-se encerrado o módulo experimental S26-B37.
+
+\subsection{Próxima Etapa}
+
+Os resultados obtidos deslocam naturalmente o foco da investigação.
+
+A questão central deixa de ser a escolha de uma métrica geométrica para o
+espaço das assinaturas e passa a ser a compreensão matemática das relações
+estruturais existentes entre os próprios observáveis fundamentais.
+
+Em consequência, inaugura-se o módulo S26-B38, cujo objetivo será o
+desenvolvimento de uma teoria das relações entre os Observadores
+Geométricos Fundamentais, investigando se as dependências observadas
+experimentalmente constituem propriedades matemáticas inerentes ao modelo
+ou emergem das condições dinâmicas específicas exploradas pelo framework
+GER.
+
 
 
 \newpage
