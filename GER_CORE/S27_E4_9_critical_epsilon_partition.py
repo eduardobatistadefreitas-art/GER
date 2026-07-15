@@ -143,9 +143,14 @@ def main():
         key=lambda s: s.drift,
     )
 
+    signature_to_eps = {
+        row["signature"]: eps_map[row["simulation_id"]]
+        for row in results
+    }
+
     P_Eps = build_partition(
-        results,
-        key=lambda row: eps_map[row["simulation_id"]],
+        signatures,
+        key=lambda s: signature_to_eps[s],
     )
 
     partitions = {
