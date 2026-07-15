@@ -63,7 +63,7 @@ def modal_energy(
         eigenvectors
     )
 
-    energy = coefficients**2
+    energy = np.abs(coefficients)**2
 
     return energy
 
