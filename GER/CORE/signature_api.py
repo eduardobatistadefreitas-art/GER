@@ -82,17 +82,9 @@ def generate_signature_dataset(
         *args,
         **kwargs,
     )
-) -> List[Signature]:
-    """
-    Produz um conjunto de Assinaturas Geométricas.
 
-    A implementação é fornecida pelo motor do GER.
-    """
 
-    raise NotImplementedError(
-        "Signature provider not connected."
-    )
-  # ============================================================
+# ============================================================
 # Provider Registry
 # ============================================================
 
