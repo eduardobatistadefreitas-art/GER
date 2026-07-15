@@ -30,31 +30,26 @@ class B35SignatureProvider(SignatureProvider):
     """
 
     def generate_signature(
-        self,
+    self,
+    *args,
+    **kwargs,
+):
+
+    return generate_signature(
         *args,
         **kwargs,
-    ):
-
-        dataset = generate_signature_dataset(
-            n_samples=1,
-            *args,
-            **kwargs,
-        )
-
-        return dataset[0]["signature"]
+    )
 
     def generate_signature_dataset(
-        self,
-        n_samples,
+    self,
+    *args,
+    **kwargs,
+):
+
+    return generate_signature_dataset(
         *args,
         **kwargs,
-    ):
-
-        return generate_signature_dataset(
-            n_samples=n_samples,
-            *args,
-            **kwargs,
-        )
+    )
       # ============================================================
 # Utilitário
 # ============================================================
