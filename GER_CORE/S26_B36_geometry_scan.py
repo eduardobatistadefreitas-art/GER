@@ -242,7 +242,7 @@ def run_geometry_scan(
                         dt=dt,
                     )
 
-                                except Exception as exc:
+                except Exception as exc:
 
                     print(
                         f"[GeometryScan] "
