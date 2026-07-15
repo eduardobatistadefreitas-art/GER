@@ -41,6 +41,18 @@ def generate_signature(
     *args,
     **kwargs,
 ) -> Signature:
+
+    provider = get_signature_provider()
+
+    if provider is None:
+        raise RuntimeError(
+            "No SignatureProvider registered."
+        )
+
+    return provider.generate_signature(
+        *args,
+        **kwargs,
+    )
     """
     Produz uma única Assinatura Geométrica.
 
@@ -53,9 +65,23 @@ def generate_signature(
 
 
 def generate_signature_dataset(
-    n_samples: int,
+    n_samples,
     *args,
     **kwargs,
+):
+
+    provider = get_signature_provider()
+
+    if provider is None:
+        raise RuntimeError(
+            "No SignatureProvider registered."
+        )
+
+    return provider.generate_signature_dataset(
+        n_samples,
+        *args,
+        **kwargs,
+    )
 ) -> List[Signature]:
     """
     Produz um conjunto de Assinaturas Geométricas.
