@@ -13,8 +13,7 @@
 # implementação interna do B35/B36.
 # ============================================================
 
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, asdict
 
 
 # ============================================================
@@ -31,6 +30,24 @@ class Signature:
     recurrence: float
 
     drift: float
+
+    def to_dict(self):
+        """
+        Converte a assinatura para um dicionário.
+        """
+        return asdict(self)
+
+    def __iter__(self):
+        """
+        Compatibilidade retroativa.
+
+        Permite que chamadas antigas como
+
+            dict(signature)
+
+        continuem funcionando.
+        """
+        return iter(asdict(self).items())
 
 
 # ============================================================
@@ -52,15 +69,6 @@ def generate_signature(
     return provider.generate_signature(
         *args,
         **kwargs,
-    )
-    """
-    Produz uma única Assinatura Geométrica.
-
-    A implementação é fornecida pelo motor do GER.
-    """
-
-    raise NotImplementedError(
-        "Signature provider not connected."
     )
 
 
@@ -92,7 +100,6 @@ _signature_provider = None
 
 
 def register_signature_provider(provider):
-
     """
     Registra o provider oficial de Assinaturas Geométricas.
 
@@ -110,12 +117,13 @@ def register_signature_provider(provider):
 def get_signature_provider():
 
     return _signature_provider
-  # ============================================================
+
+
+# ============================================================
 # Provider Protocol
 # ============================================================
 
 class SignatureProvider:
-
     """
     Interface base para qualquer produtor de
     Assinaturas Geométricas.
@@ -128,7 +136,6 @@ class SignatureProvider:
         *args,
         **kwargs,
     ):
-
         raise NotImplementedError
 
     def generate_signature_dataset(
@@ -137,7 +144,6 @@ class SignatureProvider:
         *args,
         **kwargs,
     ):
-
         raise NotImplementedError
 
 
@@ -148,13 +154,9 @@ class SignatureProvider:
 def main():
 
     print("=" * 60)
-
     print("GER CORE")
-
     print("SIGNATURE API")
-
     print("=" * 60)
-
     print()
 
     provider = get_signature_provider()
@@ -162,34 +164,24 @@ def main():
     if provider is None:
 
         print("Status")
-
         print("-" * 60)
-
         print("No Signature Provider registered.")
-
         print()
-
         print("API ready.")
-
         print("Waiting for engine connection.")
 
     else:
 
         print("Status")
-
         print("-" * 60)
-
         print("Provider connected:")
-
         print(type(provider).__name__)
 
     print()
-
     print("=" * 60)
 
 
 # ============================================================
 
 if __name__ == "__main__":
-
     main()
