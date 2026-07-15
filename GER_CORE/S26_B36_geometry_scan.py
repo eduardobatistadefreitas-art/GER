@@ -242,9 +242,17 @@ def run_geometry_scan(
                         dt=dt,
                     )
 
-                except Exception:
+                except Exception as exc:
 
-                    continue
+    print(
+        f"[GeometryScan] "
+        f"beta={beta} "
+        f"sigma={sigma} "
+        f"potential={potential} "
+        f"{type(exc).__name__}: {exc}"
+    )
+
+    continue
 
                 observables = run_persistence_observatory(
                     result["snapshots"],
