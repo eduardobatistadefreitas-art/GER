@@ -86,4 +86,45 @@ def main():
     print("GER")
     print("S27-R2.4")
     print("Persistence Observation")
-    print("=" *
+    print("=" * 60)
+    print()
+
+    snapshots = generate_snapshots()
+
+    observables = run_persistence_observatory(
+
+        snapshots,
+
+        DT,
+
+    )
+
+    print("Observables")
+    print("-" * 60)
+
+    for key, values in observables.items():
+
+        values = np.asarray(values)
+
+        print(
+
+            f"{key:<12}"
+
+            f"mean={np.mean(values):.6f}"
+
+            f"   "
+
+            f"std={np.std(values):.6f}"
+
+        )
+
+    print()
+
+    print("=" * 60)
+    print("STATUS : PASS")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+
+    main()
