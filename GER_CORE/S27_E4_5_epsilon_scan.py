@@ -17,7 +17,7 @@ from GER_CORE.S26_B36_geometry_scan import (
     compute_recurrence,
 )
 
-from GER_CORE.S26_B35_persistence_observatory import (
+from GER_CORE.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
