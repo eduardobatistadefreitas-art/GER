@@ -20,7 +20,7 @@ partições.
 
 from collections import defaultdict
 
-from CORE.partition import Partition
+from .partition import Partition
 
 
 # ------------------------------------------------------------
