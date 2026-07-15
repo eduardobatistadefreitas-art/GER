@@ -242,21 +242,22 @@ def run_geometry_scan(
                         dt=dt,
                     )
 
-                except Exception as exc:
+                                except Exception as exc:
 
-    print(
-        f"[GeometryScan] "
-        f"beta={beta} "
-        f"sigma={sigma} "
-        f"potential={potential} "
-        f"{type(exc).__name__}: {exc}"
-    )
+                    print(
+                        f"[GeometryScan] "
+                        f"beta={beta} "
+                        f"sigma={sigma} "
+                        f"potential={potential} "
+                        f"{type(exc).__name__}: {exc}"
+                    )
 
-    continue
+                    continue
 
                 observables = run_persistence_observatory(
                     result["snapshots"],
                     result["configuration"]["dt"],
+                )
                 )
 
                 trajectory = build_trajectory(
