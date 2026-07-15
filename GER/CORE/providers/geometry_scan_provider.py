@@ -25,46 +25,36 @@ from GER_CORE.S26_B36_geometry_scan import (
 
 
 class B35SignatureProvider(SignatureProvider):
-
     """
-    Provider oficial baseado no motor físico.
-
-    A implementação será conectada ao pipeline
-    B35/B36.
+    Provider oficial baseado no motor físico do GER.
     """
 
     def generate_signature(
-    self,
-    *args,
-    **kwargs,
-):
-
-    dataset = generate_signature_dataset(
-        n_samples=1,
+        self,
         *args,
         **kwargs,
-    )
+    ):
 
-    return dataset[0]["signature"]
-
-        raise NotImplementedError(
-
-            "B35 provider not connected."
-
+        dataset = generate_signature_dataset(
+            n_samples=1,
+            *args,
+            **kwargs,
         )
 
-    def generate_signature_dataset(
-    self,
-    n_samples,
-    *args,
-    **kwargs,
-):
+        return dataset[0]["signature"]
 
-    return generate_signature_dataset(
-        n_samples=n_samples,
+    def generate_signature_dataset(
+        self,
+        n_samples,
         *args,
         **kwargs,
-    )
+    ):
+
+        return generate_signature_dataset(
+            n_samples=n_samples,
+            *args,
+            **kwargs,
+        )
       # ============================================================
 # Utilitário
 # ============================================================
