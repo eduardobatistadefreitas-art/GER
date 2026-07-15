@@ -19,6 +19,9 @@ from GER.CORE.signature_api import (
     SignatureProvider,
 
 )
+from GER_CORE.S26_B36_geometry_scan import (
+    generate_signature_dataset,
+)
 
 
 class B35SignatureProvider(SignatureProvider):
@@ -31,14 +34,18 @@ class B35SignatureProvider(SignatureProvider):
     """
 
     def generate_signature(
+    self,
+    *args,
+    **kwargs,
+):
 
-        self,
-
+    dataset = generate_signature_dataset(
+        n_samples=1,
         *args,
-
         **kwargs,
+    )
 
-    ):
+    return dataset[0]["signature"]
 
         raise NotImplementedError(
 
@@ -47,22 +54,17 @@ class B35SignatureProvider(SignatureProvider):
         )
 
     def generate_signature_dataset(
+    self,
+    n_samples,
+    *args,
+    **kwargs,
+):
 
-        self,
-
-        n_samples,
-
+    return generate_signature_dataset(
+        n_samples=n_samples,
         *args,
-
         **kwargs,
-
-    ):
-
-        raise NotImplementedError(
-
-            "B35 provider not connected."
-
-        )
+    )
       # ============================================================
 # Utilitário
 # ============================================================
