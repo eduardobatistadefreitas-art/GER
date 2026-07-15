@@ -29,8 +29,8 @@ from GER.CORE.partition_metrics import summary
 from GER.CORE.signature_api import (
     generate_signature,
 )
-from GER.CORE.providers.b35_provider import (
-    B35SignatureProvider,
+from GER.CORE.providers.geometry_scan_provider import (
+    GeometryScanProvider,
 )
 
 from GER.CORE.signature_api import (
