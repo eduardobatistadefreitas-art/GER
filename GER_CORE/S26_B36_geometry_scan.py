@@ -258,7 +258,6 @@ def run_geometry_scan(
                     result["snapshots"],
                     result["configuration"]["dt"],
                 )
-                )
 
                 trajectory = build_trajectory(
                     observables
