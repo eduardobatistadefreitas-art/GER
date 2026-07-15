@@ -26,14 +26,8 @@ from GER.CORE.partition_builder import build_partition
 
 from GER.CORE.partition_metrics import summary
 
-from GER.CORE.signature_api import (
-    generate_signature,
-)
-from GER.CORE.providers.geometry_scan_provider import (
-    B35SignatureProvider,
-)
-from GER.CORE.signature_api import (
-    register_signature_provider,
+from GER_CORE.S26_B36_geometry_scan import (
+    run_geometry_scan,
 )
 
 # ============================================================
@@ -49,35 +43,27 @@ register_signature_provider(
 # ============================================================
 
 def build_observable_partition(
-    trajectories,
     key,
 ):
     """
     Constrói uma partição utilizando um único operador
-    observacional.
-
-    Parameters
-    ----------
-    trajectories
-
-        Coleção de trajetórias.
-
-    key
-
-        Nome do atributo da assinatura.
-
-    Returns
-    -------
-    Partition
+    observacional do GER.
     """
+
+    results = run_geometry_scan()
+
+    signatures = [
+        row["signature"]
+        for row in results
+    ]
 
     return build_partition(
 
-        universe=trajectories,
+        universe=signatures,
 
-        key=lambda trajectory:
+        key=lambda signature:
             getattr(
-                generate_signature(trajectory),
+                signature,
                 key,
             ),
 
@@ -140,9 +126,8 @@ if __name__ == "__main__":
     ]
 
     partition = build_observable_partition(
-        signatures,
-        "diameter",
-    )
+    "diameter",
+)
 
     report_partition(
         partition,
