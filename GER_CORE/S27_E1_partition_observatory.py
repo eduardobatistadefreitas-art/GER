@@ -32,7 +32,6 @@ from GER.CORE.signature_api import (
 from GER.CORE.providers.geometry_scan_provider import (
     GeometryScanProvider,
 )
-
 from GER.CORE.signature_api import (
     register_signature_provider,
 )
@@ -42,7 +41,7 @@ from GER.CORE.signature_api import (
 # ============================================================
 
 register_signature_provider(
-    B35SignatureProvider()
+    GeometryScanProvider()
 )
 
 # ============================================================
