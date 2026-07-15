@@ -4,11 +4,15 @@
 # S27-RA18
 #
 # Geometry Scan Audit
+#
+# Interface inspection.
 # ============================================================
 
 import inspect
 
-import GER_CORE.S26_B36_geometry_scan as gs
+from GER_CORE.S26_B36_geometry_scan import (
+    run_geometry_scan,
+)
 
 print("=" * 60)
 print("GER")
@@ -17,17 +21,11 @@ print("Geometry Scan Audit")
 print("=" * 60)
 print()
 
-print(dir(gs))
+print("Signature")
+print("----------------------------------------")
+print(inspect.signature(run_geometry_scan))
 print()
 
-for name in dir(gs):
-
-    obj = getattr(gs, name)
-
-    if inspect.isfunction(obj):
-
-        print("=" * 60)
-        print(name)
-        print("=" * 60)
-        print(inspect.signature(obj))
-        print()
+print("Source")
+print("----------------------------------------")
+print(inspect.getsource(run_geometry_scan))
