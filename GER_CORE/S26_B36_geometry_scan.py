@@ -9,6 +9,9 @@ from GER_CORE.S26_B35_persistence_metrics import (
 )
 from GER.CORE.signature_api import Signature
 
+from GER.CORE.ger_geometric_signature import (
+    compute_geometric_signature,
+)
 # ============================================================
 # GER
 # S26-B36
@@ -258,39 +261,24 @@ def run_geometry_scan(
                     result["snapshots"],
                     result["configuration"]["dt"],
                 )
-
-                trajectory = build_trajectory(
+                                trajectory = build_trajectory(
                     observables
                 )
 
-                diameter = compute_confinement(
+                _, trajectory_length = compute_drift(
                     trajectory
                 )
 
-                convergence = compute_convergence(
-                    trajectory,
+                signature = compute_geometric_signature(
+                    observables,
                     result["configuration"]["dt"],
                 )
 
-                recurrence = compute_recurrence(
-                    trajectory
-                )
-
-                drift, trajectory_length = compute_drift(
-                    trajectory
-                )
-                signature = Signature(
-
-    diameter=diameter,
-
-    convergence=convergence,
-
-    recurrence=recurrence,
-
-    drift=drift,
-
-                )
-
+                diameter = signature.diameter
+                convergence = signature.convergence
+                recurrence = signature.recurrence
+                drift = signature.drift
+                
                 results.append({
 
     "simulation_id": len(results),
