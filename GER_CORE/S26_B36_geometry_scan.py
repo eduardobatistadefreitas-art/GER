@@ -9,9 +9,6 @@ from GER_CORE.S26_B35_persistence_metrics import (
 )
 from GER.CORE.signature_api import Signature
 
-from GER.CORE.ger_geometric_signature import (
-    compute_geometric_signature,
-)
 # ============================================================
 # GER
 # S26-B36
@@ -266,19 +263,34 @@ def run_geometry_scan(
                     observables
                 )
 
-                _, trajectory_length = compute_drift(
+                diameter = compute_confinement(
                     trajectory
                 )
 
-                signature = compute_geometric_signature(
-                    observables,
+                convergence = compute_convergence(
+                    trajectory,
                     result["configuration"]["dt"],
                 )
 
-                diameter = signature.diameter
-                convergence = signature.convergence
-                recurrence = signature.recurrence
-                drift = signature.drift
+                recurrence = compute_recurrence(
+                    trajectory
+                )
+
+                drift, trajectory_length = compute_drift(
+                    trajectory
+                )
+
+                signature = Signature(
+
+                    diameter=diameter,
+
+                    convergence=convergence,
+
+                    recurrence=recurrence,
+
+                    drift=drift,
+
+                )
 
                 results.append({
 
@@ -307,47 +319,6 @@ def run_geometry_scan(
                     "signature": signature,
 
                 })
-
-    return results
-
-# ============================================================
-# API pública
-# ============================================================
-
-def generate_signature_dataset(
-    *args,
-    **kwargs,
-):
-
-    results = run_geometry_scan(
-        *args,
-        **kwargs,
-    )
-
-    return [
-
-        row["signature"]
-
-        for row in results
-
-    ]
-
-
-def generate_signature(
-    *args,
-    **kwargs,
-):
-
-    signatures = generate_signature_dataset(
-        *args,
-        **kwargs,
-    )
-
-    if not signatures:
-
-        raise RuntimeError(
-            "No signatures generated."
-        )
 
     return signatures[0]
 # ============================================================
