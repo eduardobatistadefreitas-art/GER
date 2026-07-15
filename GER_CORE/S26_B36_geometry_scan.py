@@ -261,7 +261,8 @@ def run_geometry_scan(
                     result["snapshots"],
                     result["configuration"]["dt"],
                 )
-                                trajectory = build_trajectory(
+
+                trajectory = build_trajectory(
                     observables
                 )
 
@@ -278,34 +279,34 @@ def run_geometry_scan(
                 convergence = signature.convergence
                 recurrence = signature.recurrence
                 drift = signature.drift
-                
+
                 results.append({
 
-    "simulation_id": len(results),
+                    "simulation_id": len(results),
 
-    "beta": beta,
+                    "beta": beta,
 
-    "sigma": sigma,
+                    "sigma": sigma,
 
-    "potential": potential,
+                    "potential": potential,
 
-    "dt": result["configuration"]["dt"],
+                    "dt": result["configuration"]["dt"],
 
-    "window_size": len(trajectory),
+                    "window_size": len(trajectory),
 
-    "diameter": diameter,
+                    "diameter": diameter,
 
-    "convergence": convergence,
+                    "convergence": convergence,
 
-    "recurrence": recurrence,
+                    "recurrence": recurrence,
 
-    "drift": drift,
+                    "drift": drift,
 
-    "trajectory_length": trajectory_length,
+                    "trajectory_length": trajectory_length,
 
                     "signature": signature,
 
-})
+                })
 
     return results
 
