@@ -20,6 +20,7 @@ from GER.CORE.signature_api import (
 
 )
 from GER_CORE.S26_B36_geometry_scan import (
+    generate_signature,
     generate_signature_dataset,
 )
 
