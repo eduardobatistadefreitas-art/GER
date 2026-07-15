@@ -3,130 +3,130 @@
 #
 # S27-R1
 #
-# Harmonic Oscillator
+# External Snapshot Construction
 #
-# First external validation experiment.
+# First Reality Validation experiment.
 #
-# The GER framework is used without modification.
+# Goal:
+# Construct a GER-compatible spectral snapshot
+# from a Fourier representation of a harmonic
+# oscillator.
 # ============================================================
 
 import numpy as np
 
-from GER_CORE.S26_B35_persistence_metrics import (
-    run_persistence_observatory,
+from GER.CORE.ger_modal import (
+    modal_probability,
+    participation_ratio,
+    spectral_center,
+    spectral_entropy,
 )
 
-from GER_CORE.S26_B36_geometry_scan import (
-    build_trajectory,
-    compute_confinement,
-    compute_convergence,
-    compute_recurrence,
-    compute_drift,
-    Signature,
-)
+# ------------------------------------------------------------
 
-
-def generate_harmonic_oscillator(
-
+def harmonic_signal(
     omega=1.0,
     amplitude=1.0,
-    timesteps=2000,
-    dt=2.5e-4,
-
+    samples=2048,
+    dt=1e-3,
 ):
 
-    t = np.arange(timesteps) * dt
+    t = np.arange(samples) * dt
 
-    x = amplitude * np.cos(omega * t)
+    x = amplitude * np.cos(
+        omega * t
+    )
 
-    v = -amplitude * omega * np.sin(omega * t)
+    return t, x
 
-    snapshots = []
-
-    for xi, vi in zip(x, v):
-
-        snapshots.append(
-
-            {
-
-                "gamma": np.array([xi]),
-
-                "velocity": np.array([vi]),
-
-            }
-
-        )
-
-    return snapshots
-
+# ------------------------------------------------------------
 
 def main():
 
     print("=" * 60)
     print("GER")
     print("S27-R1")
-    print("Harmonic Oscillator")
+    print("External Snapshot Construction")
     print("=" * 60)
     print()
 
-    dt = 2.5e-4
+    _, signal = harmonic_signal()
 
-    snapshots = generate_harmonic_oscillator(
-        dt=dt
-    )
+    coeff = np.fft.rfft(signal)
 
-    observables = run_persistence_observatory(
-        snapshots,
-        dt,
-    )
+    probability = modal_probability(coeff)
 
-    trajectory = build_trajectory(
-        observables
-    )
+    pr = participation_ratio(probability)
 
-    diameter = compute_confinement(
-        trajectory
-    )
+    center = spectral_center(probability)
 
-    convergence = compute_convergence(
-        trajectory,
-        dt,
-    )
+    entropy = spectral_entropy(probability)
 
-    recurrence = compute_recurrence(
-        trajectory
-    )
+    snapshot = {
 
-    drift, length = compute_drift(
-        trajectory
-    )
+        "gamma": coeff,
 
-    signature = Signature(
+        "probability": probability,
 
-        diameter=diameter,
+        "participation_ratio": pr,
 
-        convergence=convergence,
+        "modal_center": center,
 
-        recurrence=recurrence,
+        "spectral_entropy": entropy,
 
-        drift=drift,
+    }
 
-    )
-
-    print("Signature")
+    print("Snapshot fields")
     print("-" * 60)
 
-    print(f"Diameter    : {signature.diameter:.6f}")
-    print(f"Convergence : {signature.convergence:.6f}")
-    print(f"Recurrence  : {signature.recurrence:.6f}")
-    print(f"Drift       : {signature.drift:.6f}")
+    for key in snapshot:
+
+        value = snapshot[key]
+
+        if np.isscalar(value):
+
+            print(f"{key:<24}{value}")
+
+        else:
+
+            print(
+                f"{key:<24}"
+                f"shape={np.shape(value)}"
+            )
+
+    print()
+
+    print("Consistency")
+
+    print("-" * 60)
+
+    print(
+        "Probability sum :",
+        np.sum(probability),
+    )
+
+    print(
+        "Participation Ratio :",
+        pr,
+    )
+
+    print(
+        "Modal Center :",
+        center,
+    )
+
+    print(
+        "Spectral Entropy :",
+        entropy,
+    )
 
     print()
 
     print("=" * 60)
-    print("STATUS : EXTERNAL OBSERVATION COMPLETED")
+    print("STATUS : SNAPSHOT CONSTRUCTED")
     print("=" * 60)
 
 
 if __name__ == "__main__":
+
     main()
