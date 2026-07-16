@@ -127,9 +127,23 @@ def main():
     diameter = float(ecc.max())
     radius = float(ecc.min())
 
-    center = ecc[ecc == radius].index.tolist()
+    tol = 1e-12
 
-    peripheral = ecc[ecc == diameter].index.tolist()
+    center = ecc[
+        np.isclose(
+            ecc,
+            radius,
+            atol=tol,
+        )
+    ].index.tolist()
+
+    peripheral = ecc[
+        np.isclose(
+            ecc,
+            diameter,
+            atol=tol,
+        )
+    ].index.tolist()
 
     print("Metric Properties")
     print("-" * 60)
@@ -137,7 +151,7 @@ def main():
     print(f"Number of signatures : {len(df)}")
     print(f"Metric diameter      : {diameter:.6f}")
     print(f"Metric radius        : {radius:.6f}")
-
+    print()
         print("Metric Center")
     print("-" * 60)
 
@@ -162,8 +176,15 @@ def main():
 
     print()
 
-    distance_file = RESULTS / "S28_E1_1_metric_distance_matrix.csv"
-    ecc_file = RESULTS / "S28_E1_1_eccentricities.csv"
+    distance_file = (
+        RESULTS /
+        "S28_E1_1_metric_distance_matrix.csv"
+    )
+
+    ecc_file = (
+        RESULTS /
+        "S28_E1_1_eccentricities.csv"
+    )
 
     distance_df.to_csv(distance_file)
 
