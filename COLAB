@@ -1,0 +1,41 @@
+from pathlib import Path
+import subprocess
+
+REPO = Path("/content/GER")
+
+print("=" * 60)
+print("GER Bootstrap")
+print("=" * 60)
+
+if REPO.exists():
+    print("Atualizando repositório...\n")
+    subprocess.run(
+        ["git", "-C", str(REPO), "pull"],
+        check=True
+    )
+else:
+    print("Clonando repositório oficial...\n")
+    subprocess.run(
+        [
+            "git",
+            "clone",
+            "https://github.com/eduardobatistadefreitas-art/GER.git",
+            str(REPO),
+        ],
+        check=True,
+    )
+
+print()
+
+print("Iniciando GER...\n")
+
+result = subprocess.run(
+    ["python", "start_ger.py"],
+    cwd=str(REPO),
+    check=True,
+)
+
+if result.returncode == 0:
+    print("\n" + "=" * 60)
+    print("GER Bootstrap concluído com sucesso.")
+    print("=" * 60)
