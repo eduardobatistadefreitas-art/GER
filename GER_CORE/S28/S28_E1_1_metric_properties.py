@@ -138,7 +138,6 @@ def main():
     print(f"Metric diameter      : {diameter:.6f}")
     print(f"Metric radius        : {radius:.6f}")
 
-    print()
         print("Metric Center")
     print("-" * 60)
 
