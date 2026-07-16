@@ -7,18 +7,19 @@ Metric Properties of the Relational Signature Space
 
 Objective
 ---------
-Investigate the basic metric properties of the Relational Signature Space.
+Investigate the basic metric properties of the Relational
+Signature Space.
 
-Given the current Reference Signature Space, this experiment computes:
+Computed quantities
 
-    • Pairwise Euclidean distances
-    • Metric diameter
-    • Metric radius
-    • Metric center
-    • Eccentricity of every signature
-    • Peripheral set
+    • Pairwise Euclidean Distance Matrix
+    • Eccentricities
+    • Metric Diameter
+    • Metric Radius
+    • Metric Center
+    • Peripheral Set
 
-No new dynamical systems are generated.
+The object of study is the Relational Signature Space itself.
 
 ============================================================
 """
@@ -28,6 +29,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
+
+
+# ============================================================
+# Project directories
+# ============================================================
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+RESULTS = PROJECT_ROOT / "RESULTS"
+RESULTS.mkdir(parents=True, exist_ok=True)
 
 
 # ============================================================
@@ -45,7 +56,7 @@ SIGNATURES = {
 
 
 # ============================================================
-# Header
+# Utilities
 # ============================================================
 
 def print_header():
@@ -58,19 +69,11 @@ def print_header():
     print()
 
 
-# ============================================================
-# Dataset
-# ============================================================
-
 def build_dataframe():
 
-    names = list(SIGNATURES.keys())
-
-    data = np.array(list(SIGNATURES.values()))
-
     return pd.DataFrame(
-        data,
-        index=names,
+        list(SIGNATURES.values()),
+        index=list(SIGNATURES.keys()),
         columns=[
             "Diameter",
             "Convergence",
@@ -96,7 +99,11 @@ def main():
 
     X = df.values
 
-    distance_matrix = cdist(X, X, metric="euclidean")
+    distance_matrix = cdist(
+        X,
+        X,
+        metric="euclidean",
+    )
 
     distance_df = pd.DataFrame(
         distance_matrix,
@@ -126,12 +133,13 @@ def main():
 
     print("Metric Properties")
     print("-" * 60)
+
     print(f"Number of signatures : {len(df)}")
     print(f"Metric diameter      : {diameter:.6f}")
     print(f"Metric radius        : {radius:.6f}")
-    print()
 
-    print("Metric Center")
+    print()
+        print("Metric Center")
     print("-" * 60)
 
     for c in center:
@@ -153,22 +161,19 @@ def main():
     for p in peripheral:
         print(p)
 
-    results = Path("RESULTS")
-    results.mkdir(exist_ok=True)
-
-    distance_df.to_csv(
-        results / "S28_E1_1_metric_distance_matrix.csv"
-    )
-
-    ecc.to_csv(
-        results / "S28_E1_1_eccentricities.csv"
-    )
-
     print()
+
+    distance_file = RESULTS / "S28_E1_1_metric_distance_matrix.csv"
+    ecc_file = RESULTS / "S28_E1_1_eccentricities.csv"
+
+    distance_df.to_csv(distance_file)
+
+    ecc.to_csv(ecc_file)
+
     print("Generated files")
     print("-" * 60)
-    print("RESULTS/S28_E1_1_metric_distance_matrix.csv")
-    print("RESULTS/S28_E1_1_eccentricities.csv")
+    print(distance_file)
+    print(ecc_file)
 
     print()
     print("=" * 60)
