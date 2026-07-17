@@ -19,14 +19,9 @@ or
 
 Responsibilities
 
+- Registers the official Signature Provider
 - Validates the CORE
 - Leaves the framework ready for experiments
-
-NOTE
-
-The official SignatureProvider registration will be
-enabled after the complete migration of the geometric
-operators to the CORE.
 """
 
 from __future__ import annotations
@@ -35,6 +30,14 @@ from __future__ import annotations
 # =========================================================
 # CORE Imports
 # =========================================================
+
+from GER.CORE.default_signature_provider import (
+    DefaultSignatureProvider,
+)
+
+from GER.CORE.signature_api import (
+    register_signature_provider,
+)
 
 from GER.CORE.ger_validation import (
     validate_GER_CORE,
@@ -55,6 +58,14 @@ def initialize():
     print("=" * 40)
 
     # -----------------------------------------------------
+    # Register official Signature Provider
+    # -----------------------------------------------------
+
+    register_signature_provider(
+        DefaultSignatureProvider()
+    )
+
+    # -----------------------------------------------------
     # Validate CORE
     # -----------------------------------------------------
 
@@ -62,6 +73,7 @@ def initialize():
 
     print()
 
+    print("Official Signature Provider : Registered")
     print("GER CORE ready for experiments.")
 
     print("=" * 40)
