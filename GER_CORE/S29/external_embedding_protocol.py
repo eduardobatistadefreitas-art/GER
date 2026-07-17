@@ -32,16 +32,21 @@ class ExternalEmbedding(ABC):
         pass
 
     @abstractmethod
-    def step(self):
-        """
-        Advance one temporal step.
+    def step(self, state):
+    """
+    Transform one external state into one relational state.
 
-        Returns
-        -------
-        gamma : ndarray
-            Relational state at current time.
-        """
-        pass
+    Parameters
+    ----------
+    state
+        Instantaneous state produced by the external system.
+
+    Returns
+    -------
+    gamma
+        Relational state accepted by the RSG CORE.
+    """
+    pass
 
     @abstractmethod
     def finished(self):
