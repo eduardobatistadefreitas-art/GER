@@ -73,13 +73,24 @@
 
     "intrinsic_dimension": 3,
 
-    "SCI": null,
+    "SCI": 0.908191,
 
-    "effective_rank": null,
+    "effective_rank": 1.444623,
 
-    "principal_axis": null,
+    "principal_axis": [
+      -0.915883,
+      -0.173809,
+       0.361869
+    ],
 
-    "influence_hierarchy": null
+    "influence_hierarchy": [
+      "Lorenz",
+      "Harmonic",
+      "Logistic",
+      "Double Pendulum",
+      "Damped",
+      "Van der Pol"
+    ]
 
   }
 
