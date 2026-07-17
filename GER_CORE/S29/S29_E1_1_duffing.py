@@ -8,36 +8,21 @@ Duffing Oscillator
 
 ============================================================
 
-First experiment of the S29 campaign.
-
-Objective
----------
-
-Validate the complete S29 experimental protocol using
-the Duffing Oscillator as the first candidate system.
-
-The objective of this experiment is not to modify the
-Reference Universe, but to verify that a candidate system
-can successfully pass through the complete pipeline.
-
-Pipeline
-
-Candidate System
-        ↓
-Generate Snapshots
-        ↓
-Persistence Observatory
-        ↓
-Geometric Signature
-        ↓
-Structural Certificate
-        ↓
-Temporary Reference Universe
-        ↓
-Reference Universe Audit
-        ↓
-Experiment Report
+First external validation of the Relational Signature
+Space using the classical Duffing Oscillator.
 """
+
+from GER_CORE.S29.duffing_solver import (
+    solve_duffing,
+)
+
+from GER_CORE.S29.snapshot_generator import (
+    generate_snapshots,
+)
+
+from GER.CORE.ger_observatory import (
+    run_persistence_observatory,
+)
 
 from GER.CORE.signature_api import (
     generate_signature,
@@ -59,22 +44,16 @@ from GER.CORE.audit import (
     ReferenceUniverseAudit,
 )
 
+import numpy as np
+
 
 # ==========================================================
-# Candidate System
+# Temporary Modal Basis
 # ==========================================================
 
-def generate_snapshots():
-    """
-    Temporary placeholder.
+def build_modal_basis(dimension):
 
-    This function will later generate the observational
-    snapshots of the Duffing Oscillator.
-    """
-
-    raise NotImplementedError(
-        "Duffing snapshot generator not implemented."
-    )
+    return np.eye(dimension)
 
 
 # ==========================================================
@@ -83,14 +62,157 @@ def generate_snapshots():
 
 def run_experiment():
 
-    snapshots = generate_snapshots()
+    print()
 
-    #
-    # Persistence Observatory
-    # (next integration step)
-    #
+    print("Step 1")
+    print("Generating Duffing trajectory...")
 
-    raise NotImplementedError
+    result = solve_duffing(
+        t_max=20.0,
+        dt=0.01,
+    )
+
+    trajectory = result["trajectory"]
+
+    print("Trajectory generated.")
+    print("Samples :", len(trajectory))
+
+    print()
+
+    print("Step 2")
+    print("Generating snapshots...")
+
+    eigenvectors = build_modal_basis(
+        trajectory.shape[1]
+    )
+
+    snapshots = generate_snapshots(
+        trajectory,
+        eigenvectors,
+        dt=0.01,
+    )
+
+    print("Snapshots :", len(snapshots))
+
+    print()
+
+    print("Step 3")
+    print("Running Persistence Observatory...")
+
+    observables = run_persistence_observatory(
+        snapshots,
+        dt=0.01,
+    )
+
+    print("Observatory completed.")
+
+    print()
+
+    print("Step 4")
+    print("Generating Geometric Signature...")
+
+    signature = generate_signature(
+        observables,
+        dt=0.01,
+    )
+
+    print(signature)
+
+    print()
+
+    print("Step 5")
+    print("Running Structural Certificate...")
+
+    certificate = structural_certificate(
+        signature
+    )
+
+    print(certificate)
+
+    print()
+
+    print("Step 6")
+    print("Loading S28 Reference Universe...")
+
+    reference = load_reference(
+        "S28_REFERENCE"
+    )
+
+    print("Reference loaded.")
+
+    print()
+
+    print("Step 7")
+    print("Extending Reference Universe...")
+
+    temporary_reference = extend_reference_universe(
+        reference,
+        signature,
+    )
+
+    print("Temporary universe created.")
+
+    print()
+
+    print("Step 8")
+    print("Running Reference Universe Audit...")
+
+    audit = ReferenceUniverseAudit(
+        temporary_reference
+    )
+
+    report = audit.compare()
+
+    print(report)
+
+    print()
+
+    print("=" * 60)
+    print("SUMMARY")
+    print("=" * 60)
+
+    print("Trajectory Samples :", len(trajectory))
+    print("Snapshots          :", len(snapshots))
+
+    print()
+
+    print("Signature")
+
+    print(signature)
+
+    print()
+
+    print("Certificate")
+
+    print(certificate)
+
+    print()
+
+    print("Audit")
+
+    print(report)
+
+    print()
+
+    print("=" * 60)
+    print("STATUS : FIRST DUFFING SIGNATURE GENERATED")
+    print("=" * 60)
+
+    return {
+
+        "trajectory": trajectory,
+
+        "snapshots": snapshots,
+
+        "observables": observables,
+
+        "signature": signature,
+
+        "certificate": certificate,
+
+        "audit": report,
+
+    }
 
 
 # ==========================================================
@@ -104,35 +226,8 @@ def main():
     print("S29-E1.1")
     print("Duffing Oscillator")
     print("=" * 60)
-    print()
 
-    print("Protocol")
-    print("-" * 60)
-
-    print("1. Candidate System")
-    print("2. Generate Snapshots")
-    print("3. Persistence Observatory")
-    print("4. Geometric Signature")
-    print("5. Structural Certificate")
-    print("6. Load S28 Reference")
-    print("7. Temporary Reference Universe")
-    print("8. Reference Universe Audit")
-    print("9. Experiment Report")
-
-    print()
-
-    print("STATUS")
-    print("-" * 60)
-
-    print("Experimental protocol created.")
-
-    print("Awaiting Duffing snapshot generator.")
-
-    print()
-
-    print("=" * 60)
-    print("STATUS : S29 PROTOCOL READY")
-    print("=" * 60)
+    run_experiment()
 
 
 if __name__ == "__main__":
