@@ -174,3 +174,42 @@ def print_convergence_report(report):
         print(
             item
         )
+# =========================================================
+# Geometric Convergence Operator
+# =========================================================
+
+def compute_convergence(
+    trajectory,
+    dt,
+):
+    """
+    Computes the geometric convergence operator
+    from a trajectory.
+
+    Parameters
+    ----------
+    trajectory : numpy.ndarray
+
+    dt : float
+
+    Returns
+    -------
+    float
+    """
+
+    if len(trajectory) < 2:
+        return 0.0
+
+    steps = np.diff(
+        trajectory,
+        axis=0,
+    )
+
+    speeds = np.linalg.norm(
+        steps,
+        axis=1,
+    )
+
+    return np.mean(
+        speeds
+    ) / dt
