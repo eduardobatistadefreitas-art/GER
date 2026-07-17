@@ -20,7 +20,7 @@ from GER_CORE.S29.snapshot_generator import (
     generate_snapshots,
 )
 
-from GER.CORE.ger_observatory import (
+from GER_CORE.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
