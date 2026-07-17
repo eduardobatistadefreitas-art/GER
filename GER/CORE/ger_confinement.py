@@ -58,4 +58,3 @@ def compute_confinement(trajectory):
                 diameter = distance
 
     return diameter
-```
