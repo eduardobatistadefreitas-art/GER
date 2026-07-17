@@ -31,7 +31,7 @@ def vector(sig):
 
     if isinstance(sig, dict):
 
-    return [
+        return [
 
             float(sig["diameter"]),
             float(sig["convergence"]),
