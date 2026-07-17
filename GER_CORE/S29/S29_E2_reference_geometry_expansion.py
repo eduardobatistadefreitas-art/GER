@@ -168,54 +168,6 @@ def radius_statistics(vectors, center=None):
     }
 
 
-def bounding_box(vectors):
-    """
-    Computes axis-aligned bounding box.
-    """
-
-    dimension = len(vectors[0])
-
-    minimum = []
-
-    maximum = []
-
-    for i in range(dimension):
-
-        values = [
-
-            v[i]
-
-            for v in vectors
-
-        ]
-
-        minimum.append(min(values))
-
-        maximum.append(max(values))
-
-    return minimum, maximum
-
-
-def expansion_volume(vectors):
-    """
-    Bounding-box volume proxy.
-
-    This is not an intrinsic volume.
-    It is only a simple descriptor used
-    to compare reference expansions.
-    """
-
-    minimum, maximum = bounding_box(vectors)
-
-    volume = 1.0
-
-    for a, b in zip(minimum, maximum):
-
-        volume *= (b - a)
-
-    return volume
-
-
 def geometry_statistics(vectors):
     """
     Computes the geometric descriptors
@@ -278,12 +230,7 @@ def geometry_statistics(vectors):
 
             radius["max_radius"],
 
-        "volume":
-
-            expansion_volume(vectors),
-
     }
-
 
 # ============================================================
 # Report
@@ -300,7 +247,6 @@ def print_statistics(title, stats):
     print(f"Mean Pair Distance : {stats['mean_pair_distance']:.6f}")
     print(f"Mean Radius        : {stats['mean_radius']:.6f}")
     print(f"Maximum Radius     : {stats['max_radius']:.6f}")
-    print(f"Volume Proxy       : {stats['volume']:.6f}")
 
     print()
 
@@ -339,7 +285,9 @@ def print_report(before, after):
 
     diameter_ratio = (
 
-        after["diameter"] /
+        after["diameter"]
+
+        /
 
         before["diameter"]
 
@@ -351,7 +299,9 @@ def print_report(before, after):
 
     expansion_ratio = (
 
-        after["mean_pair_distance"] /
+        after["mean_pair_distance"]
+
+        /
 
         before["mean_pair_distance"]
 
@@ -371,22 +321,6 @@ def print_report(before, after):
 
     )
 
-    if before["volume"] > 0.0:
-
-        volume_ratio = (
-
-            after["volume"]
-
-            /
-
-            before["volume"]
-
-        )
-
-    else:
-
-        volume_ratio = float("inf")
-
     print("Expansion Metrics")
     print("-----------------")
 
@@ -394,7 +328,6 @@ def print_report(before, after):
     print(f"Diameter Ratio     : {diameter_ratio:.6f}")
     print(f"Expansion Ratio    : {expansion_ratio:.6f}")
     print(f"Radius Variation   : {radius_variation:.6f}")
-    print(f"Volume Ratio       : {volume_ratio:.6f}")
 
     print()
 
