@@ -158,11 +158,12 @@ def run_experiment():
     print("Step 8")
     print("Running Reference Universe Audit...")
 
-    audit = ReferenceUniverseAudit(
-        temporary_reference
-    )
+    audit = ReferenceUniverseAudit()
 
-    report = audit.compare()
+    report = audit.compare(
+        baseline=reference,
+        candidate=temporary_reference,
+    )
 
     print(report)
 
