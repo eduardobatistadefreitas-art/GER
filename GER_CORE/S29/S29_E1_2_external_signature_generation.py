@@ -57,7 +57,7 @@ from GER_CORE.S29.ger_external_modal_embedding import (
 )
 
 from GER_CORE.S29.external_systems import (
-    simulate_duffing,
+    simulate_duffing
 )
 
 
