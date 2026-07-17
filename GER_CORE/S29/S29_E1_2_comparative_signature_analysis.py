@@ -19,136 +19,13 @@ from GER.CORE.bootstrap import initialize
 
 initialize()
 
-# ---------------------------------------------------------------------
-# Imports
-# ---------------------------------------------------------------------
-
 from GER.CORE.reference import load_reference
-
-# ---------------------------------------------------------------------
-# Small runtime introspection helpers
-# ---------------------------------------------------------------------
+from GER_CORE.S29.S29_E1_1_duffing import run_experiment
 
 
-def find_signature(obj):
-    """
-    Searches recursively for the first dictionary containing the
-    four official geometric observables.
-    """
-
-    required = {
-        "diameter",
-        "convergence",
-        "recurrence",
-        "drift",
-    }
-
-    if isinstance(obj, dict):
-
-        if required.issubset(obj.keys()):
-            return obj
-
-        for value in obj.values():
-            result = find_signature(value)
-            if result is not None:
-                return result
-
-    elif isinstance(obj, (list, tuple)):
-        for value in obj:
-            result = find_signature(value)
-            if result is not None:
-                return result
-
-    return None
-
-
-def load_duffing_signature():
-    """
-    Tries to obtain the Duffing signature from the official
-    public pipeline.
-
-    If future versions rename functions/classes, only this
-    routine should require updates.
-    """
-
-    candidates = [
-
-        (
-            "GER.CORE.signature_provider",
-            "OfficialSignatureProvider",
-        ),
-
-        (
-            "GER.CORE.signature_provider",
-            "SignatureProvider",
-        ),
-
-        (
-            "GER.CORE.signature_provider",
-            "generate_signature",
-        ),
-
-        (
-            "GER.CORE.pipeline",
-            "run_pipeline",
-        ),
-
-    ]
-
-    for module_name, member_name in candidates:
-
-        try:
-
-            module = __import__(
-                module_name,
-                fromlist=[member_name],
-            )
-
-            member = getattr(module, member_name)
-
-            if isinstance(member, type):
-
-                obj = member()
-
-                for method in [
-                    "generate",
-                    "run",
-                    "__call__",
-                ]:
-
-                    if hasattr(obj, method):
-
-                        result = getattr(obj, method)("Duffing")
-
-                        signature = find_signature(result)
-
-                        if signature is not None:
-                            return signature
-
-            elif callable(member):
-
-                try:
-                    result = member("Duffing")
-                except TypeError:
-                    result = member()
-
-                signature = find_signature(result)
-
-                if signature is not None:
-                    return signature
-
-        except Exception:
-            pass
-
-    raise RuntimeError(
-        "Unable to obtain Duffing signature using public APIs."
-    )
-
-
-# ---------------------------------------------------------------------
+# ---------------------------------------------------------
 # Utilities
-# ---------------------------------------------------------------------
-
+# ---------------------------------------------------------
 
 def vector(sig):
 
@@ -172,10 +49,9 @@ def distance(a, b):
     )
 
 
-# ---------------------------------------------------------------------
+# ---------------------------------------------------------
 # Main
-# ---------------------------------------------------------------------
-
+# ---------------------------------------------------------
 
 def main():
 
@@ -185,6 +61,10 @@ def main():
     print("Comparative Signature Analysis")
     print("=" * 60)
 
+    # --------------------------------------------------
+    # Load official reference
+    # --------------------------------------------------
+
     reference = load_reference("S28_REFERENCE")
 
     universe = reference["reference_universe"]
@@ -192,13 +72,32 @@ def main():
     print()
     print("Reference signatures :", len(universe))
 
-    duffing_signature = load_duffing_signature()
+    # --------------------------------------------------
+    # Generate Duffing signature using the official
+    # experiment already validated in S29-E1.1
+    # --------------------------------------------------
+
+    print()
+    print("Generating Duffing signature...")
+
+    result = run_experiment()
+
+    if "signature" not in result:
+        raise RuntimeError(
+            "S29-E1.1 did not return a geometric signature."
+        )
+
+    duffing_signature = result["signature"]
 
     print()
     print("Candidate signature")
     pprint(duffing_signature)
 
     candidate = vector(duffing_signature)
+
+    # --------------------------------------------------
+    # Distance ranking
+    # --------------------------------------------------
 
     ranking = []
 
@@ -225,10 +124,7 @@ def main():
     print("Distance ranking")
     print("-" * 60)
 
-    for i, (system, d) in enumerate(
-        ranking,
-        start=1,
-    ):
+    for i, (system, d) in enumerate(ranking, start=1):
 
         print(
             f"{i:2d}. "
@@ -242,7 +138,7 @@ def main():
     print("Nearest neighbour :", nearest[0])
     print("Distance          :", f"{nearest[1]:.8f}")
 
-    distances = [x[1] for x in ranking]
+    distances = [d for _, d in ranking]
 
     mean = sum(distances) / len(distances)
 
