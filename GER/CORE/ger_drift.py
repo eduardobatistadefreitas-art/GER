@@ -70,4 +70,3 @@ def compute_drift(trajectory):
         )
 
     return drift, trajectory_length
-```
