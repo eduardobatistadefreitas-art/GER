@@ -1,41 +1,73 @@
 """
 =========================================================
 GER
-S29-E1.5
+S29-E1.4
 
-External Signature Generation
+External Persistence Observation
 
-Validates that an external system can generate an
-official GER Geometric Signature.
+Compara os observáveis produzidos pelo
+Observatório de Persistência para diferentes
+sistemas externos.
+
 =========================================================
 """
 
 from __future__ import annotations
 
-import numpy as np
-
-from GER_CORE.S29.harmonic_system import HarmonicSystem
-from GER_CORE.S29.identity_embedding import IdentityEmbedding
-from GER_CORE.S29.external_pipeline import ExternalPipeline
-
-from GER.CORE.ger_observational_snapshot import (
-    build_observational_snapshot,
+from GER_CORE.S29.S29_E1_2_external_signature_generation import (
+    initialize_signature_provider,
+    run_external_signature_generation,
 )
 
-from GER_CORE.S26_B35_persistence_metrics import (
-    run_persistence_observatory,
+from GER_CORE.S29.external_systems import (
+    simulate_duffing,
+    simulate_harmonic,
+    simulate_white_noise,
 )
 
-from GER.CORE.signature_api import (
-    generate_signature,
-)
+# =========================================================
+# Version
+# =========================================================
+
+EXPERIMENT_VERSION = "1.0"
+
+DT = 0.01
 
 
 # =========================================================
-# Configuration
+# Systems
 # =========================================================
 
-DT = 0.1
+SYSTEMS = [
+
+    (
+        "Duffing",
+        simulate_duffing,
+    ),
+
+    (
+        "Harmonic",
+        simulate_harmonic,
+    ),
+
+    (
+        "White Noise",
+        simulate_white_noise,
+    ),
+
+]
+
+
+# =========================================================
+# Helpers
+# =========================================================
+
+def format_value(value):
+
+    try:
+        return f"{float(value):.6f}"
+    except Exception:
+        return str(value)
 
 
 # =========================================================
@@ -44,105 +76,78 @@ DT = 0.1
 
 def main():
 
-    print("=" * 56)
-    print("GER")
-    print("S29-E1.5")
-    print("External Signature Generation")
-    print("=" * 56)
+    initialize_signature_provider()
 
-    # -----------------------------------------------------
-    # External system
-    # -----------------------------------------------------
+    print("=" * 72)
+    print("GER S29-E1.4")
+    print("External Persistence Observation")
+    print(f"Version {EXPERIMENT_VERSION}")
+    print("=" * 72)
 
-    system = HarmonicSystem()
+    for system_name, simulator in SYSTEMS:
 
-    embedding = IdentityEmbedding()
+        time, signal = simulator(
+            dt=DT,
+        )
 
-    pipeline = ExternalPipeline(
-        system,
-        embedding,
-    )
+        result = run_external_signature_generation(
 
-    gamma_sequence = pipeline.run()
+            system_name=system_name,
 
-    print()
-    print("Gamma sequence:", len(gamma_sequence))
+            time=time,
 
-    # -----------------------------------------------------
-    # Modal basis
-    # -----------------------------------------------------
+            signal=signal,
 
-    dimension = len(gamma_sequence[0])
-
-    eigenvectors = np.eye(dimension)
-
-    # -----------------------------------------------------
-    # Snapshot sequence
-    # -----------------------------------------------------
-
-    snapshots = []
-
-    for step, gamma in enumerate(gamma_sequence):
-
-        snapshot = build_observational_snapshot(
-
-            gamma=gamma,
-            eigenvectors=eigenvectors,
-            step=step,
-            time=step * DT,
+            dt=DT,
 
         )
 
-        snapshots.append(snapshot)
+        print()
+        print("=" * 72)
+        print(system_name)
+        print("=" * 72)
 
-    print("Snapshots:", len(snapshots))
+        print()
+        print("Persistence Observatory")
+        print("-----------------------")
 
-    # -----------------------------------------------------
-    # Persistence Observatory
-    # -----------------------------------------------------
+        observables = result.observables
 
-    observables = run_persistence_observatory(
-        snapshots,
-        DT,
-    )
+        for key in sorted(observables.keys()):
 
-    print("Observables: OK")
+            print(
+                f"{key:<25}"
+                f"{format_value(observables[key])}"
+            )
 
-    # -----------------------------------------------------
-    # Signature generation
-    # -----------------------------------------------------
+        print()
+        print("Geometric Signature")
+        print("-------------------")
 
-    signature = generate_signature(
-        observables,
-        DT,
-    )
+        print(
+            f"Diameter     : {result.signature.diameter:.6f}"
+        )
 
-    print()
-    print("=" * 56)
-    print("Geometric Signature")
-    print("=" * 56)
+        print(
+            f"Convergence : {result.signature.convergence:.6f}"
+        )
 
-    print(f"Diameter     : {signature.diameter:.12f}")
-    print(f"Convergence  : {signature.convergence:.12f}")
-    print(f"Recurrence   : {signature.recurrence:.12f}")
-    print(f"Drift        : {signature.drift:.12f}")
+        print(
+            f"Recurrence  : {result.signature.recurrence:.6f}"
+        )
 
-    # -----------------------------------------------------
-    # Validation
-    # -----------------------------------------------------
-
-    assert np.isfinite(signature.diameter)
-    assert np.isfinite(signature.convergence)
-    assert np.isfinite(signature.recurrence)
-    assert np.isfinite(signature.drift)
+        print(
+            f"Drift       : {result.signature.drift:.6e}"
+        )
 
     print()
-    print("=" * 56)
-    print("STATUS : PASS")
-    print("=" * 56)
+    print("=" * 72)
+    print("STATUS : PERSISTENCE OBSERVATION COMPLETED")
+    print("=" * 72)
 
 
 # =========================================================
 
 if __name__ == "__main__":
+
     main()
