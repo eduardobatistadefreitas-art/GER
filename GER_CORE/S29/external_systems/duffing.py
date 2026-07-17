@@ -76,11 +76,27 @@ class DuffingSystem(ExternalSystem):
 def simulate_duffing(
     dt=0.01,
     duration=100.0,
+    delta=0.2,
+    alpha=-1.0,
+    beta=1.0,
+    gamma=0.3,
+    omega=1.2,
 ):
+    """
+    Simulate the Duffing oscillator.
+
+    All physical parameters are exposed while preserving the
+    original default behaviour used throughout S29.
+    """
 
     system = DuffingSystem(
         dt=dt,
         duration=duration,
+        delta=delta,
+        alpha=alpha,
+        beta=beta,
+        gamma=gamma,
+        omega=omega,
     )
 
     while not system.finished():
