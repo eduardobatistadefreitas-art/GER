@@ -28,6 +28,18 @@ from GER_CORE.S29.S29_E1_1_duffing import run_experiment
 # ---------------------------------------------------------
 
 def vector(sig):
+def vector(sig):
+
+    if isinstance(sig, dict):
+
+    return [
+
+            float(sig["diameter"]),
+            float(sig["convergence"]),
+            float(sig["recurrence"]),
+            float(sig["drift"]),
+
+        ]
 
     return [
 
