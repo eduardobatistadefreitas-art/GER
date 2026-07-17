@@ -1,21 +1,14 @@
 """
 =========================================================
-GER CORE (Experimental Interface)
-
-Arquivo : ger_external_modal_embedding.py
-=========================================================
+GER
+S29
 
 External Modal Embedding
 
-Este módulo define a interface de acoplamento entre
-sistemas dinâmicos externos e o ecossistema GER.
+Primeira implementação experimental do acoplamento
+entre sistemas externos e o CORE do GER.
 
-Sua responsabilidade é converter uma representação
-externa do sistema em uma sequência de estados γ
-compatíveis com o CORE.
-
-Nenhuma hipótese sobre o sistema físico é feita aqui.
-
+Versão experimental S29-E1.
 =========================================================
 """
 
@@ -27,7 +20,25 @@ __all__ = [
     "build_external_gamma",
 ]
 
-EXTERNAL_MODAL_EMBEDDING_VERSION = "1.0"
+EXTERNAL_MODAL_EMBEDDING_VERSION = "1.1"
+
+
+# =========================================================
+# Internal utilities
+# =========================================================
+
+def _normalize(signal):
+
+    signal = np.asarray(signal, dtype=float)
+
+    signal = signal - np.mean(signal)
+
+    sigma = np.std(signal)
+
+    if sigma > 0.0:
+        signal = signal / sigma
+
+    return signal
 
 
 # =========================================================
@@ -41,44 +52,37 @@ def build_external_gamma(
     normalize=True,
 ):
     """
-    Constrói uma representação modal γ a partir
-    de um sinal externo.
+    Constrói uma sequência modal γ compatível
+    com o CORE.
 
-    Parameters
-    ----------
-    signal : array_like
-        Série temporal do sistema externo.
-
-    method : str, default="auto"
-        Método de projeção modal.
-
-        O valor "auto" permite que o CORE utilize
-        o método padrão validado experimentalmente,
-        preservando a estabilidade da API caso esse
-        método evolua durante a Série S29.
-
-    normalize : bool, default=True
-        Se True, normaliza γ.
+    Nesta primeira implementação cada amostra
+    temporal é representada por um vetor modal
+    unidimensional.
 
     Returns
     -------
-    gamma : ndarray
-        Sequência de estados modais.
+    gamma_sequence
+        Lista de vetores γ(t).
 
-    eigenvectors : ndarray
+    eigenvectors
         Base modal correspondente.
-
-    Notes
-    -----
-    Esta função define apenas a interface pública.
-
-    A implementação matemática da projeção modal
-    será introduzida e validada durante os
-    experimentos da Série S29.
     """
 
-    raise NotImplementedError(
-        "No external modal embedding has been validated yet. "
-        "The implementation will be introduced during the "
-        "S29 experimental series."
-    )
+    signal = np.asarray(signal, dtype=float)
+
+    if signal.ndim != 1:
+        raise ValueError(
+            "External signal must be one-dimensional."
+        )
+
+    if normalize:
+        signal = _normalize(signal)
+
+    gamma_sequence = [
+        np.asarray([value], dtype=float)
+        for value in signal
+    ]
+
+    eigenvectors = np.eye(1)
+
+    return gamma_sequence, eigenvectors
