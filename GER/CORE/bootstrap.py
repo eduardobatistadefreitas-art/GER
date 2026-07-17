@@ -4,39 +4,39 @@ GER CORE
 Arquivo : bootstrap.py
 =========================================================
 
-Inicializador oficial da Geometria Espectral Relacional.
+Official bootstrap of the Relational Spectral Geometry
+framework.
 
-Uso:
+Usage
 
     python bootstrap.py
 
-ou via:
+or
 
     from GER.CORE.bootstrap import initialize
 
     initialize()
 
+Responsibilities
 
-Carrega:
-
-- geometria
-- potenciais
-- métricas
-- análise modal
-- snapshots
-- motor temporal
-
-e executa validação automática.
+- Registers the official Signature Provider
+- Validates the CORE
+- Leaves the framework ready for experiments
 """
 
+from __future__ import annotations
 
 
 # =========================================================
-# Imports principais
+# CORE Imports
 # =========================================================
 
-from GER.CORE.ger_engine import (
-    run_engine,
+from GER.CORE.default_signature_provider import (
+    DefaultSignatureProvider,
+)
+
+from GER.CORE.signature_api import (
+    register_signature_provider,
 )
 
 from GER.CORE.ger_validation import (
@@ -44,48 +44,45 @@ from GER.CORE.ger_validation import (
 )
 
 
-
 # =========================================================
-# Inicialização
+# Initialization
 # =========================================================
 
 def initialize():
+    """
+    Initializes the official RSG CORE.
+    """
 
-    print(
-        "================================"
+    print("=" * 40)
+    print(" INITIALIZING RSG CORE")
+    print("=" * 40)
+
+    # -----------------------------------------------------
+    # Register official Signature Provider
+    # -----------------------------------------------------
+
+    register_signature_provider(
+        DefaultSignatureProvider()
     )
 
-    print(
-        " INICIANDO GER CORE v1"
-    )
-
-    print(
-        "================================"
-    )
-
+    # -----------------------------------------------------
+    # Validate CORE
+    # -----------------------------------------------------
 
     validate_GER_CORE()
 
+    print()
 
-    print(
-        ""
-    )
+    print("Official Signature Provider : Registered")
+    print("GER CORE ready for experiments.")
 
-    print(
-        "GER CORE pronto para experimentos."
-    )
-
-    print(
-        "================================"
-    )
-
+    print("=" * 40)
 
     return True
 
 
-
 # =========================================================
-# Execução direta
+# Direct execution
 # =========================================================
 
 if __name__ == "__main__":
