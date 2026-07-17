@@ -1,0 +1,86 @@
+{
+  "version": "S28",
+  "framework": "RSG",
+  "status": "FROZEN",
+
+  "description": "Official frozen Reference Universe established during S28.",
+
+  "reference_universe": [
+
+    {
+      "system": "Harmonic",
+      "signature": {
+        "diameter": 1.992115,
+        "convergence": 0.083005,
+        "recurrence": 0.022109,
+        "drift": 0.0
+      }
+    },
+
+    {
+      "system": "Damped",
+      "signature": {
+        "diameter": 1.999804,
+        "convergence": 0.618431,
+        "recurrence": 0.027211,
+        "drift": 0.0
+      }
+    },
+
+    {
+      "system": "Van der Pol",
+      "signature": {
+        "diameter": 1.560891,
+        "convergence": 0.291408,
+        "recurrence": 0.035714,
+        "drift": 0.0
+      }
+    },
+
+    {
+      "system": "Logistic",
+      "signature": {
+        "diameter": 0.010717,
+        "convergence": 0.003313,
+        "recurrence": 1.000000,
+        "drift": 0.0
+      }
+    },
+
+    {
+      "system": "Lorenz",
+      "signature": {
+        "diameter": 0.419313,
+        "convergence": 0.079386,
+        "recurrence": 0.137755,
+        "drift": 0.0
+      }
+    },
+
+    {
+      "system": "Double Pendulum",
+      "signature": {
+        "diameter": 1.301499,
+        "convergence": 0.388995,
+        "recurrence": 0.069728,
+        "drift": 0.0
+      }
+    }
+
+  ],
+
+  "observables": {
+
+    "intrinsic_dimension": 3,
+
+    "SCI": null,
+
+    "effective_rank": null,
+
+    "principal_axis": null,
+
+    "influence_hierarchy": null
+
+  }
+
+}
