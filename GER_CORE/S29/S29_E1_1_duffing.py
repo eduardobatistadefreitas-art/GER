@@ -46,6 +46,7 @@ from GER.CORE.audit import (
 
 import numpy as np
 
+from GER.CORE.bootstrap import initialize
 
 # ==========================================================
 # Temporary Modal Basis
@@ -226,6 +227,11 @@ def main():
     print("S29-E1.1")
     print("Duffing Oscillator")
     print("=" * 60)
+
+    print()
+    print("Initializing RSG CORE...")
+    initialize()
+    print()
 
     run_experiment()
 
