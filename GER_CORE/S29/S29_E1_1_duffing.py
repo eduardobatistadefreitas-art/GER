@@ -106,22 +106,32 @@ def main():
     print("=" * 60)
     print()
 
-    print(
-        "Experiment scaffold successfully created."
-    )
+    print("Protocol")
+    print("-" * 60)
+
+    print("1. Candidate System")
+    print("2. Generate Snapshots")
+    print("3. Persistence Observatory")
+    print("4. Geometric Signature")
+    print("5. Structural Certificate")
+    print("6. Load S28 Reference")
+    print("7. Temporary Reference Universe")
+    print("8. Reference Universe Audit")
+    print("9. Experiment Report")
 
     print()
 
-    print(
-        "Next step:"
-    )
+    print("STATUS")
+    print("-" * 60)
 
-    print(
-        "Implement Duffing snapshot generator."
-    )
+    print("Experimental protocol created.")
+
+    print("Awaiting Duffing snapshot generator.")
 
     print()
 
+    print("=" * 60)
+    print("STATUS : S29 PROTOCOL READY")
     print("=" * 60)
 
 
