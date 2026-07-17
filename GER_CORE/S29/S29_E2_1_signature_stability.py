@@ -1,3 +1,18 @@
+"""
+========================================================================
+GER S29-E2.1
+
+Repeated Signature Stability
+========================================================================
+
+Objetivo
+
+Verificar a reprodutibilidade da Assinatura Geométrica
+executando repetidamente o mesmo sistema externo.
+
+========================================================================
+"""
+
 import numpy as np
 
 from GER_CORE.S29.S29_E1_2_external_signature_generation import (
@@ -9,13 +24,21 @@ from GER_CORE.S29.external_systems import (
     simulate_harmonic,
 )
 
+
 # ============================================================
-# GER S29-E2.1
-# Repeated Signature Stability
+# Configuration
 # ============================================================
+
+EXPERIMENT_VERSION = "1.0"
+
+DT = 0.01
 
 N_RUNS = 20
 
+
+# ============================================================
+# Statistics
+# ============================================================
 
 def coefficient_of_variation(values):
 
@@ -30,7 +53,7 @@ def coefficient_of_variation(values):
     return std / abs(mean)
 
 
-def summarize(name, values):
+def report(name, values):
 
     values = np.asarray(values, dtype=float)
 
@@ -46,14 +69,19 @@ def summarize(name, values):
     print()
 
 
+# ============================================================
+# Main
+# ============================================================
+
 def main():
 
     print("=" * 72)
     print("GER S29-E2.1")
     print("Repeated Signature Stability")
+    print(f"Version {EXPERIMENT_VERSION}")
     print("=" * 72)
 
-    provider = initialize_signature_provider()
+    initialize_signature_provider()
 
     diameter = []
     convergence = []
@@ -62,10 +90,20 @@ def main():
 
     for run in range(N_RUNS):
 
+        time, signal = simulate_harmonic(
+            dt=DT,
+        )
+
         result = run_external_signature_generation(
-            provider=provider,
-            simulator=simulate_harmonic,
-            system_name="Harmonic"
+
+            system_name="Harmonic",
+
+            time=time,
+
+            signal=signal,
+
+            dt=DT,
+
         )
 
         signature = result.signature
@@ -75,9 +113,7 @@ def main():
         recurrence.append(signature.recurrence)
         drift.append(signature.drift)
 
-        print(
-            f"Run {run + 1:02d}/{N_RUNS} completed."
-        )
+        print(f"Run {run + 1:02d}/{N_RUNS} completed.")
 
     print()
     print("=" * 72)
@@ -85,15 +121,18 @@ def main():
     print("=" * 72)
     print()
 
-    summarize("Diameter", diameter)
-    summarize("Convergence", convergence)
-    summarize("Recurrence", recurrence)
-    summarize("Drift", drift)
+    report("Diameter", diameter)
+    report("Convergence", convergence)
+    report("Recurrence", recurrence)
+    report("Drift", drift)
 
     print("=" * 72)
-    print("STABILITY ANALYSIS COMPLETED")
+    print("STATUS : STABILITY ANALYSIS COMPLETED")
     print("=" * 72)
 
+
+# ============================================================
 
 if __name__ == "__main__":
+
     main()
