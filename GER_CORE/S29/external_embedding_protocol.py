@@ -33,20 +33,20 @@ class ExternalEmbedding(ABC):
 
     @abstractmethod
     def step(self, state):
-    """
-    Transform one external state into one relational state.
+        """
+        Transform one external state into one relational state.
 
-    Parameters
-    ----------
-    state
-        Instantaneous state produced by the external system.
+        Parameters
+        ----------
+        state
+            Instantaneous state produced by the external system.
 
-    Returns
-    -------
-    gamma
-        Relational state accepted by the RSG CORE.
-    """
-    pass
+        Returns
+        -------
+        gamma
+            Relational state accepted by the RSG CORE.
+        """
+        pass
 
     @abstractmethod
     def finished(self):
