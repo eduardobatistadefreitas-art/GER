@@ -37,7 +37,7 @@ EXTERNAL_MODAL_EMBEDDING_VERSION = "1.0"
 def build_external_gamma(
     signal,
     *,
-    method="fourier",
+    method="auto",
     normalize=True,
 ):
     """
@@ -49,17 +49,24 @@ def build_external_gamma(
     signal : array_like
         Série temporal do sistema externo.
 
-    method : str
+    method : str, default="auto"
         Método de projeção modal.
 
-    normalize : bool
+        O valor "auto" permite que o CORE utilize
+        o método padrão validado experimentalmente,
+        preservando a estabilidade da API caso esse
+        método evolua durante a Série S29.
+
+    normalize : bool, default=True
         Se True, normaliza γ.
 
     Returns
     -------
     gamma : ndarray
+        Sequência de estados modais.
 
     eigenvectors : ndarray
+        Base modal correspondente.
 
     Notes
     -----
@@ -71,5 +78,7 @@ def build_external_gamma(
     """
 
     raise NotImplementedError(
-        "External modal embedding not implemented yet."
+        "No external modal embedding has been validated yet. "
+        "The implementation will be introduced during the "
+        "S29 experimental series."
     )
