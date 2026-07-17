@@ -31,13 +31,12 @@ def vector(sig):
 
     return [
 
-        float(sig["diameter"]),
-        float(sig["convergence"]),
-        float(sig["recurrence"]),
-        float(sig["drift"]),
+        float(sig.diameter),
+        float(sig.convergence),
+        float(sig.recurrence),
+        float(sig.drift),
 
     ]
-
 
 def distance(a, b):
 
