@@ -1,4 +1,80 @@
 # ============================================================
+# GER
+# S29-E3.3
+# Intrinsic Geometry of Stability Regions
+#
+# Computes intrinsic geometric properties of the stability
+# regions discovered in S29-E3.2.
+#
+# Inputs
+#   RESULTS/S29/S29_E3_1_signature_map.csv
+#   RESULTS/S29/S29_E3_2_stability_regions.csv
+#
+# Outputs
+#   RESULTS/S29/S29_E3_3_region_geometry.csv
+#   RESULTS/S29/S29_E3_3_covariances.csv
+#   RESULTS/S29/S29_E3_3_region_distance_matrix.csv
+#   RESULTS/S29/S29_E3_3_summary.txt
+# ============================================================
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+import matplotlib.pyplot as plt
+
+# ------------------------------------------------------------
+# Directories
+# ------------------------------------------------------------
+
+ROOT = Path(__file__).resolve().parents[2]
+
+RESULTS_DIR = ROOT / "RESULTS" / "S29"
+
+RESULTS_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+# ------------------------------------------------------------
+# Input files
+# ------------------------------------------------------------
+
+SIGNATURE_FILE = (
+    RESULTS_DIR /
+    "S29_E3_1_signature_map.csv"
+)
+
+REGIONS_FILE = (
+    RESULTS_DIR /
+    "S29_E3_2_stability_regions.csv"
+)
+
+# ------------------------------------------------------------
+# Output files
+# ------------------------------------------------------------
+
+GEOMETRY_FILE = (
+    RESULTS_DIR /
+    "S29_E3_3_region_geometry.csv"
+)
+
+COVARIANCE_FILE = (
+    RESULTS_DIR /
+    "S29_E3_3_covariances.csv"
+)
+
+DISTANCE_FILE = (
+    RESULTS_DIR /
+    "S29_E3_3_region_distance_matrix.csv"
+)
+
+SUMMARY_FILE = (
+    RESULTS_DIR /
+    "S29_E3_3_summary.txt"
+)
+# ============================================================
 # BLOCO A
 # INTRINSIC METRIC GEOMETRY
 # ============================================================
@@ -449,3 +525,129 @@ def save_summary(geometry_df, output_dir):
 
         for line in lines:
             f.write(line + "\n")
+# ============================================================
+# BLOCO E
+# MAIN
+# ============================================================
+
+def main():
+
+    print("=" * 60)
+    print("GER S29-E3.3")
+    print("Intrinsic Geometry of Stability Regions")
+    print("=" * 60)
+
+    # --------------------------------------------------------
+    # Read input files
+    # --------------------------------------------------------
+
+    print("\nReading input files...")
+
+    signature_df = pd.read_csv(SIGNATURE_FILE)
+    regions_df = pd.read_csv(REGIONS_FILE)
+
+    print(f"Signatures : {len(signature_df)}")
+    print(f"Regions    : {len(regions_df)}")
+
+    # --------------------------------------------------------
+    # Metric geometry
+    # --------------------------------------------------------
+
+    print("\nComputing intrinsic metric geometry...")
+
+    geometry_df = compute_region_geometry(
+        signature_df,
+        regions_df
+    )
+
+    # --------------------------------------------------------
+    # Shape analysis
+    # --------------------------------------------------------
+
+    print("Computing intrinsic shape...")
+
+    shape_df, covariance_dict = compute_region_shape(
+        signature_df,
+        regions_df
+    )
+
+    geometry_df = geometry_df.merge(
+        shape_df,
+        on="Region",
+        how="left"
+    )
+
+    # --------------------------------------------------------
+    # Region separation
+    # --------------------------------------------------------
+
+    print("Computing region separation...")
+
+    distance_df, separation_df = compute_region_separation(
+        geometry_df
+    )
+
+    geometry_df = geometry_df.merge(
+        separation_df,
+        on="Region",
+        how="left"
+    )
+
+    # --------------------------------------------------------
+    # Save CSV files
+    # --------------------------------------------------------
+
+    print("Saving outputs...")
+
+    geometry_df.to_csv(
+        GEOMETRY_FILE,
+        index=False
+    )
+
+    distance_df.to_csv(
+        DISTANCE_FILE
+    )
+
+    cov_rows = []
+
+    for region, cov in covariance_dict.items():
+
+        row = {"Region": region}
+
+        for i in range(4):
+            for j in range(4):
+                row[f"C{i+1}{j+1}"] = cov[i, j]
+
+        cov_rows.append(row)
+
+    pd.DataFrame(cov_rows).to_csv(
+        COVARIANCE_FILE,
+        index=False
+    )
+
+    save_summary(
+        geometry_df,
+        RESULTS_DIR
+    )
+
+    # --------------------------------------------------------
+    # Final report
+    # --------------------------------------------------------
+
+    print("\nDone.")
+    print("-" * 60)
+    print(f"Regions analysed : {len(geometry_df)}")
+    print()
+
+    print("Files generated:")
+
+    print(f"  ✓ {GEOMETRY_FILE.name}")
+    print(f"  ✓ {COVARIANCE_FILE.name}")
+    print(f"  ✓ {DISTANCE_FILE.name}")
+    print(f"  ✓ {SUMMARY_FILE.name}")
+
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
