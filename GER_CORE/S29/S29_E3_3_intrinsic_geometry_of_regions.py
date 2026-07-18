@@ -77,6 +77,22 @@ def compute_region_geometry(signature_df, regions_df):
 
             diameter = 0.0
 
+                # ----------------------------------------------------
+        # Compactness / Packing
+        # ----------------------------------------------------
+
+        if diameter > 0:
+
+            compactness = mean_radius / diameter
+
+            packing = n / diameter
+
+        else:
+
+            compactness = 0.0
+
+            packing = 0.0
+
         # ----------------------------------------------------
         # Gamma interval
         # ----------------------------------------------------
@@ -108,7 +124,10 @@ def compute_region_geometry(signature_df, regions_df):
             "StdRadius": std_radius,
             "MaxRadius": max_radius,
 
-            "InternalDiameter": diameter
+            "InternalDiameter": diameter,
+
+            "Compactness": compactness,
+            "Packing": packing
 
         })
 
@@ -327,8 +346,8 @@ def compute_region_separation(geometry_df):
         )
 
         radius = max(
-    geometry_df.iloc[i]["MeanRadius"],
-    1e-12
+            geometry_df.iloc[i]["MeanRadius"],
+            1e-12
         )
 
         if radius > 0:
