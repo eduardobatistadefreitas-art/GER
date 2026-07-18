@@ -45,9 +45,8 @@ SIGNATURE_FILE = Path(
     "/content/drive/MyDrive/GER_RESULTS/S29_E3_1_signature_map.csv"
 )
 
-REGIONS_FILE = os.path.join(
-    "/content",
-    "S29_E3_2_stability_regions.csv"
+REGIONS_FILE = Path(
+    "/content/S29_E3_2_stability_regions.csv"
 )
 
 # ------------------------------------------------------------
