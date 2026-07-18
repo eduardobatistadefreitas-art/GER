@@ -41,14 +41,12 @@ RESULTS_DIR.mkdir(
 # Input files
 # ------------------------------------------------------------
 
-SIGNATURE_FILE = (
-    RESULTS_DIR /
-    "S29_E3_1_signature_map.csv"
+SIGNATURE_FILE = Path(
+    "/content/drive/MyDrive/GER_RESULTS/S29_E3_1_signature_map.csv"
 )
 
-REGIONS_FILE = (
-    RESULTS_DIR /
-    "S29_E3_2_stability_regions.csv"
+REGIONS_FILE = Path(
+    "/content/GER/S29_E3_2_stability_regions.csv"
 )
 
 # ------------------------------------------------------------
