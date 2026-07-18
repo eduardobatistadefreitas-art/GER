@@ -350,10 +350,7 @@ def compute_region_separation(geometry_df):
             1e-12
         )
 
-        if radius > 0:
-            separation_ratio = nearest / radius
-        else:
-            separation_ratio = np.nan
+        separation_ratio = nearest / radius
 
         summary.append({
 
