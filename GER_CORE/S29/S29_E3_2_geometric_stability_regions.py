@@ -541,30 +541,23 @@ def main():
 
         print()
 
-        print(f"Input CSV  : {INPUT_CSV}")
+                print(f"Input CSV  : {INPUT_CSV}")
         print(f"Regions    : {OUTPUT_CSV}")
         print(f"Summary    : {SUMMARY_FILE}")
         print(f"Figure     : {FIGURE_FILE}")
 
         print()
 
+        print(f"Total regions : {len(regions)}")
+
         print(
-            f"Total regions : {len(regions)}"
+            f"Gamma range   : "
+            f"{regions.gamma_start.min():.3f} -> {regions.gamma_end.max():.3f}"
         )
 
         print(
-            f"Stable       : "
-            f"{(regions.classification=='Stable').sum()}"
-        )
-
-        print(
-            f"Intermediate : "
-            f"{(regions.classification=='Intermediate').sum()}"
-        )
-
-        print(
-            f"Transition   : "
-            f"{(regions.classification=='Transition').sum()}"
+            f"Mean length   : "
+            f"{regions.length.mean():.3f}"
         )
 
         print()
