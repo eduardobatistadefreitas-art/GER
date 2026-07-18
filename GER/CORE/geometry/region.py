@@ -6,21 +6,26 @@ Geometry
 Region
 ============================================================
 
-Mathematical representation of a Stability Region.
+Permanent mathematical representation of a Stability Region.
 
-A Region is a permanent geometric object of the RSG framework.
-It represents a subset of the Signature Space containing
-geometric signatures that belong to the same stability domain.
+A Region is a fundamental object of the Relational Spectral
+Geometry (RSG) framework.
 
-This class intentionally performs no geometric analysis.
-Algorithms belong to:
+A Region contains references to the signatures that belong to
+the same stability domain together with its intrinsic geometric
+properties.
+
+This class intentionally contains no analysis algorithms.
+
+Algorithms are implemented in:
 
     region_metrics.py
     region_graph.py
-    region_plot.py
     region_io.py
+    region_plot.py
 
-Author:
+Author
+------
 GER Project
 """
 
@@ -30,74 +35,152 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Region:
     """
     Permanent representation of a Stability Region.
     """
 
+    # ------------------------------------------------------------------
+    # Identity
+    # ------------------------------------------------------------------
+
     id: str
 
-    name: str | None = None
+    label: str | None = None
 
-    signature_indices: list[int] = field(default_factory=list)
+    # ------------------------------------------------------------------
+    # Geometry
+    # ------------------------------------------------------------------
 
-    centroid: tuple[float, ...] = field(default_factory=tuple)
+    signature_indices: tuple[int, ...] = ()
+
+    centroid: tuple[float, ...] = ()
+
+    dimension: int | None = None
 
     radius: float | None = None
 
-    metadata: dict[str, Any] = field(default_factory=dict)
+    # ------------------------------------------------------------------
+    # Scientific properties
+    # ------------------------------------------------------------------
+
+    properties: dict[str, Any] = field(default_factory=dict)
+
+    # ------------------------------------------------------------------
+    # Initialization
+    # ------------------------------------------------------------------
+
+    def __post_init__(self) -> None:
+
+        if self.dimension is None:
+            object.__setattr__(self, "dimension", len(self.centroid))
+
+    # ------------------------------------------------------------------
+    # Basic properties
+    # ------------------------------------------------------------------
 
     def __len__(self) -> int:
         """Number of signatures contained in the region."""
         return len(self.signature_indices)
 
-    def dimension(self) -> int:
-        """Dimension of the centroid."""
-        return len(self.centroid)
-
     def is_empty(self) -> bool:
         """Return True if the region contains no signatures."""
         return len(self.signature_indices) == 0
 
-    def to_dict(self) -> dict[str, Any]:
-        """Serialize the region into a dictionary."""
+    def contains(self, signature_index: int) -> bool:
+        """Check whether a signature belongs to this region."""
+        return signature_index in self.signature_indices
+
+    # ------------------------------------------------------------------
+    # Serialization
+    # ------------------------------------------------------------------
+
+    def as_dict(self) -> dict[str, Any]:
+        """
+        Convert the region into a serializable dictionary.
+        """
+
         return {
+
             "id": self.id,
-            "name": self.name,
+
+            "label": self.label,
+
             "signature_indices": list(self.signature_indices),
+
             "centroid": list(self.centroid),
+
+            "dimension": self.dimension,
+
             "radius": self.radius,
-            "metadata": dict(self.metadata),
+
+            "properties": dict(self.properties),
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Region":
-        """Create a Region from a dictionary."""
+        """
+        Construct a Region from a dictionary.
+        """
+
         return cls(
+
             id=data["id"],
-            name=data.get("name"),
-            signature_indices=list(data.get("signature_indices", [])),
-            centroid=tuple(data.get("centroid", ())),
+
+            label=data.get("label"),
+
+            signature_indices=tuple(
+                data.get("signature_indices", ())
+            ),
+
+            centroid=tuple(
+                data.get("centroid", ())
+            ),
+
+            dimension=data.get("dimension"),
+
             radius=data.get("radius"),
-            metadata=dict(data.get("metadata", {})),
+
+            properties=dict(
+                data.get("properties", {})
+            ),
         )
 
+    # ------------------------------------------------------------------
+    # Summary
+    # ------------------------------------------------------------------
+
     def summary(self) -> dict[str, Any]:
-        """Return a compact summary of the region."""
+        """
+        Return a compact description of the region.
+        """
+
         return {
+
             "id": self.id,
-            "name": self.name,
+
+            "label": self.label,
+
             "size": len(self),
-            "dimension": self.dimension(),
+
+            "dimension": self.dimension,
+
             "radius": self.radius,
         }
 
+    # ------------------------------------------------------------------
+    # Representation
+    # ------------------------------------------------------------------
+
     def __repr__(self) -> str:
+
         return (
+
             f"Region("
             f"id={self.id!r}, "
             f"size={len(self)}, "
-            f"dimension={self.dimension()}, "
+            f"dimension={self.dimension}, "
             f"radius={self.radius})"
+
         )
