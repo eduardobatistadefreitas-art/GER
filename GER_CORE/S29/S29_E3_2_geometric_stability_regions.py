@@ -258,12 +258,7 @@ def build_regions(df, displacements, stats):
             mean_distance = float(np.mean(region_distances))
             max_distance = float(np.max(region_distances))
 
-            if mean_distance < stats["p50"]:
-                classification = "Stable"
-            elif mean_distance < stats["p90"]:
-                classification = "Intermediate"
-            else:
-                classification = "Transition"
+            classification = f"Region {region_id:02d}"
 
             regions.append({
                 "region_id": f"R{region_id:03d}",
@@ -286,12 +281,7 @@ def build_regions(df, displacements, stats):
         mean_distance = float(np.mean(region_distances))
         max_distance = float(np.max(region_distances))
 
-        if mean_distance < stats["p50"]:
-            classification = "Stable"
-        elif mean_distance < stats["p90"]:
-            classification = "Intermediate"
-        else:
-            classification = "Transition"
+        classification = f"Region {region_id:02d}"
 
         regions.append({
             "region_id": f"R{region_id:03d}",
