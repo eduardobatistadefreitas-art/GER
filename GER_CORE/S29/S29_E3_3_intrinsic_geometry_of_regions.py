@@ -165,33 +165,33 @@ def compute_region_shape(signature_df, regions_df):
             (signature_df["Gamma"] <= gamma1)
         ].copy()
 
-        n = len(subset)
+                n = len(subset)
 
         if n < 2:
 
-    results.append({
+            results.append({
 
-        "Region": label,
+                "Region": label,
 
-        "VarDiameter": 0.0,
-        "VarConvergence": 0.0,
-        "VarRecurrence": 0.0,
-        "VarDrift": 0.0,
+                "VarDiameter": 0.0,
+                "VarConvergence": 0.0,
+                "VarRecurrence": 0.0,
+                "VarDrift": 0.0,
 
-        "Eigenvalue1": 0.0,
-        "Eigenvalue2": 0.0,
-        "Eigenvalue3": 0.0,
-        "Eigenvalue4": 0.0,
+                "Eigenvalue1": 0.0,
+                "Eigenvalue2": 0.0,
+                "Eigenvalue3": 0.0,
+                "Eigenvalue4": 0.0,
 
-        "Anisotropy": 0.0,
+                "Anisotropy": 0.0,
 
-        "Uniformity": 0.0
+                "Uniformity": 0.0
 
-    })
+            })
 
-    covariance_dict[label] = np.zeros((4,4))
+            covariance_dict[label] = np.zeros((4, 4))
 
-    continue
+            continue
 
         X = subset[FEATURES].values
 
