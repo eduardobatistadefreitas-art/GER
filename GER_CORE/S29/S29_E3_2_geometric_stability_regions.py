@@ -181,13 +181,6 @@ def save_summary(stats, regions):
 def plot_stability_map(regions):
     raise NotImplementedError
 
-
-def main():
-    raise NotImplementedError
-
-
-if __name__ == "__main__":
-    main()
   # ============================================================
 # GEOMETRIC DISPLACEMENTS
 # ============================================================
