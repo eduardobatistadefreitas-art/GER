@@ -165,7 +165,7 @@ def compute_region_shape(signature_df, regions_df):
             (signature_df["Gamma"] <= gamma1)
         ].copy()
 
-                n = len(subset)
+        n = len(subset)
 
         if n < 2:
 
