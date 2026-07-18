@@ -78,10 +78,10 @@ SUMMARY_FILE = (
 # ============================================================
 
 FEATURES = [
-    "Diameter",
-    "Convergence",
-    "Recurrence",
-    "Drift"
+    "diameter",
+    "convergence",
+    "recurrence",
+    "drift"
 ]
 
 
@@ -104,8 +104,8 @@ def compute_region_geometry(signature_df, regions_df):
         label = region["classification"]
 
         subset = signature_df[
-            (signature_df["Gamma"] >= gamma0) &
-            (signature_df["Gamma"] <= gamma1)
+            (signature_df["gamma"] >= gamma0) &
+            (signature_df["gamma"] <= gamma1)
         ].copy()
 
         n = len(subset)
@@ -235,8 +235,8 @@ def compute_region_shape(signature_df, regions_df):
         label = region["classification"]
 
         subset = signature_df[
-            (signature_df["Gamma"] >= gamma0) &
-            (signature_df["Gamma"] <= gamma1)
+            (signature_df["gamma"] >= gamma0) &
+            (signature_df["gamma"] <= gamma1)
         ].copy()
 
         n = len(subset)
@@ -543,6 +543,8 @@ def main():
 
     signature_df = pd.read_csv(SIGNATURE_FILE)
     regions_df = pd.read_csv(REGIONS_FILE)
+    signature_df.columns = signature_df.columns.str.strip().str.lower()
+    regions_df.columns = regions_df.columns.str.strip().str.lower()
 
     print(f"Signatures : {len(signature_df)}")
     print(f"Regions    : {len(regions_df)}")
