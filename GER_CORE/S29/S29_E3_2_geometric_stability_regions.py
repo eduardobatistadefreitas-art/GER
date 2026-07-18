@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 # FILES
 # ============================================================
 
-INPUT_CSV = Path("S29_E3_1_signature_map.csv")
+INPUT_CSV = Path("/content/drive/MyDrive/GER_RESULTS/S29_E3_1_signature_map.csv")
 
 OUTPUT_CSV = Path("S29_E3_2_stability_regions.csv")
 
