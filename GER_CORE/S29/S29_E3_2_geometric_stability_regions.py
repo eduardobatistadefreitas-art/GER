@@ -236,104 +236,72 @@ def compute_statistics(displacements):
 
 def build_regions(df, displacements, stats):
 
-    threshold_transition = stats["p90"]
-    threshold_stable = stats["p50"]
+    threshold = stats["p90"]
 
     regions = []
 
-    current_start = float(df.loc[0, "gamma"])
-
-    current_class = None
-
+    region_start = float(df.iloc[0]["gamma"])
     region_distances = []
 
     region_id = 1
 
     for _, row in displacements.iterrows():
 
-        distance = float(row.distance)
-
-        if distance < threshold_stable:
-
-            classification = "Stable"
-
-        elif distance < threshold_transition:
-
-            classification = "Intermediate"
-
-        else:
-
-            classification = "Transition"
-
-        if current_class is None:
-
-            current_class = classification
-
-        if classification != current_class:
-
-            gamma_end = float(row.gamma_start)
-
-            regions.append(
-                {
-                    "region_id":
-                        f"R{region_id:03d}",
-
-                    "gamma_start":
-                        current_start,
-
-                    "gamma_end":
-                        gamma_end,
-
-                    "length":
-                        gamma_end - current_start,
-
-                    "mean_distance":
-                        float(np.mean(region_distances)),
-
-                    "max_distance":
-                        float(np.max(region_distances)),
-
-                    "classification":
-                        current_class,
-                }
-            )
-
-            region_id += 1
-
-            current_start = float(row.gamma_start)
-
-            current_class = classification
-
-            region_distances = []
+        distance = float(row["distance"])
 
         region_distances.append(distance)
 
-    gamma_end = float(df.iloc[-1]["gamma"])
+        if distance >= threshold:
 
-    regions.append(
-        {
-            "region_id":
-                f"R{region_id:03d}",
+            gamma_end = float(row["gamma_end"])
 
-            "gamma_start":
-                current_start,
+            mean_distance = float(np.mean(region_distances))
+            max_distance = float(np.max(region_distances))
 
-            "gamma_end":
-                gamma_end,
+            if mean_distance < stats["p50"]:
+                classification = "Stable"
+            elif mean_distance < stats["p90"]:
+                classification = "Intermediate"
+            else:
+                classification = "Transition"
 
-            "length":
-                gamma_end - current_start,
+            regions.append({
+                "region_id": f"R{region_id:03d}",
+                "gamma_start": region_start,
+                "gamma_end": gamma_end,
+                "length": gamma_end - region_start,
+                "mean_distance": mean_distance,
+                "max_distance": max_distance,
+                "classification": classification,
+            })
 
-            "mean_distance":
-                float(np.mean(region_distances)),
+            region_id += 1
+            region_start = gamma_end
+            region_distances = []
 
-            "max_distance":
-                float(np.max(region_distances)),
+    if len(region_distances) > 0:
 
-            "classification":
-                current_class,
-        }
-    )
+        gamma_end = float(df.iloc[-1]["gamma"])
+
+        mean_distance = float(np.mean(region_distances))
+        max_distance = float(np.max(region_distances))
+
+        if mean_distance < stats["p50"]:
+            classification = "Stable"
+        elif mean_distance < stats["p90"]:
+            classification = "Intermediate"
+        else:
+            classification = "Transition"
+
+        regions.append({
+            "region_id": f"R{region_id:03d}",
+            "gamma_start": region_start,
+            "gamma_end": gamma_end,
+            "length": gamma_end - region_start,
+            "mean_distance": mean_distance,
+            "max_distance": max_distance,
+            "classification": classification,
+        })
 
     regions = pd.DataFrame(regions)
 
@@ -341,21 +309,7 @@ def build_regions(df, displacements, stats):
     print("=" * 60)
     print("Regions")
     print("=" * 60)
-
-    print(f"Total regions : {len(regions)}")
-
-    print()
-
-    print(
-        regions[
-            [
-                "region_id",
-                "gamma_start",
-                "gamma_end",
-                "classification",
-            ]
-        ]
-    )
+    print(regions)
 
     return regions
   # ============================================================
