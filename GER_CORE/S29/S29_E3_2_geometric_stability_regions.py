@@ -541,7 +541,7 @@ def main():
 
         print()
 
-                print(f"Input CSV  : {INPUT_CSV}")
+        print(f"Input CSV  : {INPUT_CSV}")
         print(f"Regions    : {OUTPUT_CSV}")
         print(f"Summary    : {SUMMARY_FILE}")
         print(f"Figure     : {FIGURE_FILE}")
