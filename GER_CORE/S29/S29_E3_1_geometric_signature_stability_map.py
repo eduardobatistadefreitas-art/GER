@@ -30,12 +30,13 @@ import numpy as np
 # OFFICIAL GER IMPORTS
 # ============================================================
 
-from GER.CORE.ger_external_examples import (
-    create_duffing_system,
+from GER_CORE.S29.S29_E1_2_external_signature_generation import (
+    initialize_signature_provider,
+    run_external_signature_generation,
 )
 
-from GER.CORE.ger_external_signature import (
-    generate_external_signature,
+from GER_CORE.S29.external_systems.duffing import (
+    simulate_duffing,
 )
 
 # ============================================================
@@ -64,6 +65,9 @@ SUMMARY_FILE = os.path.join(
 GAMMA_INITIAL = 0.250
 GAMMA_FINAL   = 0.500
 GAMMA_STEP    = 0.005
+
+DT = 0.01
+DURATION = 100.0
 
 # ------------------------------------------------------------
 
@@ -290,38 +294,40 @@ def run_single_simulation(gamma):
     # External system
     # --------------------------------------------------------
 
-    system = create_duffing_system(
-        gamma=gamma
+    time, signal = simulate_duffing(
+        dt=DT,
+        duration=DURATION,
+        gamma=float(gamma),
     )
 
     # --------------------------------------------------------
     # Complete official pipeline
     # --------------------------------------------------------
 
-    result = generate_external_signature(system)
+    result = run_external_signature_generation(
+        system_name=f"Duffing (gamma={gamma:.3f})",
+        time=time,
+        signal=signal,
+        dt=DT,
+    )
 
     # --------------------------------------------------------
     # Signature extraction
     # --------------------------------------------------------
 
-    signature = result["signature"]
-
-    diameter = float(signature["diameter"])
-    convergence = float(signature["convergence"])
-    recurrence = float(signature["recurrence"])
-    drift = float(signature["drift"])
+    s = result.signature
 
     return {
 
         "gamma": gamma,
 
-        "diameter": diameter,
+        "diameter": float(s.diameter),
 
-        "convergence": convergence,
+        "convergence": float(s.convergence),
 
-        "recurrence": recurrence,
+        "recurrence": float(s.recurrence),
 
-        "drift": drift
+        "drift": float(s.drift),
 
     }
 
@@ -832,6 +838,8 @@ def main():
     # --------------------------------------------------------
     # Simulation Loop
     # --------------------------------------------------------
+
+    initialize_signature_provider()
 
     for i in range(start_index, TOTAL_RUNS):
 
