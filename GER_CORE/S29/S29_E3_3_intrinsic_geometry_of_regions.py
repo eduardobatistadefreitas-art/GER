@@ -149,7 +149,30 @@ def compute_region_shape(signature_df, regions_df):
         n = len(subset)
 
         if n < 2:
-            continue
+
+    results.append({
+
+        "Region": label,
+
+        "VarDiameter": 0.0,
+        "VarConvergence": 0.0,
+        "VarRecurrence": 0.0,
+        "VarDrift": 0.0,
+
+        "Eigenvalue1": 0.0,
+        "Eigenvalue2": 0.0,
+        "Eigenvalue3": 0.0,
+        "Eigenvalue4": 0.0,
+
+        "Anisotropy": 0.0,
+
+        "Uniformity": 0.0
+
+    })
+
+    covariance_dict[label] = np.zeros((4,4))
+
+    continue
 
         X = subset[FEATURES].values
 
@@ -303,7 +326,10 @@ def compute_region_separation(geometry_df):
             distances[np.isfinite(distances)]
         )
 
-        radius = geometry_df.iloc[i]["MaxRadius"]
+        radius = max(
+    geometry_df.iloc[i]["MeanRadius"],
+    1e-12
+        )
 
         if radius > 0:
             separation_ratio = nearest / radius
