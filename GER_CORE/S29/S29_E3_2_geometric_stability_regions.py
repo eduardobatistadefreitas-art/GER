@@ -425,14 +425,7 @@ def save_summary(stats, regions):
 
 def plot_stability_map(regions):
 
-    colors = {
-
-        "Stable": "#2ca02c",
-
-        "Intermediate": "#ffbf00",
-
-        "Transition": "#d62728",
-    }
+    region_color = "steelblue"
 
     fig, ax = plt.subplots(
         figsize=(12, 1.8)
@@ -443,7 +436,7 @@ def plot_stability_map(regions):
         ax.axvspan(
             row.gamma_start,
             row.gamma_end,
-            color=colors[row.classification],
+            color=region_color,
             alpha=0.90,
         )
 
