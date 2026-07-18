@@ -152,36 +152,7 @@ def normalize_signature_space(df):
 
     return norm
 
-
 # ============================================================
-# PLACEHOLDERS
-# (implemented in Part 2)
-# ============================================================
-
-def compute_neighbor_displacements(df):
-    raise NotImplementedError
-
-
-def compute_statistics(displacements):
-    raise NotImplementedError
-
-
-def build_regions(df, displacements, stats):
-    raise NotImplementedError
-
-
-def save_regions_csv(regions):
-    raise NotImplementedError
-
-
-def save_summary(stats, regions):
-    raise NotImplementedError
-
-
-def plot_stability_map(regions):
-    raise NotImplementedError
-
-  # ============================================================
 # GEOMETRIC DISPLACEMENTS
 # ============================================================
 
