@@ -6,18 +6,15 @@ Geometry
 Region
 ============================================================
 
-Permanent mathematical representation of a Stability Region.
+Permanent mathematical representation of a Region in the
+Relational Spectral Geometry (RSG) framework.
 
-A Region is a fundamental object of the Relational Spectral
-Geometry (RSG) framework.
+A Region is a geometric entity of the Signature Space.
 
-A Region contains references to the signatures that belong to
-the same stability domain together with its intrinsic geometric
-properties.
+It is intentionally immutable and contains no analysis
+algorithms.
 
-This class intentionally contains no analysis algorithms.
-
-Algorithms are implemented in:
+Algorithms belong to:
 
     region_metrics.py
     region_graph.py
@@ -38,63 +35,89 @@ from typing import Any
 @dataclass(frozen=True, slots=True)
 class Region:
     """
-    Permanent representation of a Stability Region.
+    Immutable geometric region.
+
+    A Region represents a subset of signatures belonging to the
+    same geometric domain of the Signature Space.
+
+    Notes
+    -----
+    * The Region is a mathematical object.
+    * It does not perform calculations.
+    * Scientific algorithms belong to external modules.
     """
 
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
     # Identity
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
 
     id: str
 
     label: str | None = None
 
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Membership
+    # ---------------------------------------------------------
+
+    signature_ids: tuple[str, ...] = ()
+
+    # ---------------------------------------------------------
     # Geometry
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
 
-    signature_indices: tuple[int, ...] = ()
-
-    centroid: tuple[float, ...] = ()
-
-    dimension: int | None = None
+    centroid: tuple[float, ...] | None = None
 
     radius: float | None = None
 
-    # ------------------------------------------------------------------
-    # Scientific properties
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Persistent attributes
+    # ---------------------------------------------------------
 
-    properties: dict[str, Any] = field(default_factory=dict)
+    attributes: dict[str, Any] = field(default_factory=dict)
 
-    # ------------------------------------------------------------------
-    # Initialization
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Derived properties
+    # ---------------------------------------------------------
 
-    def __post_init__(self) -> None:
+    @property
+    def dimension(self) -> int | None:
+        """
+        Intrinsic dimension inferred from the centroid.
+        """
 
-        if self.dimension is None:
-            object.__setattr__(self, "dimension", len(self.centroid))
+        if self.centroid is None:
+            return None
 
-    # ------------------------------------------------------------------
-    # Basic properties
-    # ------------------------------------------------------------------
+        return len(self.centroid)
+
+    # ---------------------------------------------------------
+    # Queries
+    # ---------------------------------------------------------
 
     def __len__(self) -> int:
-        """Number of signatures contained in the region."""
-        return len(self.signature_indices)
+        """
+        Number of signatures in the region.
+        """
+
+        return len(self.signature_ids)
 
     def is_empty(self) -> bool:
-        """Return True if the region contains no signatures."""
-        return len(self.signature_indices) == 0
+        """
+        Return True if the region has no signatures.
+        """
 
-    def contains(self, signature_index: int) -> bool:
-        """Check whether a signature belongs to this region."""
-        return signature_index in self.signature_indices
+        return len(self) == 0
 
-    # ------------------------------------------------------------------
+    def contains(self, signature_id: str) -> bool:
+        """
+        Check whether a signature belongs to the region.
+        """
+
+        return signature_id in self.signature_ids
+
+    # ---------------------------------------------------------
     # Serialization
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
 
     def as_dict(self) -> dict[str, Any]:
         """
@@ -103,26 +126,35 @@ class Region:
 
         return {
 
+            "type": "Region",
+
+            "version": 1,
+
             "id": self.id,
 
             "label": self.label,
 
-            "signature_indices": list(self.signature_indices),
+            "signature_ids": list(self.signature_ids),
 
-            "centroid": list(self.centroid),
-
-            "dimension": self.dimension,
+            "centroid": (
+                list(self.centroid)
+                if self.centroid is not None
+                else None
+            ),
 
             "radius": self.radius,
 
-            "properties": dict(self.properties),
+            "attributes": dict(self.attributes),
+
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Region":
         """
-        Construct a Region from a dictionary.
+        Construct a Region from a serialized dictionary.
         """
+
+        centroid = data.get("centroid")
 
         return cls(
 
@@ -130,30 +162,31 @@ class Region:
 
             label=data.get("label"),
 
-            signature_indices=tuple(
-                data.get("signature_indices", ())
+            signature_ids=tuple(
+                data.get("signature_ids", ())
             ),
 
-            centroid=tuple(
-                data.get("centroid", ())
+            centroid=(
+                tuple(centroid)
+                if centroid is not None
+                else None
             ),
-
-            dimension=data.get("dimension"),
 
             radius=data.get("radius"),
 
-            properties=dict(
-                data.get("properties", {})
+            attributes=dict(
+                data.get("attributes", {})
             ),
+
         )
 
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
     # Summary
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
 
     def summary(self) -> dict[str, Any]:
         """
-        Return a compact description of the region.
+        Compact description of the region.
         """
 
         return {
@@ -167,11 +200,27 @@ class Region:
             "dimension": self.dimension,
 
             "radius": self.radius,
+
         }
 
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Equality
+    # ---------------------------------------------------------
+
+    def __eq__(self, other: object) -> bool:
+
+        if not isinstance(other, Region):
+            return NotImplemented
+
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+
+        return hash(self.id)
+
+    # ---------------------------------------------------------
     # Representation
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
 
     def __repr__(self) -> str:
 
