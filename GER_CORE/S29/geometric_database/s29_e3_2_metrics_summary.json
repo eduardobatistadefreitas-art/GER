@@ -1,0 +1,34 @@
+{
+  "project": "RSG",
+  "experiment": "S29-E3.2",
+  "title": "GEOMETRIC STABILITY REGIONS",
+  "total_regions": 7,
+  "classification": {
+    "stable": 0,
+    "intermediate": 0,
+    "transition": 0
+  },
+  "distance_statistics": {
+    "min": 0.0,
+    "p10": 0.0,
+    "p25": 0.337444,
+    "p50": 0.996902,
+    "median": 0.996902,
+    "mean": 1.811974,
+    "p75": 2.890013,
+    "p90": 4.697879,
+    "max": 7.127796,
+    "std": 1.962139
+  },
+  "largest_region": {
+    "id": "R001",
+    "gamma_range": [0.250000, 0.325000],
+    "length": 0.075000,
+    "class": "Region 01"
+  },
+  "largest_boundary": {
+    "region_id": "R002",
+    "max_delta_sigma": 7.127796
+  },
+  "interpretation": "The signature space was partitioned into contiguous geometric regions using percentile-based displacement thresholds."
+}
