@@ -28,8 +28,9 @@ Author
 GER Project
 """
 
-from math import dist
 from __future__ import annotations
+
+from math import dist
 
 from pathlib import Path
 import csv
