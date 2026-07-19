@@ -47,7 +47,21 @@ import matplotlib.pyplot as plt
 # CONFIGURATION
 # =====================================================================
 
-DATABASE_DIR = "GER_CORE/S29/geometric_database"
+ROOT_DIR = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        ".."
+    )
+)
+
+DATABASE_DIR = os.path.join(
+    ROOT_DIR,
+    "GER_CORE",
+    "S29",
+    "geometric_database"
+)
 
 REGIONS_FILE = os.path.join(
     DATABASE_DIR,
