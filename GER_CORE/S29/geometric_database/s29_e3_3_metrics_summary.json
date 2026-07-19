@@ -1,0 +1,28 @@
+{
+  "project": "RSG",
+  "experiment": "S29-E3.3",
+  "title": "INTRINSIC GEOMETRY OF STABILITY REGIONS",
+  "regions_analysed": 7,
+  "comparative_metrics": {
+    "compactness": {
+      "most_compact": "Region 01",
+      "least_compact": "Region 03"
+    },
+    "anisotropy": {
+      "most_isotropic": "Region 07",
+      "most_anisotropic": "Region 03"
+    },
+    "packing": {
+      "highest_packing": "Region 01",
+      "lowest_packing": "Region 05"
+    },
+    "internal_diameter": {
+      "largest_diameter": "Region 07",
+      "smallest_diameter": "Region 03"
+    },
+    "separation": {
+      "best_separated": "Region 03",
+      "worst_separated": "Region 05"
+    }
+  }
+}
