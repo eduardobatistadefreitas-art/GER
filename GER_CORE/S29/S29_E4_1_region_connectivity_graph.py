@@ -47,21 +47,15 @@ import matplotlib.pyplot as plt
 # CONFIGURATION
 # =====================================================================
 
-ROOT_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-        ".."
-    )
-)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATABASE_DIR = os.path.join(
-    ROOT_DIR,
-    "GER_CORE",
-    "S29",
+    SCRIPT_DIR,
     "geometric_database"
 )
+
+RESULTS_DIR = "/content/drive/MyDrive/GER_RESULTS/S29_E4.1"
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 REGIONS_FILE = os.path.join(
     DATABASE_DIR,
