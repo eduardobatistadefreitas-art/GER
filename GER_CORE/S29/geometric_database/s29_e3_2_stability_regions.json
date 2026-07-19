@@ -1,0 +1,65 @@
+[
+  {
+    "region_id": "R001",
+    "gamma_start": 0.25,
+    "gamma_end": 0.325,
+    "length": 0.075,
+    "mean_distance": 0.9375420992,
+    "max_distance": 5.2987719384,
+    "classification": "Region 01"
+  },
+  {
+    "region_id": "R002",
+    "gamma_start": 0.325,
+    "gamma_end": 0.385,
+    "length": 0.06,
+    "mean_distance": 2.2375230487,
+    "max_distance": 7.1277962617,
+    "classification": "Region 02"
+  },
+  {
+    "region_id": "R003",
+    "gamma_start": 0.385,
+    "gamma_end": 0.39,
+    "length": 0.005,
+    "mean_distance": 6.7116709419,
+    "max_distance": 6.7116709419,
+    "classification": "Region 03"
+  },
+  {
+    "region_id": "R004",
+    "gamma_start": 0.39,
+    "gamma_end": 0.415,
+    "length": 0.025,
+    "mean_distance": 3.9756189287,
+    "max_distance": 5.7483659965,
+    "classification": "Region 04"
+  },
+  {
+    "region_id": "R005",
+    "gamma_start": 0.415,
+    "gamma_end": 0.425,
+    "length": 0.01,
+    "mean_distance": 3.3191774881,
+    "max_distance": 4.7956192576,
+    "classification": "Region 05"
+  },
+  {
+    "region_id": "R006",
+    "gamma_start": 0.425,
+    "gamma_end": 0.46,
+    "length": 0.035,
+    "mean_distance": 1.824414837,
+    "max_distance": 6.1913541469,
+    "classification": "Region 06"
+  },
+  {
+    "region_id": "R007",
+    "gamma_start": 0.46,
+    "gamma_end": 0.5,
+    "length": 0.04,
+    "mean_distance": 1.5538232882,
+    "max_distance": 4.6628636397,
+    "classification": "Region 07"
+  }
+]
