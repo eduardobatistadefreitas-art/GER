@@ -1,0 +1,199 @@
+============================================================
+GER
+S29-E3.1
+GEOMETRIC SIGNATURE STABILITY MAP
+============================================================
+
+Generated : 2026-07-18 11:56:15.077849
+Simulations : 61
+
+BASIC STATISTICS
+------------------------------------------------------------
+
+Diameter
+    Minimum : 557.703911950608
+    Maximum : 26403.294380844796
+    Mean    : 4784.814418371651
+    Median  : 2165.712377723981
+    Std Dev : 5972.108959899790
+
+Convergence
+    Minimum : 44.255977675044
+    Maximum : 839.441484722982
+    Mean    : 222.939125863955
+    Median  : 161.125402861680
+    Std Dev : 180.809305047459
+
+Recurrence
+    Minimum : 0.145219502946
+    Maximum : 0.929274403736
+    Mean    : 0.364721942403
+    Median  : 0.285450009294
+    Std Dev : 0.223620896259
+
+Drift
+    Minimum : 0.000000936699
+    Maximum : 0.002614655050
+    Mean    : 0.000181165203
+    Median  : 0.000096036635
+    Std Dev : 0.000350523260
+
+============================================================
+CORRELATION MATRIX
+============================================================
+
+                    Diameter    Convergence     Recurrence          Drift
+Diameter           1.000000       0.920052       0.954320      -0.147139
+Convergence        0.920052       1.000000       0.933766      -0.126467
+Recurrence         0.954320       0.933766       1.000000      -0.152259
+Drift             -0.147139      -0.126467      -0.152259       1.000000
+
+============================================================
+LARGEST LOCAL VARIATIONS
+============================================================
+
+DIAMETER
+    Gamma interval : 0.455 -> 0.460
+    Variation      : 25036.957393387049
+
+CONVERGENCE
+    Gamma interval : 0.465 -> 0.470
+    Variation      : 619.499620821670
+
+RECURRENCE
+    Gamma interval : 0.455 -> 0.460
+    Variation      : 0.724882830351
+
+DRIFT
+    Gamma interval : 0.380 -> 0.385
+    Variation      : 0.002515467422
+
+============================================================
+SIGNATURE DISPLACEMENT
+============================================================
+
+Mean displacement : 4940.790024206090
+Std displacement  : 6564.468877858329
+Maximum           : 25043.985957359982
+Minimum           : 0.000000000000
+
+Largest displacement between
+gamma = 0.455 and 0.460
+
+Smallest displacement between
+gamma = 0.255 and 0.255
+
+============================================================
+LOCAL EXTREMA
+============================================================
+
+DIAMETER
+Local maxima:
+    gamma = 0.305
+    gamma = 0.325
+    gamma = 0.340
+    gamma = 0.350
+    gamma = 0.365
+    gamma = 0.385
+    gamma = 0.395
+    gamma = 0.410
+    gamma = 0.425
+    gamma = 0.445
+    gamma = 0.460
+    gamma = 0.480
+Local minima:
+    gamma = 0.315
+    gamma = 0.330
+    gamma = 0.345
+    gamma = 0.360
+    gamma = 0.375
+    gamma = 0.390
+    gamma = 0.400
+    gamma = 0.420
+    gamma = 0.435
+    gamma = 0.455
+    gamma = 0.470
+    gamma = 0.490
+
+CONVERGENCE
+Local maxima:
+    gamma = 0.305
+    gamma = 0.325
+    gamma = 0.340
+    gamma = 0.350
+    gamma = 0.365
+    gamma = 0.385
+    gamma = 0.395
+    gamma = 0.410
+    gamma = 0.425
+    gamma = 0.445
+    gamma = 0.465
+    gamma = 0.480
+    gamma = 0.495
+Local minima:
+    gamma = 0.315
+    gamma = 0.330
+    gamma = 0.345
+    gamma = 0.360
+    gamma = 0.375
+    gamma = 0.390
+    gamma = 0.400
+    gamma = 0.420
+    gamma = 0.440
+    gamma = 0.455
+    gamma = 0.470
+    gamma = 0.490
+
+RECURRENCE
+Local maxima:
+    gamma = 0.305
+    gamma = 0.325
+    gamma = 0.340
+    gamma = 0.350
+    gamma = 0.365
+    gamma = 0.385
+    gamma = 0.395
+    gamma = 0.410
+    gamma = 0.425
+    gamma = 0.445
+    gamma = 0.460
+    gamma = 0.480
+Local minima:
+    gamma = 0.315
+    gamma = 0.330
+    gamma = 0.345
+    gamma = 0.360
+    gamma = 0.375
+    gamma = 0.390
+    gamma = 0.400
+    gamma = 0.420
+    gamma = 0.435
+    gamma = 0.455
+    gamma = 0.470
+    gamma = 0.490
+
+DRIFT
+Local maxima:
+    gamma = 0.310
+    gamma = 0.330
+    gamma = 0.345
+    gamma = 0.365
+    gamma = 0.385
+    gamma = 0.405
+    gamma = 0.415
+    gamma = 0.435
+    gamma = 0.455
+    gamma = 0.470
+    gamma = 0.485
+Local minima:
+    gamma = 0.305
+    gamma = 0.325
+    gamma = 0.340
+    gamma = 0.355
+    gamma = 0.370
+    gamma = 0.395
+    gamma = 0.410
+    gamma = 0.420
+    gamma = 0.445
+    gamma = 0.465
+    gamma = 0.475
