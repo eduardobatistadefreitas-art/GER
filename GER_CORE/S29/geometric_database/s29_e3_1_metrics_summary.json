@@ -1,0 +1,75 @@
+{
+  "project": "RSG",
+  "experiment": "S29-E3.1",
+  "title": "GEOMETRIC SIGNATURE STABILITY MAP",
+  "generated_at": "2026-07-18 11:56:15.077849",
+  "total_simulations": 61,
+  "basic_statistics": {
+    "diameter": {
+      "min": 557.703911950608,
+      "max": 26403.294380844796,
+      "mean": 4784.814418371651,
+      "median": 2165.712377723981,
+      "std_dev": 5972.10895989979
+    },
+    "convergence": {
+      "min": 44.255977675044,
+      "max": 839.441484722982,
+      "mean": 222.939125863955,
+      "median": 161.12540286168,
+      "std_dev": 180.809305047459
+    },
+    "recurrence": {
+      "min": 0.145219502946,
+      "max": 0.929274403736,
+      "mean": 0.364721942403,
+      "median": 0.285450009294,
+      "std_dev": 0.223620896259
+    },
+    "drift": {
+      "min": 9.36699e-07,
+      "max": 0.00261465505,
+      "mean": 0.000181165203,
+      "median": 9.6036635e-05,
+      "std_dev": 0.00035052326
+    }
+  },
+  "correlation_matrix": {
+    "diameter": { "diameter": 1.0, "convergence": 0.920052, "recurrence": 0.95432, "drift": -0.147139 },
+    "convergence": { "diameter": 0.920052, "convergence": 1.0, "recurrence": 0.933766, "drift": -0.126467 },
+    "recurrence": { "diameter": 0.95432, "convergence": 0.933766, "recurrence": 1.0, "drift": -0.152259 },
+    "drift": { "diameter": -0.147139, "convergence": -0.126467, "recurrence": -0.152259, "column": 1.0 }
+  },
+  "largest_local_variations": {
+    "diameter": { "gamma_interval": [0.455, 0.460], "variation": 25036.95739338705 },
+    "convergence": { "gamma_interval": [0.465, 0.470], "variation": 619.49962082167 },
+    "recurrence": { "gamma_interval": [0.455, 0.460], "variation": 0.724882830351 },
+    "drift": { "gamma_interval": [0.380, 0.385], "variation": 0.002515467422 }
+  },
+  "signature_displacement": {
+    "mean": 4940.79002420609,
+    "std": 6564.468877858329,
+    "max": 25043.985957359982,
+    "min": 0.0,
+    "largest_displacement_gamma": [0.455, 0.460],
+    "smallest_displacement_gamma": [0.255, 0.255]
+  },
+  "local_extrema": {
+    "diameter": {
+      "maxima": [0.305, 0.325, 0.340, 0.350, 0.365, 0.385, 0.395, 0.410, 0.425, 0.445, 0.460, 0.480],
+      "minima": [0.315, 0.330, 0.345, 0.360, 0.375, 0.390, 0.400, 0.420, 0.435, 0.455, 0.470, 0.490]
+    },
+    "convergence": {
+      "maxima": [0.305, 0.325, 0.340, 0.350, 0.365, 0.385, 0.395, 0.410, 0.425, 0.445, 0.465, 0.480, 0.495],
+      "minima": [0.315, 0.330, 0.345, 0.360, 0.375, 0.390, 0.400, 0.420, 0.440, 0.455, 0.470, 0.490]
+    },
+    "recurrence": {
+      "maxima": [0.305, 0.325, 0.340, 0.350, 0.365, 0.385, 0.395, 0.410, 0.425, 0.445, 0.460, 0.480],
+      "minima": [0.315, 0.330, 0.345, 0.360, 0.375, 0.390, 0.400, 0.420, 0.435, 0.455, 0.470, 0.490]
+    },
+    "drift": {
+      "maxima": [0.310, 0.330, 0.345, 0.365, 0.385, 0.405, 0.415, 0.435, 0.455, 0.470, 0.485],
+      "minima": [0.305, 0.325, 0.340, 0.355, 0.370, 0.395, 0.410, 0.420, 0.445, 0.465, 0.475]
+    }
+  }
+}
