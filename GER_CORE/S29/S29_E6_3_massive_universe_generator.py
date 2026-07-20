@@ -592,86 +592,27 @@ class GERCoreAdapter:
     """
     Único ponto de contato entre
     os experimentos S29 e o CORE.
-
-    Toda a matemática permanece
-    dentro do GER.
-
-    Esta classe apenas orquestra
-    chamadas públicas.
     """
 
     def __init__(self):
 
         initialize()
 
-    # --------------------------------------------------------
-
     def analyse(
-    self,
-    observables,
-    dt,
+        self,
+        observables,
+        dt,
     ):
 
-    result = run_signature_pipeline(
-
-        observables,
-
-        dt,
-
-    )
-
-    return (
-
-        result["signature"],
-
-        result["certificate"]
-
-    )
-
-        """
-        Fluxo oficial do CORE
-
-        Universe
-            ↓
-        Engine
-            ↓
-        Snapshot
-            ↓
-        Observational Snapshot
-            ↓
-        Trajectory
-            ↓
-        Signature
-            ↓
-        Certificate
-        """
-
-        #
-        # Nesta versão nenhuma matemática
-        # é implementada aqui.
-        #
-        # Apenas encaminhamos o universo
-        # ao Signature Provider oficial.
-        #
-
-        result = generate_signature(
-
-            universe
-
+        result = run_signature_pipeline(
+            observables,
+            dt,
         )
-
-        signature = result.signature
-
-        certificate = result.certificate
 
         return (
-
-            signature,
-
-            certificate
-
+            result["signature"],
+            result["certificate"],
         )
-
 # ============================================================
 # DISCOVERY MANAGER
 # ============================================================
