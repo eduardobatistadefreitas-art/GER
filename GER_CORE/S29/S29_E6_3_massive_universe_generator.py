@@ -1028,14 +1028,6 @@ class MassiveUniverseGenerator:
                 )
 
             )
-            print(type(signature))
-            print(type(certificate))
-
-            print(signature)
-
-            print(certificate)
-
-            raise SystemExit
 
         except Exception as error:
 
