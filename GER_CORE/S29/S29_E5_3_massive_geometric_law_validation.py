@@ -57,7 +57,15 @@ np.random.seed(RANDOM_SEED)
 random.seed(RANDOM_SEED)
 
 # ------------------------------------------------------------
-# STORAGE
+# INPUT DATABASE (Repository)
+# ------------------------------------------------------------
+
+INPUT_BASE = Path(
+    "GER_CORE/S29/geometric_database/region_database"
+)
+
+# ------------------------------------------------------------
+# OUTPUT (Google Drive)
 # ------------------------------------------------------------
 
 DRIVE_ROOT = Path(
@@ -109,7 +117,9 @@ print("S29-E5.3")
 print("Massive Geometric Law Validation")
 print("=" * 70)
 
-table = pd.read_csv(BASE / "correlation_table.csv")
+table = pd.read_csv(
+    INPUT_BASE / "correlation_table.csv"
+)
 
 # ------------------------------------------------------------
 # remove constants
