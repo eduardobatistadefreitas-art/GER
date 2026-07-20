@@ -1,0 +1,10 @@
+mst_edges
+mst_minimum
+mst_maximum
+mst_mean
+mst_median
+mst_std
+mst_variance
+mst_coefficient_variation
+mst_total_length
+mst_max_min_ratio
