@@ -7,42 +7,50 @@ MASSIVE UNIVERSE GENERATOR
 GER — Geometria Espectral Relacional
 ============================================================
 
-Objetivos
----------
+OBJETIVO
 
-Gerar milhões de universos relacionais independentes,
-armazenando permanentemente:
+Construir um banco permanente de Universos Relacionais
+utilizando EXCLUSIVAMENTE a API pública do GER CORE.
 
-• Universo
-• Assinatura espectral
-• Observáveis
-• Região geométrica
-• Classe geométrica
-• Índice de novidade
+Este experimento NÃO implementa operadores geométricos.
 
-O experimento foi projetado para execução contínua
-por muitas horas ou dias.
+Toda a geometria é produzida pelo próprio CORE.
+
+Fluxo
+
+Universo
+    ↓
+GER CORE
+    ↓
+Snapshot
+    ↓
+Observational Snapshot
+    ↓
+Trajectory
+    ↓
+Geometric Signature
+    ↓
+Structural Certificate
+    ↓
+Database
 
 Características
 
+✓ API pública apenas
 ✓ Checkpoint automático
+✓ Dashboard único
 ✓ Banco incremental
-✓ Salvamento em lote
-✓ Dashboard único (sem crescimento do terminal)
-✓ Recuperação automática
 ✓ Detector de novidades
-✓ Estatísticas em tempo real
+✓ Recuperação automática
+✓ Compatível com futuras versões do CORE
 
 ============================================================
 """
 
 import os
-import sys
 import json
-import math
 import time
 import random
-import shutil
 
 from pathlib import Path
 from datetime import datetime
@@ -50,35 +58,33 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from scipy.stats import entropy
-
 from IPython.display import clear_output
+
+# ============================================================
+# GER CORE
+# ============================================================
+
+from GER.CORE.bootstrap import bootstrap
+
+# Provider oficial
+from GER.CORE.signature_api import *
 
 # ============================================================
 # CONFIGURAÇÃO
 # ============================================================
 
-RANDOM_SEED = 42
-
 TOTAL_UNIVERSES = 5_000_000
 
-SAVE_BATCH = 5000
+SAVE_INTERVAL = 5000
 
 CHECKPOINT_INTERVAL = 5000
 
 DASHBOARD_INTERVAL = 2.0
 
-STATISTICS_INTERVAL = 50000
-
-NOVELTY_THRESHOLD = 0.025
-
-MIN_VERTICES = 8
-MAX_VERTICES = 64
-
-MIN_EDGES = 10
-MAX_EDGES = 256
+RANDOM_SEED = 42
 
 random.seed(RANDOM_SEED)
+
 np.random.seed(RANDOM_SEED)
 
 # ============================================================
@@ -94,34 +100,40 @@ DATABASE = (
 )
 
 UNIVERSE_DIR = DATABASE / "universes"
+
 SIGNATURE_DIR = DATABASE / "signatures"
-OBSERVABLE_DIR = DATABASE / "observables"
-REGION_DIR = DATABASE / "regions"
-NOVELTY_DIR = DATABASE / "novelty"
+
+CERTIFICATE_DIR = DATABASE / "certificates"
 
 CHECKPOINT_DIR = DATABASE / "checkpoints"
+
 STATISTICS_DIR = DATABASE / "statistics"
+
 LOG_DIR = DATABASE / "logs"
+
 TMP_DIR = DATABASE / "tmp"
 
-for directory in [
+for folder in [
 
     DATABASE,
 
     UNIVERSE_DIR,
+
     SIGNATURE_DIR,
-    OBSERVABLE_DIR,
-    REGION_DIR,
-    NOVELTY_DIR,
+
+    CERTIFICATE_DIR,
 
     CHECKPOINT_DIR,
+
     STATISTICS_DIR,
+
     LOG_DIR,
+
     TMP_DIR
 
 ]:
 
-    directory.mkdir(
+    folder.mkdir(
         parents=True,
         exist_ok=True
     )
@@ -140,19 +152,9 @@ SIGNATURE_FILE = (
     "signatures.parquet"
 )
 
-OBSERVABLE_FILE = (
-    OBSERVABLE_DIR /
-    "observables.parquet"
-)
-
-REGION_FILE = (
-    REGION_DIR /
-    "regions.parquet"
-)
-
-NOVELTY_FILE = (
-    NOVELTY_DIR /
-    "novelty.parquet"
+CERTIFICATE_FILE = (
+    CERTIFICATE_DIR /
+    "certificates.parquet"
 )
 
 CHECKPOINT_FILE = (
@@ -187,19 +189,15 @@ class Dashboard:
 
         rejected,
 
-        classes,
-
-        new_classes,
-
         discoveries,
 
         speed,
 
-        eta,
-
         elapsed,
 
-        db_size,
+        eta,
+
+        database_size,
 
         current_task,
 
@@ -210,15 +208,30 @@ class Dashboard:
         now = time.time()
 
         if (
+
             now - self.last_update
+
             <
+
             DASHBOARD_INTERVAL
+
         ):
+
             return
 
         self.last_update = now
 
         clear_output(wait=True)
+
+        percent = (
+
+            processed /
+
+            TOTAL_UNIVERSES
+
+        ) * 100
+
+        bars = int(percent / 2)
 
         print("=" * 60)
         print("GER S29-E6.3")
@@ -226,13 +239,6 @@ class Dashboard:
         print("=" * 60)
 
         print()
-
-        percent = (
-            processed /
-            TOTAL_UNIVERSES
-        ) * 100
-
-        bars = int(percent / 2)
 
         print(
 
@@ -242,82 +248,64 @@ class Dashboard:
 
             + "░" * (50 - bars)
 
-            + "]"
+            + "] "
 
-            + f" {percent:6.2f}%"
+            + f"{percent:6.2f}%"
 
         )
 
         print()
 
-        print(
-            f"Elapsed : {elapsed}"
-        )
+        print(f"Elapsed : {elapsed}")
 
-        print(
-            f"ETA     : {eta}"
-        )
+        print(f"ETA     : {eta}")
 
         print()
 
         print("-" * 60)
+
         print("Universes")
+
         print("-" * 60)
 
-        print(
-            f"Generated : {processed:,}"
-        )
+        print(f"Generated : {processed:,}")
 
-        print(
-            f"Accepted  : {accepted:,}"
-        )
+        print(f"Accepted  : {accepted:,}")
 
-        print(
-            f"Rejected  : {rejected:,}"
-        )
+        print(f"Rejected  : {rejected:,}")
 
         print()
 
-        print(
-            f"Speed : {speed:,.1f} universe/s"
-        )
+        print(f"Speed     : {speed:,.2f} universe/s")
 
         print()
 
         print("-" * 60)
+
         print("Discovery")
+
         print("-" * 60)
 
-        print(
-            f"Known Classes : {classes:,}"
-        )
-
-        print(
-            f"New Classes   : {new_classes:,}"
-        )
-
-        print(
-            f"Novel Worlds  : {discoveries:,}"
-        )
+        print(f"New Discoveries : {discoveries:,}")
 
         print()
 
         print("-" * 60)
+
         print("Database")
+
         print("-" * 60)
 
-        print(
-            f"Size : {db_size:.2f} MB"
-        )
+        print(f"Size : {database_size:.2f} MB")
 
-        print(
-            f"Checkpoint : {checkpoint_age}"
-        )
+        print(f"Checkpoint : {checkpoint_age}")
 
         print()
 
         print("-" * 60)
+
         print("Current Task")
+
         print("-" * 60)
 
         print(current_task)
@@ -340,23 +328,15 @@ class Checkpoint:
 
             "rejected":0,
 
-            "classes":0,
-
             "discoveries":0,
-
-            "new_classes":0,
 
             "last_checkpoint":time.time()
 
         }
 
-    # --------------------------------------------------------
-
     def exists(self):
 
         return CHECKPOINT_FILE.exists()
-
-    # --------------------------------------------------------
 
     def load(self):
 
@@ -366,8 +346,6 @@ class Checkpoint:
         ) as f:
 
             self.data = json.load(f)
-
-    # --------------------------------------------------------
 
     def save(self):
 
@@ -385,493 +363,7 @@ class Checkpoint:
                 f,
                 indent=4
             )
-
-# ============================================================
-# DATABASE WRITER
-# ============================================================
-
-class DatabaseWriter:
-
-    def __init__(self):
-
-        self.universes = []
-
-        self.signatures = []
-
-        self.observables = []
-
-        self.regions = []
-
-        self.novelty = []
-
-    # --------------------------------------------------------
-
-    def append(
-
-        self,
-
-        universe,
-
-        signature,
-
-        observables,
-
-        region,
-
-        novelty
-
-    ):
-
-        self.universes.append(
-            universe
-        )
-
-        self.signatures.append(
-            signature
-        )
-
-        self.observables.append(
-            observables
-        )
-
-        self.regions.append(
-            region
-        )
-
-        self.novelty.append(
-            novelty
-        )
-      # ============================================================
-# DATABASE WRITER (continuação)
-# ============================================================
-
-    def flush(self):
-
-        self._append_parquet(
-            UNIVERSE_FILE,
-            self.universes
-        )
-
-        self._append_parquet(
-            SIGNATURE_FILE,
-            self.signatures
-        )
-
-        self._append_parquet(
-            OBSERVABLE_FILE,
-            self.observables
-        )
-
-        self._append_parquet(
-            REGION_FILE,
-            self.regions
-        )
-
-        self._append_parquet(
-            NOVELTY_FILE,
-            self.novelty
-        )
-
-        self.universes.clear()
-        self.signatures.clear()
-        self.observables.clear()
-        self.regions.clear()
-        self.novelty.clear()
-
-    # --------------------------------------------------------
-
-    def _append_parquet(
-        self,
-        file,
-        rows
-    ):
-
-        if len(rows) == 0:
-            return
-
-        df = pd.DataFrame(rows)
-
-        if file.exists():
-
-            old = pd.read_parquet(file)
-
-            df = pd.concat(
-                [old, df],
-                ignore_index=True
-            )
-
-        df.to_parquet(
-            file,
-            index=False
-        )
-
-# ============================================================
-# UNIVERSE GENERATOR
-# ============================================================
-
-class UniverseGenerator:
-
-    """
-    Primeira implementação.
-
-    Gera grafos relacionais aleatórios.
-
-    Futuramente poderá ser substituído por:
-
-        • Erdős-Rényi
-        • Watts-Strogatz
-        • Barabási-Albert
-        • Scale-Free
-        • Small World
-        • Regular
-        • Hierárquicos
-        • GER Native
-    """
-
-    def __init__(self):
-
-        self.identifier = 0
-
-    # --------------------------------------------------------
-
-    def generate(self):
-
-        self.identifier += 1
-
-        vertices = random.randint(
-            MIN_VERTICES,
-            MAX_VERTICES
-        )
-
-        edges = random.randint(
-            MIN_EDGES,
-            MAX_EDGES
-        )
-
-        density = edges / max(
-            vertices * (vertices - 1) / 2,
-            1
-        )
-
-        adjacency = np.random.randint(
-
-            0,
-
-            2,
-
-            (vertices, vertices)
-
-        )
-
-        adjacency = np.triu(
-            adjacency,
-            1
-        )
-
-        adjacency = (
-            adjacency +
-            adjacency.T
-        )
-
-        return {
-
-            "UniverseID":self.identifier,
-
-            "Vertices":vertices,
-
-            "Edges":edges,
-
-            "Density":density,
-
-            "Adjacency":adjacency.tolist()
-
-        }
-
-# ============================================================
-# SIGNATURE ENGINE
-# ============================================================
-
-class SignatureEngine:
-
-    """
-    Placeholder.
-
-    Na integração definitiva,
-    este módulo chamará diretamente
-    o núcleo do GER.
-    """
-
-    def compute(
-
-        self,
-
-        universe
-
-    ):
-
-        vertices = universe["Vertices"]
-
-        edges = universe["Edges"]
-
-        density = universe["Density"]
-
-        diameter = (
-            vertices /
-            np.sqrt(edges)
-        )
-
-        convergence = (
-            density *
-            random.uniform(
-                0.5,
-                1.5
-            )
-        )
-
-        recurrence = random.random()
-
-        harmonic = (
-            convergence /
-            (
-                recurrence +
-                0.001
-            )
-        )
-
-        return {
-
-            "Diameter":diameter,
-
-            "Convergence":convergence,
-
-            "Recurrence":recurrence,
-
-            "Harmonic":harmonic
-
-        }
-
-# ============================================================
-# OBSERVABLES
-# ============================================================
-
-class ObservableExtractor:
-
-    def extract(
-
-        self,
-
-        universe,
-
-        signature
-
-    ):
-
-        entropy_value = entropy(
-
-            np.random.rand(32)
-
-        )
-
-        average_degree = (
-
-            2 *
-            universe["Edges"]
-
-        ) / universe["Vertices"]
-
-        return {
-
-            "Vertices":
-                universe["Vertices"],
-
-            "Edges":
-                universe["Edges"],
-
-            "Density":
-                universe["Density"],
-
-            "AverageDegree":
-                average_degree,
-
-            "Diameter":
-                signature["Diameter"],
-
-            "Convergence":
-                signature["Convergence"],
-
-            "Recurrence":
-                signature["Recurrence"],
-
-            "Harmonic":
-                signature["Harmonic"],
-
-            "Entropy":
-                entropy_value
-
-        }
-
-# ============================================================
-# REGION CLASSIFIER
-# ============================================================
-
-class RegionClassifier:
-
-    """
-    Classificação provisória.
-
-    Depois será substituída
-    pela classificação geométrica
-    produzida pelo próprio GER.
-    """
-
-    def classify(
-
-        self,
-
-        observables
-
-    ):
-
-        d = observables["Diameter"]
-
-        c = observables["Convergence"]
-
-        r = observables["Recurrence"]
-
-        key = (
-
-            int(d * 5),
-
-            int(c * 10),
-
-            int(r * 10)
-
-        )
-
-        return str(key)
-
-# ============================================================
-# NOVELTY DETECTOR
-# ============================================================
-
-class NoveltyDetector:
-
-    """
-    Detector incremental.
-
-    Guarda apenas os centroides
-    das assinaturas conhecidas.
-    """
-
-    def __init__(self):
-
-        self.reference = []
-
-        self.class_count = 0
-
-    # --------------------------------------------------------
-
-    def evaluate(
-
-        self,
-
-        signature
-
-    ):
-
-        vector = np.array([
-
-            signature["Diameter"],
-
-            signature["Convergence"],
-
-            signature["Recurrence"],
-
-            signature["Harmonic"]
-
-        ])
-
-        if len(self.reference) == 0:
-
-            self.reference.append(vector)
-
-            self.class_count += 1
-
-            return 1.0, True
-
-        distances = [
-
-            np.linalg.norm(
-
-                vector - x
-
-            )
-
-            for x in self.reference
-
-        ]
-
-        minimum = min(distances)
-
-        novelty = minimum / (
-            1.0 + minimum
-        )
-
-        if novelty > NOVELTY_THRESHOLD:
-
-            self.reference.append(vector)
-
-            self.class_count += 1
-
-            return novelty, True
-
-        return novelty, False
-      # ============================================================
-# STATISTICS
-# ============================================================
-
-class Statistics:
-
-    def __init__(self):
-
-        self.rows = []
-
-    # --------------------------------------------------------
-
-    def update(self, observables):
-
-        self.rows.append(observables)
-
-    # --------------------------------------------------------
-
-    def export(self):
-
-        if len(self.rows) == 0:
-            return
-
-        df = pd.DataFrame(self.rows)
-
-        summary = df.describe().T
-
-        summary.to_csv(
-
-            STATISTICS_DIR /
-            "summary.csv"
-
-        )
-
-        correlation = df.corr(
-            numeric_only=True
-        )
-
-        correlation.to_csv(
-
-            STATISTICS_DIR /
-            "correlation.csv"
-
-        )
-
-# ============================================================
+            # ============================================================
 # LOGGER
 # ============================================================
 
@@ -883,7 +375,7 @@ class EventLogger:
 
     # --------------------------------------------------------
 
-    def log(self, text):
+    def log(self, message):
 
         now = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
@@ -900,11 +392,362 @@ class EventLogger:
         ) as f:
 
             f.write(
-                f"[{now}] {text}\n"
+                f"[{now}] {message}\n"
             )
 
 # ============================================================
-# MASSIVE UNIVERSE ENGINE
+# DATABASE WRITER
+# ============================================================
+
+class DatabaseWriter:
+
+    def __init__(self):
+
+        self.universes = []
+
+        self.signatures = []
+
+        self.certificates = []
+
+    # --------------------------------------------------------
+
+    def append(
+
+        self,
+
+        universe,
+
+        signature,
+
+        certificate
+
+    ):
+
+        self.universes.append(
+            universe
+        )
+
+        self.signatures.append(
+            signature
+        )
+
+        self.certificates.append(
+            certificate
+        )
+
+    # --------------------------------------------------------
+
+    def flush(self):
+
+        self._append(
+
+            UNIVERSE_FILE,
+
+            self.universes
+
+        )
+
+        self._append(
+
+            SIGNATURE_FILE,
+
+            self.signatures
+
+        )
+
+        self._append(
+
+            CERTIFICATE_FILE,
+
+            self.certificates
+
+        )
+
+        self.universes.clear()
+
+        self.signatures.clear()
+
+        self.certificates.clear()
+
+    # --------------------------------------------------------
+
+    def _append(
+
+        self,
+
+        file,
+
+        rows
+
+    ):
+
+        if len(rows) == 0:
+
+            return
+
+        df = pd.DataFrame(rows)
+
+        if file.exists():
+
+            old = pd.read_parquet(file)
+
+            df = pd.concat(
+
+                [
+
+                    old,
+
+                    df
+
+                ],
+
+                ignore_index=True
+
+            )
+
+        df.to_parquet(
+
+            file,
+
+            index=False
+
+        )
+
+# ============================================================
+# UNIVERSE GENERATOR
+# ============================================================
+
+class UniverseGenerator:
+
+    """
+    Responsabilidade única:
+
+    Produzir um universo relacional.
+
+    Este módulo NÃO calcula
+    qualquer observável.
+
+    Ele apenas fornece a entrada
+    para o GER CORE.
+    """
+
+    def __init__(self):
+
+        self.identifier = 0
+
+    # --------------------------------------------------------
+
+    def generate(self):
+
+        self.identifier += 1
+
+        vertices = random.randint(
+
+            8,
+
+            64
+
+        )
+
+        probability = random.uniform(
+
+            0.05,
+
+            0.35
+
+        )
+
+        seed = random.randint(
+
+            0,
+
+            2**31
+
+        )
+
+        return {
+
+            "UniverseID":
+                self.identifier,
+
+            "Vertices":
+                vertices,
+
+            "Probability":
+                probability,
+
+            "Seed":
+                seed
+
+        }
+
+# ============================================================
+# CORE ADAPTER
+# ============================================================
+
+class GERCoreAdapter:
+
+    """
+    Único ponto de contato entre
+    os experimentos S29 e o CORE.
+
+    Toda a matemática permanece
+    dentro do GER.
+
+    Esta classe apenas orquestra
+    chamadas públicas.
+    """
+
+    def __init__(self):
+
+        bootstrap()
+
+    # --------------------------------------------------------
+
+    def analyse(
+
+        self,
+
+        universe
+
+    ):
+
+        """
+        Fluxo oficial do CORE
+
+        Universe
+            ↓
+        Engine
+            ↓
+        Snapshot
+            ↓
+        Observational Snapshot
+            ↓
+        Trajectory
+            ↓
+        Signature
+            ↓
+        Certificate
+        """
+
+        #
+        # Nesta versão nenhuma matemática
+        # é implementada aqui.
+        #
+        # Apenas encaminhamos o universo
+        # ao Signature Provider oficial.
+        #
+
+        result = generate_signature(
+
+            universe
+
+        )
+
+        signature = result.signature
+
+        certificate = result.certificate
+
+        return (
+
+            signature,
+
+            certificate
+
+        )
+
+# ============================================================
+# DISCOVERY MANAGER
+# ============================================================
+
+class DiscoveryManager:
+
+    """
+    Controla apenas estatísticas
+    de descobertas.
+
+    Não interfere na geometria.
+    """
+
+    def __init__(self):
+
+        self.known = set()
+
+        self.total = 0
+
+    # --------------------------------------------------------
+
+    def update(
+
+        self,
+
+        signature
+
+    ):
+
+        key = tuple(
+
+            round(v, 8)
+
+            for v in signature.values()
+
+        )
+
+        if key in self.known:
+
+            return False
+
+        self.known.add(key)
+
+        self.total += 1
+
+        return True
+        # ============================================================
+# STATISTICS
+# ============================================================
+
+class Statistics:
+
+    def __init__(self):
+
+        self.signature_rows = []
+
+    # --------------------------------------------------------
+
+    def update(self, signature):
+
+        self.signature_rows.append(signature)
+
+    # --------------------------------------------------------
+
+    def export(self):
+
+        if len(self.signature_rows) == 0:
+
+            return
+
+        df = pd.DataFrame(
+            self.signature_rows
+        )
+
+        df.describe().T.to_csv(
+
+            STATISTICS_DIR /
+            "signature_statistics.csv"
+
+        )
+
+        df.corr(
+            numeric_only=True
+        ).to_csv(
+
+            STATISTICS_DIR /
+            "signature_correlation.csv"
+
+        )
+
+# ============================================================
+# MASSIVE UNIVERSE GENERATOR
 # ============================================================
 
 class MassiveUniverseGenerator:
@@ -913,21 +756,17 @@ class MassiveUniverseGenerator:
 
         self.dashboard = Dashboard()
 
-        self.generator = UniverseGenerator()
-
-        self.signature = SignatureEngine()
-
-        self.extractor = ObservableExtractor()
-
-        self.classifier = RegionClassifier()
-
-        self.novelty = NoveltyDetector()
-
-        self.statistics = Statistics()
+        self.logger = EventLogger()
 
         self.database = DatabaseWriter()
 
-        self.logger = EventLogger()
+        self.statistics = Statistics()
+
+        self.discovery = DiscoveryManager()
+
+        self.generator = UniverseGenerator()
+
+        self.core = GERCoreAdapter()
 
         self.checkpoint = Checkpoint()
 
@@ -939,14 +778,21 @@ class MassiveUniverseGenerator:
                 "Checkpoint restored."
             )
 
-        data = self.checkpoint.data
+        self.processed = self.checkpoint.data[
+            "processed"
+        ]
 
-        self.processed = data["processed"]
-        self.accepted = data["accepted"]
-        self.rejected = data["rejected"]
+        self.accepted = self.checkpoint.data[
+            "accepted"
+        ]
 
-        self.discoveries = data["discoveries"]
-        self.new_classes = data["new_classes"]
+        self.rejected = self.checkpoint.data[
+            "rejected"
+        ]
+
+        self.discoveries = self.checkpoint.data[
+            "discoveries"
+        ]
 
         self.start_time = time.time()
 
@@ -956,16 +802,21 @@ class MassiveUniverseGenerator:
 
     def elapsed(self):
 
-        seconds = int(
+        elapsed = int(
 
-            time.time() -
+            time.time()
+
+            -
+
             self.start_time
 
         )
 
-        h = seconds // 3600
-        m = (seconds % 3600) // 60
-        s = seconds % 60
+        h = elapsed // 3600
+
+        m = (elapsed % 3600) // 60
+
+        s = elapsed % 60
 
         return f"{h:02}:{m:02}:{s:02}"
 
@@ -979,33 +830,59 @@ class MassiveUniverseGenerator:
 
         elapsed = (
 
-            time.time() -
+            time.time()
+
+            -
+
             self.start_time
-
-        )
-
-        remaining = (
-
-            TOTAL_UNIVERSES -
-            self.processed
 
         )
 
         speed = self.processed / elapsed
 
-        if speed <= 0:
+        remaining = (
 
-            return "--:--:--"
+            TOTAL_UNIVERSES
+
+            -
+
+            self.processed
+
+        )
 
         seconds = int(
-            remaining / speed
+
+            remaining /
+
+            max(speed, 1e-9)
+
         )
 
         h = seconds // 3600
+
         m = (seconds % 3600) // 60
+
         s = seconds % 60
 
         return f"{h:02}:{m:02}:{s:02}"
+
+    # --------------------------------------------------------
+
+    def speed(self):
+
+        elapsed = max(
+
+            time.time()
+
+            -
+
+            self.start_time,
+
+            1e-9
+
+        )
+
+        return self.processed / elapsed
 
     # --------------------------------------------------------
 
@@ -1020,8 +897,11 @@ class MassiveUniverseGenerator:
                 total += os.path.getsize(
 
                     os.path.join(
+
                         root,
+
                         file
+
                     )
 
                 )
@@ -1032,15 +912,17 @@ class MassiveUniverseGenerator:
 
     def checkpoint_age(self):
 
-        dt = int(
+        age = int(
 
-            time.time() -
+            time.time()
+
+            -
 
             self.last_checkpoint
 
         )
 
-        return f"{dt} s"
+        return f"{age} s"
 
     # --------------------------------------------------------
 
@@ -1048,19 +930,20 @@ class MassiveUniverseGenerator:
 
         self.checkpoint.data = {
 
-            "processed":self.processed,
+            "processed":
+                self.processed,
 
-            "accepted":self.accepted,
+            "accepted":
+                self.accepted,
 
-            "rejected":self.rejected,
+            "rejected":
+                self.rejected,
 
-            "classes":self.novelty.class_count,
+            "discoveries":
+                self.discoveries,
 
-            "discoveries":self.discoveries,
-
-            "new_classes":self.new_classes,
-
-            "last_checkpoint":time.time()
+            "last_checkpoint":
+                time.time()
 
         }
 
@@ -1082,39 +965,35 @@ class MassiveUniverseGenerator:
 
     # --------------------------------------------------------
 
-    def process(self):
+    def process_universe(self):
 
         universe = self.generator.generate()
 
-        signature = self.signature.compute(
+        try:
 
-            universe
+            signature, certificate = (
 
-        )
+                self.core.analyse(
 
-        observables = self.extractor.extract(
+                    universe
 
-            universe,
-
-            signature
-
-        )
-
-        region = self.classifier.classify(
-
-            observables
-
-        )
-
-        novelty_score, discovered = (
-
-            self.novelty.evaluate(
-
-                signature
+                )
 
             )
 
-        )
+        except Exception as error:
+
+            self.rejected += 1
+
+            self.processed += 1
+
+            self.logger.log(
+
+                f"CORE ERROR : {error}"
+
+            )
+
+            return
 
         self.database.append(
 
@@ -1122,111 +1001,36 @@ class MassiveUniverseGenerator:
 
             signature,
 
-            observables,
-
-            region,
-
-            {
-
-                "UniverseID":
-                    universe["UniverseID"],
-
-                "Novelty":
-                    novelty_score,
-
-                "Discovered":
-                    discovered
-
-            }
+            certificate
 
         )
 
         self.statistics.update(
-            observables
+
+            signature
+
         )
 
-        self.processed += 1
-        self.accepted += 1
+        if self.discovery.update(
 
-        if discovered:
+            signature
+
+        ):
 
             self.discoveries += 1
-            self.new_classes += 1
 
             self.logger.log(
 
-                f"NEW CLASS | "
+                f"NEW SIGNATURE : "
 
-                f"Universe={universe['UniverseID']} "
-
-                f"Novelty={novelty_score:.5f}"
+                f"{universe['UniverseID']}"
 
             )
 
-        if (
-            self.accepted %
-            SAVE_BATCH
-            ==
-            0
-        ):
+        self.accepted += 1
 
-            self.flush()
-
-        if (
-            self.processed %
-            CHECKPOINT_INTERVAL
-            ==
-            0
-        ):
-
-            self.save_checkpoint()
-
-        elapsed_seconds = (
-
-            time.time() -
-            self.start_time
-
-        )
-
-        speed = (
-
-            self.processed /
-
-            max(
-                elapsed_seconds,
-                1e-9
-            )
-
-        )
-
-        self.dashboard.update(
-
-            processed=self.processed,
-
-            accepted=self.accepted,
-
-            rejected=self.rejected,
-
-            classes=self.novelty.class_count,
-
-            new_classes=self.new_classes,
-
-            discoveries=self.discoveries,
-
-            speed=speed,
-
-            eta=self.eta(),
-
-            elapsed=self.elapsed(),
-
-            db_size=self.database_size(),
-
-            current_task="Generating relational universes...",
-
-            checkpoint_age=self.checkpoint_age()
-
-        )
-      # ============================================================
+        self.processed += 1
+        # ============================================================
 # MAIN LOOP
 # ============================================================
 
@@ -1238,7 +1042,53 @@ class MassiveUniverseGenerator:
 
         while self.processed < TOTAL_UNIVERSES:
 
-            self.process()
+            self.process_universe()
+
+            # ----------------------------------------------
+
+            if (
+                self.accepted > 0
+                and
+                self.accepted % SAVE_INTERVAL == 0
+            ):
+
+                self.flush()
+
+            # ----------------------------------------------
+
+            if (
+                self.processed > 0
+                and
+                self.processed % CHECKPOINT_INTERVAL == 0
+            ):
+
+                self.save_checkpoint()
+
+            # ----------------------------------------------
+
+            self.dashboard.update(
+
+                processed=self.processed,
+
+                accepted=self.accepted,
+
+                rejected=self.rejected,
+
+                discoveries=self.discoveries,
+
+                speed=self.speed(),
+
+                elapsed=self.elapsed(),
+
+                eta=self.eta(),
+
+                database_size=self.database_size(),
+
+                current_task="GER CORE → Signature Provider",
+
+                checkpoint_age=self.checkpoint_age()
+
+            )
 
         self.finish()
 
@@ -1258,21 +1108,25 @@ class MassiveUniverseGenerator:
         print("=" * 60)
 
         print()
+
         print("EXECUTION FINISHED")
-        print()
-
-        print(f"Generated Universes : {self.processed:,}")
-        print(f"Accepted            : {self.accepted:,}")
-        print(f"Rejected            : {self.rejected:,}")
 
         print()
 
-        print(f"Known Classes       : {self.novelty.class_count:,}")
-        print(f"New Discoveries     : {self.discoveries:,}")
+        print(f"Processed    : {self.processed:,}")
+        print(f"Accepted     : {self.accepted:,}")
+        print(f"Rejected     : {self.rejected:,}")
 
         print()
 
-        print(f"Database Size       : {self.database_size():.2f} MB")
+        print(f"Discoveries  : {self.discoveries:,}")
+
+        print()
+
+        print(
+            f"Database Size : "
+            f"{self.database_size():.2f} MB"
+        )
 
         print()
 
@@ -1287,22 +1141,51 @@ class MassiveUniverseGenerator:
         )
 
 # ============================================================
-# ENTRY POINT
+# MAIN
+# ============================================================
+
+def validate_core():
+
+    """
+    Verifica se o CORE está disponível.
+    """
+
+    try:
+
+        bootstrap()
+
+        print("[OK] GER CORE initialized")
+
+    except Exception as error:
+
+        print()
+
+        print("=" * 60)
+        print("GER CORE INITIALIZATION FAILED")
+        print("=" * 60)
+
+        print()
+
+        raise RuntimeError(error)
+
 # ============================================================
 
 def main():
 
+    print("=" * 60)
+    print("GER S29-E6.3")
+    print("MASSIVE UNIVERSE GENERATOR")
+    print("=" * 60)
+
     print()
 
-    print("=" * 60)
-    print("INITIALIZING MASSIVE UNIVERSE GENERATOR")
-    print("=" * 60)
+    validate_core()
 
     print()
 
-    engine = MassiveUniverseGenerator()
+    generator = MassiveUniverseGenerator()
 
-    engine.run()
+    generator.run()
 
 # ============================================================
 
