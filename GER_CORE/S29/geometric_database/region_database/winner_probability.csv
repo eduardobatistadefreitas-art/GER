@@ -1,0 +1,11 @@
+X,Y,Winner,Probability
+MinimumDistance,MaximumDistance,Quadratic,0.934422
+MinimumDistance,AverageDistance,Quadratic,0.93402
+MaximumDistance,AverageDistance,Quadratic,0.846808
+WeightedDegree,MaximumDistance,Quadratic,0.77617
+WeightedDegree,MinimumDistance,Quadratic,0.760526
+Degree,WeightedDegree,Linear,0.753116
+Degree,MaximumDistance,Linear,0.712738
+Degree,AverageDistance,Linear,0.663944
+Degree,MinimumDistance,Linear,0.581452
+WeightedDegree,AverageDistance,Quadratic,0.523466

@@ -1,0 +1,44 @@
+{
+    "completed": [
+        [
+            "Degree",
+            "WeightedDegree"
+        ],
+        [
+            "Degree",
+            "MinimumDistance"
+        ],
+        [
+            "Degree",
+            "MaximumDistance"
+        ],
+        [
+            "Degree",
+            "AverageDistance"
+        ],
+        [
+            "WeightedDegree",
+            "MinimumDistance"
+        ],
+        [
+            "WeightedDegree",
+            "MaximumDistance"
+        ],
+        [
+            "WeightedDegree",
+            "AverageDistance"
+        ],
+        [
+            "MinimumDistance",
+            "MaximumDistance"
+        ],
+        [
+            "MinimumDistance",
+            "AverageDistance"
+        ],
+        [
+            "MaximumDistance",
+            "AverageDistance"
+        ]
+    ]
+}

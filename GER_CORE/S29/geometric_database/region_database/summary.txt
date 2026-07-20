@@ -1,86 +1,48 @@
-GER S29-E5.2
+GER S29-E5.3
+Massive Geometric Law Validation
 
-Observable pairs : 10
-Models evaluated : 50
+Bootstrap iterations : 500,000
+Observable pairs      : 10
 
-Top 20 Scaling Laws
-
-WeightedDegree  <->  MaximumDistance
-Model : Quadratic
-Equation : y = -0.00014598*x² + 1.09526691*x + 4.66542245
-R2 : 0.908672
-RMSE : 187.293705
-MAE : 128.237062
-Quality : Moderate
-
-WeightedDegree  <->  AverageDistance
-Model : Power
-Equation : y = 7.43786957 * x^0.65840276
-R2 : 0.858102
-RMSE : 165.363433
-MAE : 126.650840
-Quality : Moderate
-
-MaximumDistance  <->  AverageDistance
-Model : Quadratic
-Equation : y = -0.00010904*x² + 0.88484961*x + 20.87541608
-R2 : 0.798568
-RMSE : 197.022279
-MAE : 181.866184
-Quality : Weak
-
-MinimumDistance  <->  AverageDistance
-Model : Quadratic
-Equation : y = -0.00449121*x² + 6.63459378*x + -534.90048928
-R2 : 0.794459
-RMSE : 199.021593
-MAE : 184.902268
-Quality : Weak
+Model Stability Ranking
 
 MinimumDistance  <->  MaximumDistance
-Model : Quadratic
-Equation : y = -0.00898243*x² + 12.26918669*x + -1069.80082199
-R2 : 0.587506
-RMSE : 398.043185
-MAE : 369.804538
-Quality : Poor
+Winner : Quadratic
+Selection Probability : 93.442%
 
-Degree  <->  WeightedDegree
-Model : Linear
-Equation : y = 1613.35645399 * x + -985.17625271
-R2 : 0.582015
-RMSE : 617.654262
-MAE : 547.328711
-Quality : Poor
+MinimumDistance  <->  AverageDistance
+Winner : Quadratic
+Selection Probability : 93.402%
 
-Degree  <->  MaximumDistance
-Model : Linear
-Equation : y = 1022.90758864 * x + -394.72738737
-R2 : 0.555948
-RMSE : 412.988845
-MAE : 386.721508
-Quality : Poor
+MaximumDistance  <->  AverageDistance
+Winner : Quadratic
+Selection Probability : 84.681%
+
+WeightedDegree  <->  MaximumDistance
+Winner : Quadratic
+Selection Probability : 77.617%
 
 WeightedDegree  <->  MinimumDistance
-Model : Exponential
-Equation : y = 237.40566482 * exp(0.00046492 x)
-R2 : 0.308427
-RMSE : 361.890910
-MAE : 300.588745
-Quality : Poor
+Winner : Quadratic
+Selection Probability : 76.053%
+
+Degree  <->  WeightedDegree
+Winner : Linear
+Selection Probability : 75.312%
+
+Degree  <->  MaximumDistance
+Winner : Linear
+Selection Probability : 71.274%
 
 Degree  <->  AverageDistance
-Model : Linear
-Equation : y = 492.58812636 * x + 135.59207492
-R2 : 0.256962
-RMSE : 378.404952
-MAE : 341.147059
-Quality : Poor
+Winner : Linear
+Selection Probability : 66.394%
 
 Degree  <->  MinimumDistance
-Model : Linear
-Equation : y = -37.73133593 * x + 665.91153720
-R2 : 0.001534
-RMSE : 434.835876
-MAE : 425.833085
-Quality : Poor
+Winner : Linear
+Selection Probability : 58.145%
+
+WeightedDegree  <->  AverageDistance
+Winner : Quadratic
+Selection Probability : 52.347%
+
