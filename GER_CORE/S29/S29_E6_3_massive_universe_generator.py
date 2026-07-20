@@ -556,7 +556,7 @@ class UniverseGenerator:
 
             64
 
-    )
+        )
 
         probability = random.uniform(
 
@@ -564,7 +564,7 @@ class UniverseGenerator:
 
             0.35
 
-    )
+        )
 
         seed = random.randint(
 
@@ -572,9 +572,9 @@ class UniverseGenerator:
 
             2**31
 
-    )
+        )
 
-    return {
+        return {
 
             "UniverseID":
                 self.identifier,
@@ -606,11 +606,11 @@ class UniverseGenerator:
             "Probability":
                 probability,
 
-    }
+        }
+
 # ============================================================
 # CORE ADAPTER
 # ============================================================
-
 class GERCoreAdapter:
 
     """
