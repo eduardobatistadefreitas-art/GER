@@ -60,21 +60,11 @@ random.seed(RANDOM_SEED)
 # STORAGE
 # ------------------------------------------------------------
 
-LOCAL_BASE = Path(
-    "GER_CORE/S29/geometric_database/region_database"
-)
-
 DRIVE_ROOT = Path(
-    "/content/drive/MyDrive/GER"
+    "/content/drive/MyDrive"
 )
 
-if DRIVE_ROOT.exists():
-
-    print("[OK] Google Drive detected.")
-
-    BASE = DRIVE_ROOT / "GER_CORE/S29/geometric_database/region_database"
-
-else:
+if not DRIVE_ROOT.exists():
 
     raise RuntimeError(
 
@@ -83,6 +73,14 @@ else:
         "without persistent storage."
 
     )
+
+print("[OK] Google Drive detected.")
+
+BASE = (
+    DRIVE_ROOT /
+    "GER_RESULTS" /
+    "S29_E5.3"
+)
 
 OUTPUT = BASE / "massive_validation"
 
@@ -105,7 +103,6 @@ print(f"[OK] Output directory : {OUTPUT}")
 # ============================================================
 # LOAD DATABASE
 # ============================================================
-
 print("=" * 70)
 print("GER")
 print("S29-E5.3")
