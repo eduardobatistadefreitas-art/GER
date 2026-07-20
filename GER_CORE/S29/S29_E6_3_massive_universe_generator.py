@@ -66,9 +66,16 @@ from IPython.display import clear_output
 
 from GER.CORE.bootstrap import initialize
 
-# Provider oficial
+from GER.CORE.ger_engine import (
+    run_engine,
+)
+
 from GER.CORE.experiment_pipeline import (
     run_signature_pipeline,
+)
+
+from GER_CORE.S26_B35_persistence_metrics import (
+    run_persistence_observatory,
 )
 
 # ============================================================
@@ -539,50 +546,67 @@ class UniverseGenerator:
 
     # --------------------------------------------------------
 
-    def generate(self):
+def generate(self):
 
-        self.identifier += 1
+    self.identifier += 1
 
-        vertices = random.randint(
+    vertices = random.randint(
 
-            8,
+        8,
 
-            64
+        64
 
-        )
+    )
 
-        probability = random.uniform(
+    probability = random.uniform(
 
-            0.05,
+        0.05,
 
-            0.35
+        0.35
 
-        )
+    )
 
-        seed = random.randint(
+    seed = random.randint(
 
-            0,
+        0,
 
-            2**31
+        2**31
 
-        )
+    )
 
-        return {
+    return {
 
-            "UniverseID":
-                self.identifier,
+        "UniverseID":
+            self.identifier,
 
-            "Vertices":
-                vertices,
+        "n":
+            vertices,
 
-            "Probability":
-                probability,
+        "timesteps":
+            2000,
 
-            "Seed":
-                seed
+        "dt":
+            2.5e-4,
 
-        }
+        "beta":
+            1.0,
 
+        "potential":
+            "A",
+
+        "snapshot_stride":
+            50,
+
+        "sigma":
+            0.10,
+
+        "Seed":
+            seed,
+
+        "Probability":
+            probability,
+
+    }
 # ============================================================
 # CORE ADAPTER
 # ============================================================
@@ -600,18 +624,49 @@ class GERCoreAdapter:
 
     def analyse(
         self,
-        observables,
-        dt,
+        universe,
     ):
 
+        engine = run_engine(
+
+            n=universe["n"],
+
+            timesteps=universe["timesteps"],
+
+            dt=universe["dt"],
+
+            beta=universe["beta"],
+
+            potential=universe["potential"],
+
+            snapshot_stride=universe["snapshot_stride"],
+
+            sigma=universe["sigma"],
+
+        )
+
+        observables = run_persistence_observatory(
+
+            engine["snapshots"],
+
+            universe["dt"],
+
+        )
+
         result = run_signature_pipeline(
+
             observables,
-            dt,
+
+            universe["dt"],
+
         )
 
         return (
+
             result["signature"],
+
             result["certificate"],
+
         )
 # ============================================================
 # DISCOVERY MANAGER
@@ -956,21 +1011,21 @@ class MassiveUniverseGenerator:
 
             universe,
 
-            signature,
+            signature.to_dict(),
 
-            certificate
+            certificate,
 
         )
 
         self.statistics.update(
 
-            signature
+            signature.to_dict()
 
         )
 
         if self.discovery.update(
 
-            signature
+            signature.to_dict()
 
         ):
 
