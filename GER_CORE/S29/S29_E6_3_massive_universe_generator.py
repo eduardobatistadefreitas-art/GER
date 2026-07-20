@@ -546,65 +546,65 @@ class UniverseGenerator:
 
     # --------------------------------------------------------
 
-def generate(self):
+    def generate(self):
 
-    self.identifier += 1
+        self.identifier += 1
 
-    vertices = random.randint(
+        vertices = random.randint(
 
-        8,
+            8,
 
-        64
-
-    )
-
-    probability = random.uniform(
-
-        0.05,
-
-        0.35
+            64
 
     )
 
-    seed = random.randint(
+        probability = random.uniform(
 
-        0,
+            0.05,
 
-        2**31
+            0.35
+
+    )
+
+        seed = random.randint(
+
+            0,
+
+            2**31
 
     )
 
     return {
 
-        "UniverseID":
-            self.identifier,
+            "UniverseID":
+                self.identifier,
 
-        "n":
-            vertices,
+            "n":
+                vertices,
 
-        "timesteps":
-            2000,
+            "timesteps":
+                2000,
 
-        "dt":
-            2.5e-4,
+            "dt":
+                2.5e-4,
 
-        "beta":
-            1.0,
+            "beta":
+                1.0,
 
-        "potential":
-            "A",
+            "potential":
+                "A",
 
-        "snapshot_stride":
-            50,
+            "snapshot_stride":
+                50,
 
-        "sigma":
-            0.10,
+            "sigma":
+                0.10,
 
-        "Seed":
-            seed,
+            "Seed":
+                seed,
 
-        "Probability":
-            probability,
+            "Probability":
+                probability,
 
     }
 # ============================================================
