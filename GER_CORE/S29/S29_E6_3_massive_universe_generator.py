@@ -67,7 +67,9 @@ from IPython.display import clear_output
 from GER.CORE.bootstrap import initialize
 
 # Provider oficial
-from GER.CORE.signature_api import *
+from GER.CORE.experiment_pipeline import (
+    run_signature_pipeline,
+)
 
 # ============================================================
 # CONFIGURAÇÃO
@@ -605,12 +607,26 @@ class GERCoreAdapter:
     # --------------------------------------------------------
 
     def analyse(
-
-        self,
-
-        universe
-
+    self,
+    observables,
+    dt,
     ):
+
+    result = run_signature_pipeline(
+
+        observables,
+
+        dt,
+
+    )
+
+    return (
+
+        result["signature"],
+
+        result["certificate"]
+
+    )
 
         """
         Fluxo oficial do CORE
