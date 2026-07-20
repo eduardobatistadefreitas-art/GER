@@ -64,7 +64,7 @@ from IPython.display import clear_output
 # GER CORE
 # ============================================================
 
-from GER.CORE.bootstrap import bootstrap
+from GER.CORE.bootstrap import initialize
 
 # Provider oficial
 from GER.CORE.signature_api import *
@@ -600,7 +600,7 @@ class GERCoreAdapter:
 
     def __init__(self):
 
-        bootstrap()
+        initialize()
 
     # --------------------------------------------------------
 
@@ -1152,7 +1152,7 @@ def validate_core():
 
     try:
 
-        bootstrap()
+        initialize()
 
         print("[OK] GER CORE initialized")
 
