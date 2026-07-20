@@ -113,15 +113,23 @@ MIN_EDGES = 10
 MAX_EDGES = 256
 
 # ------------------------------------------------------------
+# Persistent Storage
+# ------------------------------------------------------------
 
-OUTPUT_ROOT = Path(
-    "GER_CORE/S29/geometric_database"
+RESULTS = Path(
+    "/content/drive/MyDrive/GER_RESULTS"
 )
 
-DATABASE = (
-    OUTPUT_ROOT /
-    "global_geometry_sampling"
-)
+if not RESULTS.exists():
+
+    raise RuntimeError(
+
+        "\nGoogle Drive not mounted.\n"
+        "Mount Google Drive before running this experiment."
+
+    )
+
+DATABASE = RESULTS / "S29_E6.1"
 
 CHECKPOINT_DIR = DATABASE / "checkpoints"
 
@@ -168,8 +176,6 @@ RUN_LOG = (
 
 DIRECTORIES = [
 
-    OUTPUT_ROOT,
-
     DATABASE,
 
     CHECKPOINT_DIR,
@@ -189,9 +195,19 @@ DIRECTORIES = [
 for directory in DIRECTORIES:
 
     directory.mkdir(
+
         parents=True,
+
         exist_ok=True
+
     )
+
+print("=" * 60)
+print("Persistent Storage")
+print("=" * 60)
+print("[OK] Google Drive")
+print(f"[OK] Output : {DATABASE}")
+print("=" * 60)
 
 # ============================================================
 # Compact Logger
