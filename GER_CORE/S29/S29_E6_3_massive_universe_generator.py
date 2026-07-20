@@ -100,13 +100,20 @@ np.random.seed(RANDOM_SEED)
 # DATABASE
 # ============================================================
 
-ROOT = Path(__file__).parent
-
-DATABASE = (
-    ROOT /
-    "geometric_database" /
-    "universe_database"
+RESULTS = Path(
+    "/content/drive/MyDrive/GER_RESULTS"
 )
+
+if not RESULTS.exists():
+
+    raise RuntimeError(
+
+        "\nGoogle Drive not mounted.\n"
+        "Mount Google Drive before running this experiment."
+
+    )
+
+DATABASE = RESULTS / "S29_E6.3"
 
 UNIVERSE_DIR = DATABASE / "universes"
 
@@ -143,9 +150,19 @@ for folder in [
 ]:
 
     folder.mkdir(
+
         parents=True,
+
         exist_ok=True
+
     )
+
+print("=" * 60)
+print("Persistent Storage")
+print("=" * 60)
+print("[OK] Google Drive")
+print(f"[OK] Output : {DATABASE}")
+print("=" * 60)
 
 # ============================================================
 # FILES
