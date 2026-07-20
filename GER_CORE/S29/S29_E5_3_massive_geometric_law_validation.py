@@ -57,20 +57,50 @@ np.random.seed(RANDOM_SEED)
 random.seed(RANDOM_SEED)
 
 # ------------------------------------------------------------
+# STORAGE
+# ------------------------------------------------------------
 
-BASE = Path(
+LOCAL_BASE = Path(
     "GER_CORE/S29/geometric_database/region_database"
 )
 
+DRIVE_ROOT = Path(
+    "/content/drive/MyDrive/GER"
+)
+
+if DRIVE_ROOT.exists():
+
+    print("[OK] Google Drive detected.")
+
+    BASE = DRIVE_ROOT / "GER_CORE/S29/geometric_database/region_database"
+
+else:
+
+    raise RuntimeError(
+
+        "\nGoogle Drive is not mounted.\n\n"
+        "Massive experiments are not allowed to run "
+        "without persistent storage."
+
+    )
+
 OUTPUT = BASE / "massive_validation"
 
-OUTPUT.mkdir(parents=True, exist_ok=True)
+OUTPUT.mkdir(
+
+    parents=True,
+
+    exist_ok=True
+
+)
 
 CHECKPOINT = OUTPUT / "checkpoint.json"
 
 RESULTS_FILE = OUTPUT / "bootstrap_results.jsonl"
 
 SUMMARY_FILE = OUTPUT / "summary.txt"
+
+print(f"[OK] Output directory : {OUTPUT}")
 
 # ============================================================
 # LOAD DATABASE
