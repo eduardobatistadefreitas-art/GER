@@ -1,0 +1,19 @@
+GER S29-E5.1
+
+Regions : 7
+Observables : 15
+
+Independent observables : 15
+Redundant pairs : 0
+
+Highest Pearson correlation
+WeightedDegree <-> MaximumDistance
+0.929192
+
+Highest Spearman correlation
+WeightedDegree <-> AverageDistance
+0.892857
+
+Highest Mutual Information
+WeightedDegree <-> AverageDistance
+0.361905

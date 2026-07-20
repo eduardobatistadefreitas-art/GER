@@ -1,0 +1,3 @@
+REDUNDANCY REPORT
+
+No redundant variables detected.
