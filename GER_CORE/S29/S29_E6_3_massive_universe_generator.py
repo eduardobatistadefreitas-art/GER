@@ -478,7 +478,7 @@ class DatabaseWriter:
 
         self.certificates.clear()
 
-    # --------------------------------------------------------
+   # --------------------------------------------------------
 
     def _append(
 
@@ -493,6 +493,42 @@ class DatabaseWriter:
         if len(rows) == 0:
 
             return
+
+        def sanitize(obj):
+
+            if isinstance(obj, dict):
+
+                if len(obj) == 0:
+
+                    return None
+
+                return {
+
+                    k: sanitize(v)
+
+                    for k, v in obj.items()
+
+                }
+
+            if isinstance(obj, list):
+
+                return [
+
+                    sanitize(v)
+
+                    for v in obj
+
+                ]
+
+            return obj
+
+        rows = [
+
+            sanitize(row)
+
+            for row in rows
+
+        ]
 
         df = pd.DataFrame(rows)
 
