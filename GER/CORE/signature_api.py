@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, asdict
 from typing import Iterable
+from .reference_provider import ReferenceProvider
 
 
 # ============================================================
@@ -239,29 +240,7 @@ class SignatureProvider:
     ):
         raise NotImplementedError
 
-
-class ReferenceProvider:
-    """
-    Official provider responsible for exposing
-    stored Geometric Signatures.
-    """
-
-    def load_signatures(
-        self,
-        *args,
-        **kwargs,
-    ):
-        raise NotImplementedError
-
-    def available_signatures(self):
-        raise NotImplementedError
-
-    def signature_names(self):
-        raise NotImplementedError
-
-    def signature_dimension(self):
-        raise NotImplementedError
-        # ============================================================
+# ============================================================
 # Demonstration
 # ============================================================
 
