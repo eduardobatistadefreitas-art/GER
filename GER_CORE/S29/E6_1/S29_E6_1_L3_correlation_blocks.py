@@ -4,6 +4,23 @@ import json
 import pandas as pd
 
 # ============================================================
+# INPUT DATA
+# ============================================================
+
+DATA_FOLDER = Path("/content/drive/MyDrive/GER_RESULTS/S29_E6.1")
+
+DATA_FILE = DATA_FOLDER / "observables.parquet"
+
+print("=" * 60)
+print("Loading dataset...")
+print(DATA_FILE)
+
+df = pd.read_parquet(DATA_FILE)
+
+print(f"Rows    : {len(df):,}")
+print(f"Columns : {len(df.columns)}")
+print("=" * 60)
+# ============================================================
 # RESULT FOLDER
 # ============================================================
 
