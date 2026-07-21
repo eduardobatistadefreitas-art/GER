@@ -64,7 +64,7 @@ independence = load_csv(
 minimal = load_csv(
     ROOT /
     "L9_MinimalObservableSet" /
-    "minimal_observable_sets.csv"
+    "minimal_observable_set.csv"
 )
 
 # ============================================================
