@@ -141,11 +141,11 @@ best_df = pd.read_csv(BEST_MODELS)
 
 pair_quality_df = pd.read_csv(PAIR_QUALITY)
 
-print(pair_quality_df.columns.tolist())
-print()
-print(pair_quality_df.head())
+robust_df = pd.read_csv(ROBUST)
 
-exit()
+model_stability_df = pd.read_csv(MODEL_STABILITY)
+
+records = []
 
 with open(BOOTSTRAP) as f:
 
