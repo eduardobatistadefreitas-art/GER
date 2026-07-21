@@ -49,10 +49,11 @@ MAX_PREDICTORS_LIST = [
 # STORAGE
 # ============================================================
 
-pair_counts = {
-    (a, b): 0
-    for a, b in combinations(columns, 2)
-}
+pair_counts = {}
+
+for a, b in combinations(columns, 2):
+
+    pair_counts[tuple(sorted((a, b)))] = 0
 
 runs = 0
 
@@ -124,14 +125,16 @@ for max_predictors in MAX_PREDICTORS_LIST:
 
         for comp in sccs:
 
-            comp = sorted(comp)
+            comp = list(comp)
 
             if len(comp) < 2:
                 continue
 
             for a, b in combinations(comp, 2):
 
-                pair_counts[(a, b)] += 1
+                key = tuple(sorted((a, b)))
+
+                pair_counts[key] += 1
 
 # ============================================================
 # MATRIX
