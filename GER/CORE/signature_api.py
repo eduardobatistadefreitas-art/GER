@@ -9,8 +9,13 @@
 # Assinaturas Geométricas.
 #
 # Este módulo desacopla os consumidores científicos
-# (B37, módulos futuros, auditorias etc.) da
-# implementação interna do B35/B36.
+# da implementação interna do motor.
+#
+# Compatibilidade:
+#     Todas as interfaces anteriores permanecem válidas.
+#
+# Versão:
+#     2.0
 # ============================================================
 
 from dataclasses import dataclass, asdict
@@ -33,63 +38,32 @@ class Signature:
 
     def to_dict(self):
         """
-        Converte a assinatura para um dicionário.
+        Converts the signature into a dictionary.
         """
         return asdict(self)
 
+    def to_tuple(self):
+        """
+        Converts the signature into an immutable tuple.
+
+        Useful for numerical processing.
+        """
+        return (
+            self.diameter,
+            self.convergence,
+            self.recurrence,
+            self.drift,
+        )
+
     def __iter__(self):
         """
-        Compatibilidade retroativa.
+        Backward compatibility.
 
-        Permite que chamadas antigas como
+        Allows legacy code such as
 
             dict(signature)
-
-        continuem funcionando.
         """
         return iter(asdict(self).items())
-
-
-# ============================================================
-# API Pública
-# ============================================================
-
-def generate_signature(
-    *args,
-    **kwargs,
-) -> Signature:
-
-    provider = get_signature_provider()
-
-    if provider is None:
-        raise RuntimeError(
-            "No SignatureProvider registered."
-        )
-
-    return provider.generate_signature(
-        *args,
-        **kwargs,
-    )
-
-
-def generate_signature_dataset(
-    n_samples,
-    *args,
-    **kwargs,
-):
-
-    provider = get_signature_provider()
-
-    if provider is None:
-        raise RuntimeError(
-            "No SignatureProvider registered."
-        )
-
-    return provider.generate_signature_dataset(
-        n_samples,
-        *args,
-        **kwargs,
-    )
 
 
 # ============================================================
@@ -101,12 +75,7 @@ _signature_provider = None
 
 def register_signature_provider(provider):
     """
-    Registra o provider oficial de Assinaturas Geométricas.
-
-    O provider deve implementar:
-
-        generate_signature(...)
-        generate_signature_dataset(...)
+    Registers the official Signature Provider.
     """
 
     global _signature_provider
@@ -119,17 +88,111 @@ def get_signature_provider():
     return _signature_provider
 
 
+def _require_provider():
+
+    provider = get_signature_provider()
+
+    if provider is None:
+
+        raise RuntimeError(
+            "No SignatureProvider registered."
+        )
+
+    return provider
+
+
+# ============================================================
+# Public API
+# ============================================================
+
+def generate_signature(
+    *args,
+    **kwargs,
+):
+    """
+    Generates a single geometric signature.
+    """
+
+    provider = _require_provider()
+
+    return provider.generate_signature(
+        *args,
+        **kwargs,
+    )
+
+
+def generate_signature_dataset(
+    n_samples,
+    *args,
+    **kwargs,
+):
+    """
+    Generates a collection of signatures.
+    """
+
+    provider = _require_provider()
+
+    return provider.generate_signature_dataset(
+        n_samples,
+        *args,
+        **kwargs,
+    )
+
+
+# ============================================================
+# New High-Level API
+# ============================================================
+
+def load_signatures(
+    *args,
+    **kwargs,
+):
+    """
+    Loads all available signatures.
+
+    The provider decides where the signatures come from
+    (memory, parquet, database, experiments, etc.).
+    """
+
+    provider = _require_provider()
+
+    return provider.load_signatures(
+        *args,
+        **kwargs,
+    )
+
+
+def available_signatures():
+    """
+    Returns the number of available signatures.
+    """
+
+    provider = _require_provider()
+
+    return provider.available_signatures()
+
+
+def signature_dimension():
+    """
+    Returns the intrinsic signature dimension.
+    """
+
+    provider = _require_provider()
+
+    return provider.signature_dimension()
+
+
 # ============================================================
 # Provider Protocol
 # ============================================================
 
 class SignatureProvider:
     """
-    Interface base para qualquer produtor de
-    Assinaturas Geométricas.
-
-    Toda implementação deve fornecer os métodos abaixo.
+    Base interface implemented by every official
+    Signature Provider.
     """
+
+    # --------------------------------------------------------
 
     def generate_signature(
         self,
@@ -137,6 +200,8 @@ class SignatureProvider:
         **kwargs,
     ):
         raise NotImplementedError
+
+    # --------------------------------------------------------
 
     def generate_signature_dataset(
         self,
@@ -146,9 +211,35 @@ class SignatureProvider:
     ):
         raise NotImplementedError
 
+    # --------------------------------------------------------
+    # New API
+    # --------------------------------------------------------
+
+    def load_signatures(
+        self,
+        *args,
+        **kwargs,
+    ):
+        """
+        Returns every available signature.
+        """
+        raise NotImplementedError
+
+    def available_signatures(self):
+        """
+        Returns the number of available signatures.
+        """
+        raise NotImplementedError
+
+    def signature_dimension(self):
+        """
+        Returns the intrinsic signature dimension.
+        """
+        raise NotImplementedError
+
 
 # ============================================================
-# Demonstração
+# Demonstration
 # ============================================================
 
 def main():
@@ -176,6 +267,26 @@ def main():
         print("-" * 60)
         print("Provider connected:")
         print(type(provider).__name__)
+
+        try:
+
+            print(
+                f"Available Signatures : "
+                f"{provider.available_signatures()}"
+            )
+
+        except Exception:
+            pass
+
+        try:
+
+            print(
+                f"Signature Dimension  : "
+                f"{provider.signature_dimension()}"
+            )
+
+        except Exception:
+            pass
 
     print()
     print("=" * 60)
