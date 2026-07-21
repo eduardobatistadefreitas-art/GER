@@ -1,9 +1,10 @@
 from pathlib import Path
 import json
+from itertools import combinations
 
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
 from sklearn.linear_model import LinearRegression
 
 # ============================================================
@@ -33,38 +34,18 @@ RESULT_FOLDER.mkdir(parents=True, exist_ok=True)
 columns = list(df.columns)
 
 # ============================================================
-# INFLUENCE MATRIX
+# PARAMETERS
 # ============================================================
+
+MAX_PREDICTORS = 2
+R2_THRESHOLD = 0.99
 
 print("=" * 70)
 print("OBSERVABLE HIERARCHY")
 print("=" * 70)
 
-influence = pd.DataFrame(
-    np.zeros((len(columns), len(columns))),
-    index=columns,
-    columns=columns
-)
-
-for source in columns:
-
-    X = df[[source]]
-
-    for target in columns:
-
-        if source == target:
-            continue
-
-        y = df[target]
-
-        model = LinearRegression()
-
-        model.fit(X, y)
-
-        influence.loc[source, target] = model.score(X, y)
-
 # ============================================================
-# BUILD DIRECTED GRAPH
+# BUILD DEPENDENCY GRAPH
 # ============================================================
 
 G = nx.DiGraph()
@@ -72,26 +53,90 @@ G = nx.DiGraph()
 for c in columns:
     G.add_node(c)
 
-EDGE_THRESHOLD = 0.80
-DELTA = 0.05
+hierarchy_rows = []
 
-for i in columns:
+for target in columns:
 
-    for j in columns:
+    print(f"Processing {target}")
 
-        if i == j:
-            continue
+    predictors = [c for c in columns if c != target]
 
-        rij = influence.loc[i, j]
-        rji = influence.loc[j, i]
+    best_subset = None
+    best_r2 = -1
 
-        if rij >= EDGE_THRESHOLD and rij > rji + DELTA:
+    # procura subconjunto mínimo
+    for k in range(1, MAX_PREDICTORS + 1):
 
-            G.add_edge(
-                i,
-                j,
-                weight=float(rij)
-            )
+        found = False
+
+        for subset in combinations(predictors, k):
+
+            X = df[list(subset)]
+            y = df[target]
+
+            model = LinearRegression()
+            model.fit(X, y)
+
+            r2 = model.score(X, y)
+
+            if r2 > best_r2:
+                best_r2 = r2
+                best_subset = subset
+
+            if r2 >= R2_THRESHOLD:
+
+                best_subset = subset
+                best_r2 = r2
+                found = True
+                break
+
+        if found:
+            break
+
+    hierarchy_rows.append({
+
+        "Target": target,
+        "Predictors": ";".join(best_subset),
+        "NumPredictors": len(best_subset),
+        "R2": best_r2
+
+    })
+
+    for predictor in best_subset:
+
+        G.add_edge(
+            predictor,
+            target,
+            weight=float(best_r2)
+        )
+
+# ============================================================
+# REMOVE CYCLES
+# ============================================================
+
+while True:
+
+    try:
+
+        cycle = nx.find_cycle(G)
+
+    except nx.NetworkXNoCycle:
+
+        break
+
+    weakest = None
+    weakest_weight = np.inf
+
+    for u, v in cycle:
+
+        w = G[u][v]["weight"]
+
+        if w < weakest_weight:
+
+            weakest_weight = w
+            weakest = (u, v)
+
+    G.remove_edge(*weakest)
 
 # ============================================================
 # METRICS
@@ -104,12 +149,16 @@ for node in G.nodes():
     rows.append({
 
         "Observable": node,
+
         "OutDegree": G.out_degree(node),
+
         "InDegree": G.in_degree(node),
+
         "OutStrength": sum(
             d["weight"]
             for _, _, d in G.out_edges(node, data=True)
         ),
+
         "InStrength": sum(
             d["weight"]
             for _, _, d in G.in_edges(node, data=True)
@@ -119,17 +168,14 @@ for node in G.nodes():
 
 metrics = pd.DataFrame(rows)
 
+metrics = metrics.sort_values(
+    "OutStrength",
+    ascending=False
+)
+
 metrics.to_csv(
     RESULT_FOLDER / "hierarchy_metrics.csv",
     index=False
-)
-
-# ============================================================
-# INFLUENCE MATRIX
-# ============================================================
-
-influence.to_csv(
-    RESULT_FOLDER / "influence_matrix.csv"
 )
 
 # ============================================================
@@ -144,7 +190,7 @@ for u, v, d in G.edges(data=True):
 
         "Source": u,
         "Target": v,
-        "Influence": d["weight"]
+        "Weight": d["weight"]
 
     })
 
@@ -152,6 +198,52 @@ edges_df = pd.DataFrame(edges)
 
 edges_df.to_csv(
     RESULT_FOLDER / "hierarchy_edges.csv",
+    index=False
+)
+
+# ============================================================
+# TOPOLOGICAL ORDER
+# ============================================================
+
+topological = list(nx.topological_sort(G))
+
+pd.DataFrame({
+
+    "Order": range(len(topological)),
+    "Observable": topological
+
+}).to_csv(
+
+    RESULT_FOLDER / "topological_order.csv",
+    index=False
+
+)
+
+# ============================================================
+# ROOTS / LEAVES
+# ============================================================
+
+roots = [n for n in G.nodes if G.in_degree(n) == 0]
+leaves = [n for n in G.nodes if G.out_degree(n) == 0]
+
+pd.DataFrame({"Root": roots}).to_csv(
+    RESULT_FOLDER / "roots.csv",
+    index=False
+)
+
+pd.DataFrame({"Leaf": leaves}).to_csv(
+    RESULT_FOLDER / "leaves.csv",
+    index=False
+)
+
+# ============================================================
+# TARGET SUMMARY
+# ============================================================
+
+summary = pd.DataFrame(hierarchy_rows)
+
+summary.to_csv(
+    RESULT_FOLDER / "hierarchy_summary.csv",
     index=False
 )
 
@@ -173,45 +265,53 @@ with open(
     f.write(f"Nodes : {G.number_of_nodes()}\n")
     f.write(f"Edges : {G.number_of_edges()}\n\n")
 
-    f.write("Hierarchy\n\n")
+    f.write("Topological Order\n\n")
 
-    metrics = metrics.sort_values(
-        "OutStrength",
-        ascending=False
-    )
+    for i, node in enumerate(topological):
+
+        f.write(f"{i:2d}  {node}\n")
+
+    f.write("\n\nHierarchy\n\n")
 
     for _, row in metrics.iterrows():
 
         f.write(
-            f"{row['Observable']:20s} "
-            f"Out={row['OutDegree']:2d} "
-            f"In={row['InDegree']:2d} "
-            f"Strength={row['OutStrength']:.3f}\n"
+
+            f"{row['Observable']:20s}"
+            f" Out={row['OutDegree']:2d}"
+            f" In={row['InDegree']:2d}"
+            f" Strength={row['OutStrength']:.3f}\n"
+
         )
 
 # ============================================================
 # CERTIFICATE
 # ============================================================
 
-root = metrics.iloc[0]["Observable"]
+certificate = {
+
+    "observables": len(columns),
+
+    "edges": G.number_of_edges(),
+
+    "roots": roots,
+
+    "leaves": leaves,
+
+    "acyclic": nx.is_directed_acyclic_graph(G)
+
+}
 
 with open(
-    RESULT_FOLDER / "scientific_certificate.txt",
+    RESULT_FOLDER / "scientific_certificate.json",
     "w"
 ) as f:
 
-    f.write("=" * 60 + "\n")
-    f.write("SCIENTIFIC CERTIFICATE\n")
-    f.write("=" * 60 + "\n\n")
-
-    f.write(f"Observables : {len(columns)}\n")
-    f.write(f"Hierarchy edges : {G.number_of_edges()}\n")
-    f.write(f"Candidate root : {root}\n\n")
-
-    if nx.is_directed_acyclic_graph(G):
-        f.write("The inferred dependency graph is acyclic.\n")
-    else:
-        f.write("Cycles were detected in the inferred dependency graph.\n")
+    json.dump(
+        certificate,
+        f,
+        indent=4
+    )
 
 print("\nResults saved to:")
 print(RESULT_FOLDER)
