@@ -21,6 +21,7 @@ Responsibilities
 
 - Registers the official Signature Provider
 - Validates the CORE
+- Enables automatic console capture
 - Leaves the framework ready for experiments
 """
 
@@ -41,6 +42,10 @@ from GER.CORE.signature_api import (
 
 from GER.CORE.ger_validation import (
     validate_GER_CORE,
+)
+
+from GER.CORE.ger_legacy import (
+    enable as enable_legacy,
 )
 
 
@@ -71,9 +76,16 @@ def initialize():
 
     validate_GER_CORE()
 
+    # -----------------------------------------------------
+    # Enable automatic console capture
+    # -----------------------------------------------------
+
+    enable_legacy()
+
     print()
 
     print("Official Signature Provider : Registered")
+    print("Legacy Console Capture      : Enabled")
     print("GER CORE ready for experiments.")
 
     print("=" * 40)
