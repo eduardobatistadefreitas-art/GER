@@ -139,13 +139,10 @@ CERTIFICATE = (
 
 best_df = pd.read_csv(BEST_MODELS)
 
-pair_quality_df = pd.read_csv(PAIR_QUALITY)
-
-robust_df = pd.read_csv(ROBUST)
-
-model_stability_df = pd.read_csv(MODEL_STABILITY)
-
-records = []
+print(best_df.columns.tolist())
+print()
+print(best_df.head())
+exit()
 
 with open(BOOTSTRAP) as f:
 
