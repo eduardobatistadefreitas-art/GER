@@ -291,23 +291,25 @@ for _, winner in best_df.iterrows():
 
                         parameter_explosion = True
 
-    # --------------------------------------------------------
-    # Pair quality
-    # --------------------------------------------------------
+# --------------------------------------------------------
+# Pair quality
+# --------------------------------------------------------
 
-    q = pair_quality_df.loc[
-        pair_quality_df["Pair"] == pair
-    ]
+q = pair_quality_df.loc[
+    (pair_quality_df["X"] == winner["X"])
+    &
+    (pair_quality_df["Y"] == winner["Y"])
+]
 
-    if len(q):
+if len(q):
 
-        quality = float(
-            q.iloc[0]["QualityIndex"]
-        )
+    quality = float(
+        q.iloc[0]["QualityIndex"]
+    )
 
-    else:
+else:
 
-        quality = np.nan
+    quality = np.nan
 
     bootstrap_stable = (
         np.isfinite(quality)
