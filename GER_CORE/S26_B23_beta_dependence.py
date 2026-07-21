@@ -18,7 +18,7 @@ Observatório Espectral.
 
 from __future__ import annotations
 
-from GER_CORE.ger_engine import run_engine
+from GER.CORE.ger_engine import run_engine
 
 
 # =========================================================
