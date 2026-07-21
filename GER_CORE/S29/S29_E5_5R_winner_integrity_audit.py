@@ -181,7 +181,11 @@ print()
 
 for _, winner in best_df.iterrows():
 
-    pair = winner["Pair"]
+    x = winner["X"]
+    y = winner["Y"]
+
+    pair = f"{x} ↔ {y}"
+
     official_model = winner["BestModel"]
 
     print(pair)
