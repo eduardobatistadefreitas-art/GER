@@ -5,49 +5,46 @@
 #
 # signature_api.py
 #
-# Interface pública oficial para produção de
-# Assinaturas Geométricas.
+# Official public API for Geometric Signatures.
 #
-# Este módulo desacopla os consumidores científicos
-# da implementação interna do motor.
+# This module isolates the scientific code from the internal
+# implementation of the CORE.
 #
-# Compatibilidade:
-#     Todas as interfaces anteriores permanecem válidas.
-#
-# Versão:
-#     2.0
+# Version
+# -------
+# 3.0
 # ============================================================
 
+from __future__ import annotations
+
 from dataclasses import dataclass, asdict
+from typing import Iterable
 
 
 # ============================================================
 # Signature
 # ============================================================
 
+
 @dataclass(frozen=True)
 class Signature:
+    """
+    Fundamental Geometric Signature of the RSG framework.
+    """
 
     diameter: float
-
     convergence: float
-
     recurrence: float
-
     drift: float
 
+    # --------------------------------------------------------
+
     def to_dict(self):
-        """
-        Converts the signature into a dictionary.
-        """
         return asdict(self)
 
-    def to_tuple(self):
-        """
-        Converts the signature into an immutable tuple.
+    # --------------------------------------------------------
 
-        Useful for numerical processing.
-        """
+    def to_tuple(self):
         return (
             self.diameter,
             self.convergence,
@@ -55,19 +52,19 @@ class Signature:
             self.drift,
         )
 
+    # --------------------------------------------------------
+
+    def dimension(self):
+        return 4
+
+    # --------------------------------------------------------
+
     def __iter__(self):
-        """
-        Backward compatibility.
-
-        Allows legacy code such as
-
-            dict(signature)
-        """
         return iter(asdict(self).items())
 
 
 # ============================================================
-# Provider Registry
+# Signature Provider Registry
 # ============================================================
 
 _signature_provider = None
@@ -77,23 +74,19 @@ def register_signature_provider(provider):
     """
     Registers the official Signature Provider.
     """
-
     global _signature_provider
-
     _signature_provider = provider
 
 
 def get_signature_provider():
-
     return _signature_provider
 
 
-def _require_provider():
+def _require_signature_provider():
 
     provider = get_signature_provider()
 
     if provider is None:
-
         raise RuntimeError(
             "No SignatureProvider registered."
         )
@@ -102,18 +95,50 @@ def _require_provider():
 
 
 # ============================================================
-# Public API
+# Reference Provider Registry
 # ============================================================
+
+_reference_provider = None
+
+
+def register_reference_provider(provider):
+    """
+    Registers the official Reference Provider.
+    """
+    global _reference_provider
+    _reference_provider = provider
+
+
+def get_reference_provider():
+    return _reference_provider
+
+
+def _require_reference_provider():
+
+    provider = get_reference_provider()
+
+    if provider is None:
+        raise RuntimeError(
+            "No ReferenceProvider registered."
+        )
+
+    return provider
+
+
+# ============================================================
+# Signature Generation API
+# ============================================================
+
 
 def generate_signature(
     *args,
     **kwargs,
 ):
     """
-    Generates a single geometric signature.
+    Generates one Geometric Signature.
     """
 
-    provider = _require_provider()
+    provider = _require_signature_provider()
 
     return provider.generate_signature(
         *args,
@@ -122,39 +147,36 @@ def generate_signature(
 
 
 def generate_signature_dataset(
-    n_samples,
     *args,
     **kwargs,
 ):
     """
-    Generates a collection of signatures.
+    Generates multiple Geometric Signatures.
     """
 
-    provider = _require_provider()
+    provider = _require_signature_provider()
 
     return provider.generate_signature_dataset(
-        n_samples,
         *args,
         **kwargs,
     )
 
 
 # ============================================================
-# New High-Level API
+# Reference API
 # ============================================================
+
 
 def load_signatures(
     *args,
     **kwargs,
 ):
     """
-    Loads all available signatures.
-
-    The provider decides where the signatures come from
-    (memory, parquet, database, experiments, etc.).
+    Loads a SignatureCollection from the official
+    Reference Provider.
     """
 
-    provider = _require_provider()
+    provider = _require_reference_provider()
 
     return provider.load_signatures(
         *args,
@@ -167,9 +189,19 @@ def available_signatures():
     Returns the number of available signatures.
     """
 
-    provider = _require_provider()
+    provider = _require_reference_provider()
 
     return provider.available_signatures()
+
+
+def signature_names():
+    """
+    Returns the available signature names.
+    """
+
+    provider = _require_reference_provider()
+
+    return provider.signature_names()
 
 
 def signature_dimension():
@@ -177,22 +209,21 @@ def signature_dimension():
     Returns the intrinsic signature dimension.
     """
 
-    provider = _require_provider()
+    provider = _require_reference_provider()
 
     return provider.signature_dimension()
 
 
 # ============================================================
-# Provider Protocol
+# Provider Protocols
 # ============================================================
+
 
 class SignatureProvider:
     """
-    Base interface implemented by every official
-    Signature Provider.
+    Official provider capable of producing
+    Geometric Signatures from observational data.
     """
-
-    # --------------------------------------------------------
 
     def generate_signature(
         self,
@@ -201,46 +232,39 @@ class SignatureProvider:
     ):
         raise NotImplementedError
 
-    # --------------------------------------------------------
-
     def generate_signature_dataset(
         self,
-        n_samples,
         *args,
         **kwargs,
     ):
         raise NotImplementedError
 
-    # --------------------------------------------------------
-    # New API
-    # --------------------------------------------------------
+
+class ReferenceProvider:
+    """
+    Official provider responsible for exposing
+    stored Geometric Signatures.
+    """
 
     def load_signatures(
         self,
         *args,
         **kwargs,
     ):
-        """
-        Returns every available signature.
-        """
         raise NotImplementedError
 
     def available_signatures(self):
-        """
-        Returns the number of available signatures.
-        """
+        raise NotImplementedError
+
+    def signature_names(self):
         raise NotImplementedError
 
     def signature_dimension(self):
-        """
-        Returns the intrinsic signature dimension.
-        """
         raise NotImplementedError
-
-
-# ============================================================
+        # ============================================================
 # Demonstration
 # ============================================================
+
 
 def main():
 
@@ -250,29 +274,51 @@ def main():
     print("=" * 60)
     print()
 
-    provider = get_signature_provider()
+    # --------------------------------------------------------
+    # Signature Provider
+    # --------------------------------------------------------
 
-    if provider is None:
+    signature_provider = get_signature_provider()
 
-        print("Status")
-        print("-" * 60)
-        print("No Signature Provider registered.")
-        print()
-        print("API ready.")
-        print("Waiting for engine connection.")
+    print("Signature Provider")
+    print("-" * 60)
+
+    if signature_provider is None:
+
+        print("Status : Not registered")
 
     else:
 
-        print("Status")
-        print("-" * 60)
-        print("Provider connected:")
-        print(type(provider).__name__)
+        print(
+            f"Status : {type(signature_provider).__name__}"
+        )
+
+    print()
+
+    # --------------------------------------------------------
+    # Reference Provider
+    # --------------------------------------------------------
+
+    reference_provider = get_reference_provider()
+
+    print("Reference Provider")
+    print("-" * 60)
+
+    if reference_provider is None:
+
+        print("Status : Not registered")
+
+    else:
+
+        print(
+            f"Status : {type(reference_provider).__name__}"
+        )
 
         try:
 
             print(
-                f"Available Signatures : "
-                f"{provider.available_signatures()}"
+                "Available Signatures :",
+                reference_provider.available_signatures(),
             )
 
         except Exception:
@@ -281,14 +327,28 @@ def main():
         try:
 
             print(
-                f"Signature Dimension  : "
-                f"{provider.signature_dimension()}"
+                "Signature Dimension :",
+                reference_provider.signature_dimension(),
+            )
+
+        except Exception:
+            pass
+
+        try:
+
+            names = reference_provider.signature_names()
+
+            print(
+                "Signature Names :",
+                ", ".join(names),
             )
 
         except Exception:
             pass
 
     print()
+    print("=" * 60)
+    print("API READY")
     print("=" * 60)
 
 
