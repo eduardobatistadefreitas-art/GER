@@ -4,30 +4,12 @@ GER S29-E5.5R
 Winner Integrity Audit
 ============================================================
 
-Purpose
--------
-Final scientific audit of the scaling laws identified in S29-E5.
+Final audit of the OFFICIAL scaling laws selected in S29-E5.2.
 
-This experiment DOES NOT re-fit models and DOES NOT choose
-new winners.
-
-The sole objective is to verify whether the OFFICIAL winners
-selected in S29-E5.2 remain scientifically valid after:
-
-    • bootstrap validation (E5.3)
-    • robustness audit (E5.4)
-    • numerical pathology audit (E5.5)
-
-Outputs
--------
-
-winner_integrity.csv
-
-winner_validation_report.txt
-
-scientific_consistency_report.txt
-
-final_scientific_certificate.txt
+This experiment NEVER searches for a new winner.
+It only validates the official winner of each observable pair
+using the bootstrap statistics generated in S29-E5.3 and the
+robustness audit produced in S29-E5.4.
 """
 
 from __future__ import annotations
@@ -50,14 +32,10 @@ if not DRIVE.exists():
 print("[OK] Google Drive detected.")
 
 # ============================================================
-# INPUTS
+# INPUT FOLDERS
 # ============================================================
 
-E52 = (
-    DRIVE
-    / "GER_RESULTS"
-    / "S29_E5.2"
-)
+E52 = DRIVE / "GER_RESULTS" / "S29_E5.2"
 
 E53 = (
     DRIVE
@@ -73,13 +51,6 @@ E54 = (
     / "bootstrap_robustness_audit"
 )
 
-E55 = (
-    DRIVE
-    / "GER_RESULTS"
-    / "S29_E5.5"
-    / "numerical_pathology_audit"
-)
-
 OUTPUT = (
     DRIVE
     / "GER_RESULTS"
@@ -92,14 +63,8 @@ OUTPUT.mkdir(
     exist_ok=True,
 )
 
-print("[OK] E5.2 :", E52)
-print("[OK] E5.3 :", E53)
-print("[OK] E5.4 :", E54)
-print("[OK] E5.5 :", E55)
-print("[OK] Output:", OUTPUT)
-
 # ============================================================
-# REQUIRED FILES
+# INPUT FILES
 # ============================================================
 
 BEST_MODELS = E52 / "best_models.csv"
@@ -107,10 +72,6 @@ BEST_MODELS = E52 / "best_models.csv"
 BOOTSTRAP = E53 / "bootstrap_results.jsonl"
 
 PAIR_QUALITY = E54 / "pair_quality_report.csv"
-
-ROBUST = E54 / "robust_statistics.csv"
-
-MODEL_STABILITY = E55 / "model_stability.csv"
 
 # ============================================================
 # OUTPUT FILES
@@ -141,11 +102,7 @@ best_df = pd.read_csv(BEST_MODELS)
 
 pair_quality_df = pd.read_csv(PAIR_QUALITY)
 
-robust_df = pd.read_csv(ROBUST)
-
-model_stability_df = pd.read_csv(MODEL_STABILITY)
-
-records = []
+bootstrap_records = []
 
 with open(BOOTSTRAP) as f:
 
@@ -155,7 +112,9 @@ with open(BOOTSTRAP) as f:
 
         if line:
 
-            records.append(json.loads(line))
+            bootstrap_records.append(
+                json.loads(line)
+            )
 
 print()
 
@@ -168,7 +127,22 @@ print("=" * 60)
 print()
 
 print("Official winners :", len(best_df))
-print("Bootstrap pairs  :", len(records))
+print("Bootstrap records:", len(bootstrap_records))
+
+# ============================================================
+# INDEX BOOTSTRAP RECORDS
+# ============================================================
+
+bootstrap_index = {}
+
+for record in bootstrap_records:
+
+    key = (
+        record["X"],
+        record["Y"],
+    )
+
+    bootstrap_index[key] = record
 
 winner_rows = []
 
@@ -190,29 +164,18 @@ for _, winner in best_df.iterrows():
 
     print(pair)
 
-    # --------------------------------------------------------
-    # Bootstrap record
-    # --------------------------------------------------------
-
-    record = None
-
-    for r in records:
-
-        if r["pair"] == pair:
-
-            record = r
-            break
+    record = bootstrap_index.get((x, y))
 
     if record is None:
 
         winner_rows.append(
             {
-                "Pair": pair,
+                "X": x,
+                "Y": y,
                 "OfficialModel": official_model,
                 "BootstrapFound": False,
                 "ValidStatistics": False,
-                "ExtremeR2": True,
-                "ParameterExplosion": True,
+                "ParameterExplosion": False,
                 "BootstrapStable": False,
                 "QualityIndex": np.nan,
                 "Status": "INVALID",
@@ -223,112 +186,128 @@ for _, winner in best_df.iterrows():
         continue
 
     # --------------------------------------------------------
-    # Model statistics
+    # Winner consistency
     # --------------------------------------------------------
 
-    model_data = record["models"].get(
+    bootstrap_winner = record["winner_model"]
+
+    same_winner = (
+        bootstrap_winner == official_model
+    )
+
+    # --------------------------------------------------------
+    # R² statistics
+    # --------------------------------------------------------
+
+    r2_stats = record["r2_statistics"].get(
         official_model
     )
 
-    if model_data is None:
+    if r2_stats is None:
 
         winner_rows.append(
             {
-                "Pair": pair,
+                "X": x,
+                "Y": y,
                 "OfficialModel": official_model,
                 "BootstrapFound": True,
                 "ValidStatistics": False,
-                "ExtremeR2": True,
-                "ParameterExplosion": True,
+                "ParameterExplosion": False,
                 "BootstrapStable": False,
                 "QualityIndex": np.nan,
                 "Status": "INVALID",
-                "Reason": "Winner model missing",
+                "Reason": "Missing R² statistics",
             }
         )
 
         continue
 
-    # --------------------------------------------------------
-    # Statistics validation
-    # --------------------------------------------------------
-
     valid_statistics = True
 
-    extreme_r2 = False
+    for key in (
+        "mean",
+        "median",
+        "std",
+        "q025",
+        "q975",
+    ):
+
+        value = r2_stats.get(key)
+
+        if value is None:
+
+            valid_statistics = False
+
+        elif not np.isfinite(value):
+
+            valid_statistics = False
+
+    # --------------------------------------------------------
+    # Parameter statistics
+    # --------------------------------------------------------
 
     parameter_explosion = False
 
-    for parameter, stats in model_data.items():
-
-        values = [
-            stats.get("mean"),
-            stats.get("median"),
-            stats.get("std"),
-            stats.get("q025"),
-            stats.get("q975"),
-        ]
-
-        if any(v is None for v in values):
-
-            valid_statistics = False
-
-        if any(not np.isfinite(v) for v in values):
-
-            valid_statistics = False
-
-        median = stats.get("median", np.nan)
-
-        if np.isfinite(median):
-
-            if median < -100:
-
-                extreme_r2 = True
-
-        if parameter != "R2":
-
-            for value in values:
-
-                if np.isfinite(value):
-
-                    if abs(value) > 1e12:
-
-                        parameter_explosion = True
-
-# --------------------------------------------------------
-# Pair quality
-# --------------------------------------------------------
-
-q = pair_quality_df.loc[
-    (pair_quality_df["X"] == winner["X"])
-    &
-    (pair_quality_df["Y"] == winner["Y"])
-]
-
-if len(q):
-
-    quality = float(
-        q.iloc[0]["QualityIndex"]
+    parameters = record["parameter_statistics"].get(
+        official_model,
+        [],
     )
 
-else:
+    for parameter in parameters:
 
-    quality = np.nan
+        for key in (
+            "mean",
+            "median",
+            "std",
+            "q025",
+            "q975",
+        ):
+
+            value = parameter.get(key)
+
+            if value is None:
+
+                continue
+
+            if np.isfinite(value):
+
+                if abs(value) > 1e12:
+
+                    parameter_explosion = True
+
+    # --------------------------------------------------------
+    # Pair quality
+    # --------------------------------------------------------
+
+    q = pair_quality_df.loc[
+        (pair_quality_df["X"] == x)
+        &
+        (pair_quality_df["Y"] == y)
+    ]
+
+    if len(q):
+
+        quality = float(
+            q.iloc[0]["QualityIndex"]
+        )
+
+    else:
+
+        quality = np.nan
 
     bootstrap_stable = (
         np.isfinite(quality)
         and
         quality >= 70
     )
-
-    # --------------------------------------------------------
-    # Stability summary
+        # --------------------------------------------------------
+    # Final classification
     # --------------------------------------------------------
 
     if (
-        valid_statistics
+        same_winner
         and
-        not extreme_r2
+        valid_statistics
         and
         not parameter_explosion
         and
@@ -337,7 +316,7 @@ else:
 
         status = "VALID"
 
-        reason = "Winner validated"
+        reason = "Official winner confirmed"
 
     elif (
         valid_statistics
@@ -349,11 +328,15 @@ else:
 
         warnings = []
 
-        if extreme_r2:
-            warnings.append("Extreme R²")
+        if not same_winner:
+            warnings.append(
+                "Bootstrap selected another winner"
+            )
 
         if not bootstrap_stable:
-            warnings.append("Low bootstrap quality")
+            warnings.append(
+                "Low bootstrap quality"
+            )
 
         reason = "; ".join(warnings)
 
@@ -364,23 +347,31 @@ else:
         problems = []
 
         if not valid_statistics:
-            problems.append("Invalid statistics")
+            problems.append(
+                "Invalid statistics"
+            )
 
         if parameter_explosion:
-            problems.append("Parameter explosion")
+            problems.append(
+                "Parameter explosion"
+            )
 
-        if extreme_r2:
-            problems.append("Extreme R²")
+        if not same_winner:
+            problems.append(
+                "Winner mismatch"
+            )
 
         reason = "; ".join(problems)
 
     winner_rows.append(
         {
-            "Pair": pair,
+            "X": x,
+            "Y": y,
             "OfficialModel": official_model,
+            "BootstrapWinner": bootstrap_winner,
+            "WinnerConfirmed": same_winner,
             "BootstrapFound": True,
             "ValidStatistics": valid_statistics,
-            "ExtremeR2": extreme_r2,
             "ParameterExplosion": parameter_explosion,
             "BootstrapStable": bootstrap_stable,
             "QualityIndex": quality,
@@ -388,8 +379,9 @@ else:
             "Reason": reason,
         }
     )
-  # ============================================================
-# RESULTS
+
+# ============================================================
+# RESULTS TABLE
 # ============================================================
 
 winner_df = pd.DataFrame(winner_rows)
@@ -399,46 +391,23 @@ winner_df.to_csv(
     index=False,
 )
 
-# ============================================================
-# GLOBAL COUNTS
-# ============================================================
-
 total = len(winner_df)
 
 valid = int(
-    np.sum(
-        winner_df["Status"] == "VALID"
-    )
+    (winner_df["Status"] == "VALID").sum()
 )
 
 warning = int(
-    np.sum(
-        winner_df["Status"] == "VALID WITH WARNING"
-    )
+    (winner_df["Status"] == "VALID WITH WARNING").sum()
 )
 
 invalid = int(
-    np.sum(
-        winner_df["Status"] == "INVALID"
-    )
+    (winner_df["Status"] == "INVALID").sum()
 )
 
-stable_bootstrap = int(
-    winner_df["BootstrapStable"].sum()
-)
-
-invalid_statistics = total - int(
-    winner_df["ValidStatistics"].sum()
-)
-
-extreme_r2 = int(
-    winner_df["ExtremeR2"].sum()
-)
-
-parameter_explosions = int(
-    winner_df["ParameterExplosion"].sum()
-)
-
+print()
+print("Validation finished.")
+print()
 # ============================================================
 # WINNER VALIDATION REPORT
 # ============================================================
@@ -449,7 +418,110 @@ with open(
 ) as f:
 
     f.write("GER S29-E5.5R\n")
-    f.write("Winner Validation Report\n\n")
+    f.write("Winner Validation Report\n")
+    f.write("=" * 60 + "\n\n")
+
+    f.write(f"Official winners : {total}\n")
+    f.write(f"Validated        : {valid}\n")
+    f.write(f"Warnings         : {warning}\n")
+    f.write(f"Invalid          : {invalid}\n\n")
+
+    for _, row in winner_df.iterrows():
+
+        f.write(
+            f"{row['X']} ↔ {row['Y']}\n"
+        )
+
+        f.write(
+            f"Official Winner : {row['OfficialModel']}\n"
+        )
+
+        f.write(
+            f"Bootstrap Winner: {row['BootstrapWinner']}\n"
+        )
+
+        f.write(
+            f"Status          : {row['Status']}\n"
+        )
+
+        f.write(
+            f"Reason          : {row['Reason']}\n"
+        )
+
+        f.write(
+            f"Quality Index   : {row['QualityIndex']:.2f}\n"
+        )
+
+        f.write("\n")
+
+# ============================================================
+# SCIENTIFIC CONSISTENCY REPORT
+# ============================================================
+
+with open(
+    CONSISTENCY_REPORT,
+    "w",
+) as f:
+
+    f.write("GER S29-E5.5R\n")
+    f.write("Scientific Consistency Report\n")
+    f.write("=" * 60 + "\n\n")
+
+    f.write(
+        "Objective\n"
+    )
+
+    f.write(
+        "---------\n"
+    )
+
+    f.write(
+        "Evaluate whether the official scaling laws "
+        "selected in S29-E5.2 remain scientifically "
+        "valid after bootstrap validation.\n\n"
+    )
+
+    f.write(
+        f"Validated laws : {valid}/{total}\n"
+    )
+
+    f.write(
+        f"Laws with warnings : {warning}\n"
+    )
+
+    f.write(
+        f"Invalid laws : {invalid}\n\n"
+    )
+
+    if invalid == 0:
+
+        f.write(
+            "No official scaling law became invalid.\n"
+        )
+
+    else:
+
+        f.write(
+            "One or more official scaling laws "
+            "failed the integrity audit.\n"
+        )
+
+    f.write(
+        "\nNo alternative winner was selected.\n"
+    )
+
+# ============================================================
+# FINAL SCIENTIFIC CERTIFICATE
+# ============================================================
+
+with open(
+    CERTIFICATE,
+    "w",
+) as f:
+
+    f.write("GER S29-E5.5R\n")
+    f.write("FINAL SCIENTIFIC CERTIFICATE\n")
+    f.write("=" * 60 + "\n\n")
 
     f.write(
         f"Official winners : {total}\n"
@@ -467,204 +539,69 @@ with open(
         f"Invalid          : {invalid}\n\n"
     )
 
-    f.write(
-        f"Bootstrap stable : {stable_bootstrap}\n"
-    )
-
-    f.write(
-        f"Invalid statistics : {invalid_statistics}\n"
-    )
-
-    f.write(
-        f"Extreme R²         : {extreme_r2}\n"
-    )
-
-    f.write(
-        f"Parameter explosions : {parameter_explosions}\n\n"
-    )
-
-    f.write("Pair Summary\n")
-    f.write("-" * 60 + "\n")
-
-    for _, row in winner_df.iterrows():
-
-        f.write(
-            f"{row['Pair']}\n"
-        )
-
-        f.write(
-            f"Winner : {row['OfficialModel']}\n"
-        )
-
-        f.write(
-            f"Status : {row['Status']}\n"
-        )
-
-        f.write(
-            f"Reason : {row['Reason']}\n\n"
-        )
-
-# ============================================================
-# SCIENTIFIC CONSISTENCY
-# ============================================================
-
-with open(
-    CONSISTENCY_REPORT,
-    "w",
-) as f:
-
-    f.write("GER S29-E5.5R\n")
-    f.write("Scientific Consistency Report\n\n")
-
-    if invalid == 0:
-
-        f.write(
-            "No official scaling law became invalid.\n\n"
-        )
-
-    else:
-
-        f.write(
-            f"{invalid} official scaling law(s) became invalid.\n\n"
-        )
-
-    if warning == 0:
-
-        f.write(
-            "No numerical warning detected.\n"
-        )
-
-    else:
-
-        f.write(
-            f"{warning} scaling law(s) require numerical caution.\n"
-        )
-
-    f.write("\n")
-
-    f.write(
-        "The audit evaluated only the integrity of "
-        "the official winners selected in S29-E5.2.\n"
-    )
-
-    f.write(
-        "No alternative model selection was performed.\n"
-    )
-  # ============================================================
-# FINAL SCIENTIFIC CERTIFICATE
-# ============================================================
-
-with open(
-    CERTIFICATE,
-    "w",
-) as f:
-
-    f.write("GER S29-E5.5R\n")
-    f.write("FINAL SCIENTIFIC CERTIFICATE\n")
-    f.write("=" * 60 + "\n\n")
-
-    f.write(
-        f"Official winners evaluated : {total}\n"
-    )
-
-    f.write(
-        f"Validated                  : {valid}\n"
-    )
-
-    f.write(
-        f"Validated with warnings    : {warning}\n"
-    )
-
-    f.write(
-        f"Invalid                    : {invalid}\n\n"
-    )
-
-    if invalid == 0:
-
-        f.write(
-            "Scientific Integrity : PASS\n"
-        )
-
-    else:
-
-        f.write(
-            "Scientific Integrity : FAIL\n"
-        )
-
-    if warning == 0:
-
-        f.write(
-            "Numerical Robustness : PASS\n"
-        )
-
-    else:
-
-        f.write(
-            "Numerical Robustness : WARNING\n"
-        )
-
-    if stable_bootstrap == total:
-
-        f.write(
-            "Bootstrap Stability  : PASS\n"
-        )
-
-    else:
-
-        f.write(
-            "Bootstrap Stability  : WARNING\n"
-        )
-
-    f.write("\n")
-
     if invalid == 0 and warning == 0:
 
         verdict = (
-            "OFFICIAL SCALING LAWS FULLY VALIDATED"
+            "PASS"
+        )
+
+        conclusion = (
+            "All official scaling laws remain "
+            "scientifically valid."
         )
 
     elif invalid == 0:
 
         verdict = (
-            "OFFICIAL SCALING LAWS VALIDATED "
-            "WITH NUMERICAL WARNINGS"
+            "PASS WITH WARNINGS"
+        )
+
+        conclusion = (
+            "Official scaling laws remain valid, "
+            "but numerical cautions are recommended."
         )
 
     else:
 
         verdict = (
-            "SCIENTIFIC REVIEW REQUIRED"
+            "FAIL"
+        )
+
+        conclusion = (
+            "One or more official scaling laws "
+            "lost scientific validity."
         )
 
     f.write(
-        f"FINAL VERDICT : {verdict}\n"
+        f"Scientific Integrity : {verdict}\n\n"
+    )
+
+    f.write(
+        conclusion + "\n"
     )
 
 # ============================================================
-# FINAL SCREEN REPORT
+# FINAL SUMMARY
 # ============================================================
 
-print()
-
-print("=" * 70)
-print("Winner integrity audit completed.")
-print("=" * 70)
+print("=" * 60)
+print("Winner Integrity Audit completed.")
+print("=" * 60)
 
 print()
 
-print(f"Official winners : {total}")
-print(f"Validated        : {valid}")
-print(f"Warnings         : {warning}")
-print(f"Invalid          : {invalid}")
+print("Validated :", valid)
+print("Warnings  :", warning)
+print("Invalid   :", invalid)
 
 print()
 
-print("Generated files")
+print("Results saved to:")
 
-print(" ", WINNER_TABLE)
-print(" ", VALIDATION_REPORT)
-print(" ", CONSISTENCY_REPORT)
-print(" ", CERTIFICATE)
+print(WINNER_TABLE)
+print(VALIDATION_REPORT)
+print(CONSISTENCY_REPORT)
+print(CERTIFICATE)
 
 print()
 
