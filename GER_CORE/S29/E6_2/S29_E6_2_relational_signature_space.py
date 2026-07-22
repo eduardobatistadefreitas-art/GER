@@ -271,9 +271,9 @@ def run():
 
             "Graph":{
 
-                "Nodes":graph.number_of_nodes(),
+                "Nodes":graph.number_of_nodes,
 
-                "Edges":graph.number_of_edges(),
+                "Edges":graph.number_of_edges,
 
             }
 
