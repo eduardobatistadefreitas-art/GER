@@ -13,6 +13,9 @@ Pipeline
 Load Signatures
         │
         ▼
+SignatureCollection
+        │
+        ▼
 Distance Matrix
         │
         ▼
@@ -30,17 +33,64 @@ Report Generation
 Author : GER Project
 """
 
-from pathlib import Path
+from __future__ import annotations
+
+import numpy as np
 
 from .config import Config
 from . import io
-from . import metrics
 from . import topology
 from . import statistics
 from . import report
 
-# Graph is provided by GER CORE
-from GER.CORE.graph import Graph
+from GER.CORE.GRAPH.graph import Graph
+from GER.CORE.GRAPH.node import Node
+from GER.CORE.GRAPH.edge import Edge
+
+
+# ============================================================
+# GRAPH CONSTRUCTION
+# ============================================================
+
+def build_graph(collection, threshold):
+    """
+    Build an undirected similarity graph from the
+    SignatureCollection distance matrix.
+    """
+
+    distance = collection.distance_matrix()
+
+    graph = Graph()
+
+    graph_nodes = []
+
+    for i, signature in enumerate(collection):
+
+        node = Node(identifier=i)
+
+        node.signature = signature
+
+        graph.add_node(node)
+
+        graph_nodes.append(node)
+
+    n = len(graph_nodes)
+
+    for i in range(n):
+
+        for j in range(i + 1, n):
+
+            if distance[i, j] <= threshold:
+
+                graph.add_edge(
+                    Edge(
+                        graph_nodes[i],
+                        graph_nodes[j],
+                        weight=float(distance[i, j]),
+                    )
+                )
+
+    return graph
 
 
 # ============================================================
@@ -48,22 +98,6 @@ from GER.CORE.graph import Graph
 # ============================================================
 
 def run(config: Config | None = None):
-    """
-    Executes the complete S29-E6.2 experiment.
-
-    Parameters
-    ----------
-    config
-        Experiment configuration.
-
-    Returns
-    -------
-    StatisticsResults
-    """
-
-    # --------------------------------------------------------
-    # Configuration
-    # --------------------------------------------------------
 
     if config is None:
         config = Config()
@@ -75,14 +109,14 @@ def run(config: Config | None = None):
     print("=" * 60)
 
     # --------------------------------------------------------
-    # Load signatures
+    # Load
     # --------------------------------------------------------
 
     print("\nLoading signatures...")
 
-    signatures = io.load_signatures(config)
+    collection = io.load_signatures(config)
 
-    print(f"Loaded signatures : {len(signatures)}")
+    print(f"Loaded signatures : {len(collection)}")
 
     # --------------------------------------------------------
     # Distance Matrix
@@ -90,20 +124,19 @@ def run(config: Config | None = None):
 
     print("Computing distance matrix...")
 
-    distance_matrix = metrics.run(
-        signatures,
-        config,
-    )
+    distance_matrix = collection.distance_matrix()
+
+    print(distance_matrix.shape)
 
     # --------------------------------------------------------
-    # Graph Construction
+    # Graph
     # --------------------------------------------------------
 
     print("Building graph...")
 
-    graph = Graph.from_distance_matrix(
-        distance_matrix,
-        threshold=config.graph_threshold,
+    graph = build_graph(
+        collection,
+        config.graph_threshold,
     )
 
     print(f"Nodes : {graph.number_of_nodes()}")
@@ -115,9 +148,7 @@ def run(config: Config | None = None):
 
     print("Computing topology...")
 
-    topology_results = topology.run(
-        graph,
-    )
+    topology_results = topology.run(graph)
 
     # --------------------------------------------------------
     # Statistics
@@ -126,7 +157,7 @@ def run(config: Config | None = None):
     print("Computing statistics...")
 
     statistics_results = statistics.run(
-        distance_matrix,
+        collection,
         graph,
         topology_results,
     )
@@ -135,11 +166,14 @@ def run(config: Config | None = None):
     # Report
     # --------------------------------------------------------
 
-    print("Writing report...")
+    print("Generating report...")
 
     report.run(
-        statistics_results,
-        config.output_directory,
+        collection=collection,
+        graph=graph,
+        topology=topology_results,
+        statistics=statistics_results,
+        config=config,
     )
 
     print("\nExperiment completed.")
@@ -148,7 +182,7 @@ def run(config: Config | None = None):
 
 
 # ============================================================
-# SCRIPT ENTRY POINT
+# SCRIPT
 # ============================================================
 
 if __name__ == "__main__":
