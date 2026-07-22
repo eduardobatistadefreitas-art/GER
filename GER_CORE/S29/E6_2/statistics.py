@@ -2,6 +2,7 @@
 ============================================================
 GER
 S29-E6.2
+
 Statistical Analysis Module
 ============================================================
 
@@ -10,16 +11,15 @@ Relational Signature Space.
 
 Input
 -----
-
-Distance Matrix
+SignatureCollection
+Graph
 TopologyResults
 
 Output
 ------
-
 StatisticsResults
 
-This module NEVER interprets scientific results.
+This module NEVER computes topology or graph operators.
 
 Author
 ------
@@ -27,7 +27,7 @@ Eduardo Batista de Freitas
 
 Framework
 ---------
-GER — Geometria Espectral Relacional
+GER
 
 Version
 -------
@@ -40,6 +40,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .topology import TopologyResults
+
 
 # ============================================================
 # RESULT STRUCTURES
@@ -47,101 +49,73 @@ import numpy as np
 
 @dataclass(frozen=True)
 class DistanceStatistics:
-    """
-    Statistics computed directly from the distance matrix.
-    """
 
     minimum: float
+
     maximum: float
+
     mean: float
+
     median: float
+
     std: float
 
 
 @dataclass(frozen=True)
-class TopologyStatistics:
-    """
-    Statistical summary of topological observables.
-    """
-
-    connected_components: int
-    largest_component: int
-    lambda2: float
-    clustering: float
-    modularity: float
-
-
-@dataclass(frozen=True)
-class StatisticsSummary:
-    """
-    Global experiment summary.
-    """
+class SummaryStatistics:
 
     signature_count: int
+
     graph_nodes: int
+
     graph_edges: int
 
 
 @dataclass(frozen=True)
 class StatisticsResults:
-    """
-    Complete statistical report.
-    """
 
     distance: DistanceStatistics
-    topology: TopologyStatistics
-    summary: StatisticsSummary
+
+    topology: TopologyResults
+
+    summary: SummaryStatistics
 
 
 # ============================================================
 # INTERNAL COMPUTATIONS
 # ============================================================
 
-def compute_distance_statistics(distance_matrix):
-    """
-    Computes descriptive statistics of the distance matrix.
-    """
+def compute_distance_statistics(collection):
 
-    values = np.asarray(distance_matrix)
+    D = collection.distance_matrix()
 
-    #
-    # Ignore the diagonal (distance = 0)
-    #
-
-    values = values[np.triu_indices_from(values, k=1)]
+    values = D[np.triu_indices_from(D, k=1)]
 
     return DistanceStatistics(
+
         minimum=float(np.min(values)),
+
         maximum=float(np.max(values)),
+
         mean=float(np.mean(values)),
+
         median=float(np.median(values)),
+
         std=float(np.std(values)),
-    )
 
-
-def compute_topology_statistics(topology):
-    """
-    Extracts statistical values from TopologyResults.
-    """
-
-    return TopologyStatistics(
-        connected_components=topology.connectivity.connected_components,
-        largest_component=topology.connectivity.largest_component,
-        lambda2=topology.spectral.lambda2,
-        clustering=topology.descriptive.clustering,
-        modularity=topology.descriptive.modularity,
     )
 
 
 def compute_summary(collection, graph):
-    """
-    Computes general experiment statistics.
-    """
 
-    return StatisticsSummary(
+    return SummaryStatistics(
+
         signature_count=len(collection),
+
         graph_nodes=graph.number_of_nodes(),
+
         graph_edges=graph.number_of_edges(),
+
     )
 
 
@@ -149,32 +123,17 @@ def compute_summary(collection, graph):
 # PUBLIC INTERFACE
 # ============================================================
 
-def run(collection, graph, topology):
+def run(
+    collection,
+    graph,
+    topology: TopologyResults,
+) -> StatisticsResults:
     """
     Executes the statistical analysis.
-
-    Parameters
-    ----------
-    collection
-        SignatureCollection.
-
-    graph
-        Graph representation.
-
-    topology
-        TopologyResults.
-
-    Returns
-    -------
-    StatisticsResults
     """
 
     distance = compute_distance_statistics(
-        collection.distance_matrix()
-    )
-
-    topology_stats = compute_topology_statistics(
-        topology
+        collection
     )
 
     summary = compute_summary(
@@ -183,9 +142,13 @@ def run(collection, graph, topology):
     )
 
     return StatisticsResults(
+
         distance=distance,
-        topology=topology_stats,
+
+        topology=topology,
+
         summary=summary,
+
     )
 
 
@@ -194,9 +157,13 @@ def run(collection, graph, topology):
 # ============================================================
 
 __all__ = [
+
     "DistanceStatistics",
-    "TopologyStatistics",
-    "StatisticsSummary",
+
+    "SummaryStatistics",
+
     "StatisticsResults",
+
     "run",
+
 ]
