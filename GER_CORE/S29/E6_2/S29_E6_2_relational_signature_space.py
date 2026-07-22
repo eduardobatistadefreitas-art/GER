@@ -3,186 +3,366 @@
 GER
 S29-E6.2
 
-Intrinsic Geometry of the Relational Signature Space
+Relational Signature Space
 
-Main Experiment
 ============================================================
+
+Builds the Relational Signature Space using the
+GER CORE infrastructure.
 
 Pipeline
 
-Load Signatures
-        │
-        ▼
-SignatureCollection
-        │
-        ▼
-Distance Matrix
-        │
-        ▼
-Graph Construction
-        │
-        ▼
-Topology Analysis
-        │
-        ▼
-Statistical Analysis
-        │
-        ▼
-Report Generation
+    Load Signatures
+            │
+            ▼
+    Metric Space
+            │
+            ▼
+    Graph Construction
+            │
+            ▼
+    Topology Analysis
+            │
+            ▼
+    Statistical Analysis
+            │
+            ▼
+    Report Generation
+            │
+            ▼
+    Persistent Storage
 
-Author : GER Project
+Author
+------
+Eduardo Batista de Freitas
+
+Framework
+---------
+GER
+
+Version
+-------
+1.0
 """
 
 from __future__ import annotations
 
-import numpy as np
+import time
 
-from .config import Config
-from . import io
-from . import topology
-from . import statistics
-from . import report
+from GER.CORE.ger_storage import ExperimentStorage
+from GER.CORE.ger_dashboard import Dashboard
 
 from GER.CORE.GRAPH.graph import Graph
 from GER.CORE.GRAPH.node import Node
 from GER.CORE.GRAPH.edge import Edge
 
+from . import config
+from . import io
+from . import topology
+from . import statistics
+from . import report
+
 
 # ============================================================
-# GRAPH CONSTRUCTION
+# GRAPH BUILDERS
 # ============================================================
 
-def build_graph(collection, threshold):
-    """
-    Build an undirected similarity graph from the
-    SignatureCollection distance matrix.
-    """
-
-    distance = collection.distance_matrix()
+def build_radius_graph(collection, radius):
 
     graph = Graph()
 
-    graph_nodes = []
+    for i in range(len(collection)):
+        graph.add_node(Node(str(i)))
 
-    for i, signature in enumerate(collection):
+    D = collection.distance_matrix()
 
-        node = Node(identifier=i)
+    for i in range(len(collection)):
 
-        node.signature = signature
+        for j in range(i + 1, len(collection)):
 
-        graph.add_node(node)
-
-        graph_nodes.append(node)
-
-    n = len(graph_nodes)
-
-    for i in range(n):
-
-        for j in range(i + 1, n):
-
-            if distance[i, j] <= threshold:
+            if D[i, j] <= radius:
 
                 graph.add_edge(
+
                     Edge(
-                        graph_nodes[i],
-                        graph_nodes[j],
-                        weight=float(distance[i, j]),
+
+                        str(i),
+
+                        str(j),
+
+                        weight=float(D[i, j]),
+
                     )
+
                 )
 
     return graph
 
 
+def build_knn_graph(collection, k):
+
+    graph = Graph()
+
+    for i in range(len(collection)):
+        graph.add_node(Node(str(i)))
+
+    D = collection.distance_matrix()
+
+    for i in range(len(collection)):
+
+        neighbours = D[i].argsort()[1 : k + 1]
+
+        for j in neighbours:
+
+            graph.add_edge(
+
+                Edge(
+
+                    str(i),
+
+                    str(j),
+
+                    weight=float(D[i, j]),
+
+                )
+
+            )
+
+    return graph
+
+
+def build_graph(collection):
+
+    mode = config.GRAPH_MODE.lower()
+
+    if mode == "radius":
+
+        return build_radius_graph(
+
+            collection,
+
+            config.GRAPH_RADIUS,
+
+        )
+
+    if mode == "knn":
+
+        return build_knn_graph(
+
+            collection,
+
+            config.GRAPH_K,
+
+        )
+
+    raise ValueError(
+
+        f"Unknown GRAPH_MODE: {config.GRAPH_MODE}"
+
+    )
+
+
 # ============================================================
-# MAIN PIPELINE
+# MAIN
 # ============================================================
 
-def run(config: Config | None = None):
+def run():
 
-    if config is None:
-        config = Config()
+    start = time.time()
 
-    print("=" * 60)
-    print("GER")
-    print("S29-E6.2")
-    print("Intrinsic Geometry of the Relational Signature Space")
-    print("=" * 60)
+    storage = ExperimentStorage(
+
+        experiment="S29_E6_2",
+
+        folders=[
+
+            "report",
+
+            "tables",
+
+            "logs",
+
+        ],
+
+    )
+
+    dashboard = Dashboard(
+
+        title="GER",
+
+        subtitle="S29-E6.2 Relational Signature Space",
+
+    )
 
     # --------------------------------------------------------
-    # Load
+    # Load Signatures
     # --------------------------------------------------------
 
-    print("\nLoading signatures...")
+    collection = io.load_signatures()
 
-    collection = io.load_signatures(config)
+    dashboard.update(
 
-    print(f"Loaded signatures : {len(collection)}")
+        progress=1,
 
-    # --------------------------------------------------------
-    # Distance Matrix
-    # --------------------------------------------------------
+        total=5,
 
-    print("Computing distance matrix...")
+        elapsed=f"{time.time()-start:.1f}s",
 
-    distance_matrix = collection.distance_matrix()
+        eta="...",
 
-    print(distance_matrix.shape)
+        sections={
+
+            "Pipeline":{
+
+                "Stage":"Load Signatures",
+
+                "Items":len(collection),
+
+            }
+
+        },
+
+    )
 
     # --------------------------------------------------------
     # Graph
     # --------------------------------------------------------
 
-    print("Building graph...")
+    graph = build_graph(collection)
 
-    graph = build_graph(
-        collection,
-        config.graph_threshold,
+    dashboard.update(
+
+        progress=2,
+
+        total=5,
+
+        elapsed=f"{time.time()-start:.1f}s",
+
+        eta="...",
+
+        sections={
+
+            "Graph":{
+
+                "Nodes":graph.number_of_nodes(),
+
+                "Edges":graph.number_of_edges(),
+
+            }
+
+        },
+
     )
-
-    print(f"Nodes : {graph.number_of_nodes()}")
-    print(f"Edges : {graph.number_of_edges()}")
 
     # --------------------------------------------------------
     # Topology
     # --------------------------------------------------------
 
-    print("Computing topology...")
+    topo = topology.run(graph)
 
-    topology_results = topology.run(graph)
+    dashboard.update(
+
+        progress=3,
+
+        total=5,
+
+        elapsed=f"{time.time()-start:.1f}s",
+
+        eta="...",
+
+        sections={
+
+            "Topology":{
+
+                "Connected":topo.connectivity.connected,
+
+                "Components":topo.connectivity.connected_components,
+
+            }
+
+        },
+
+    )
 
     # --------------------------------------------------------
     # Statistics
     # --------------------------------------------------------
 
-    print("Computing statistics...")
+    stats = statistics.run(
 
-    statistics_results = statistics.run(
         collection,
+
         graph,
-        topology_results,
+
+        topo,
+
+    )
+
+    dashboard.update(
+
+        progress=4,
+
+        total=5,
+
+        elapsed=f"{time.time()-start:.1f}s",
+
+        eta="...",
+
+        sections={
+
+            "Statistics":{
+
+                "Mean":f"{stats.distance.mean:.6f}",
+
+                "Std":f"{stats.distance.std:.6f}",
+
+            }
+
+        },
+
     )
 
     # --------------------------------------------------------
     # Report
     # --------------------------------------------------------
 
-    print("Generating report...")
-
     report.run(
-        collection=collection,
-        graph=graph,
-        topology=topology_results,
-        statistics=statistics_results,
-        config=config,
+
+        stats,
+
+        storage,
+
     )
 
-    print("\nExperiment completed.")
+    elapsed = time.time() - start
 
-    return statistics_results
+    dashboard.finish(
+
+        {
+
+            "Execution":{
+
+                "Experiment":"S29-E6.2",
+
+                "Elapsed":f"{elapsed:.2f}s",
+
+                "Signatures":stats.summary.signature_count,
+
+                "Nodes":stats.summary.graph_nodes,
+
+                "Edges":stats.summary.graph_edges,
+
+            }
+
+        }
+
+    )
+
+    return stats
 
 
 # ============================================================
-# SCRIPT
+# ENTRY POINT
 # ============================================================
 
 if __name__ == "__main__":
