@@ -81,9 +81,9 @@ NORMALIZE_SIGNATURES = True
 
 GRAPH_MODE = "knn"
 
-K_NEIGHBORS = 8
+GRAPH_K = 8
 
-RADIUS = None
+GRAPH_RADIUS = None
 
 # ============================================================
 # Numerical Precision
