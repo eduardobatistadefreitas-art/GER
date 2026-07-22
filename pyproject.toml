@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ger"
+version = "1.0.0"
+description = "GER - Geometria Espectral Relacional (Relational Spectral Geometry Framework)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Eduardo Batista de Freitas" }
+]
+
+license = { text = "Proprietary" }
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["GER*", "GER_CORE*"]
