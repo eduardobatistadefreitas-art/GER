@@ -2,6 +2,7 @@
 ============================================================
 GER
 S29-E6.2
+
 Report Module
 ============================================================
 
@@ -17,7 +18,7 @@ Eduardo Batista de Freitas
 
 Framework
 ---------
-GER — Geometria Espectral Relacional
+GER
 
 Version
 -------
@@ -28,17 +29,18 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-# CORE persistence
 from GER.CORE.results_repository import ResultsRepository
 
+from .statistics import StatisticsResults
+
 
 # ============================================================
-# Internal helpers
+# REPORT BUILDERS
 # ============================================================
 
-def build_report(results) -> dict:
+def build_report(results: StatisticsResults) -> dict:
     """
-    Builds the complete report dictionary.
+    Complete machine-readable report.
     """
 
     return {
@@ -54,7 +56,7 @@ def build_report(results) -> dict:
     }
 
 
-def build_summary(results) -> str:
+def build_summary(results: StatisticsResults) -> str:
     """
     Human-readable summary.
     """
@@ -65,80 +67,120 @@ def build_summary(results) -> str:
 
     lines = []
 
-    lines.append("=" * 40)
+    lines.append("=" * 60)
     lines.append("GER")
     lines.append("S29-E6.2")
     lines.append("Relational Signature Space")
-    lines.append("=" * 40)
+    lines.append("=" * 60)
     lines.append("")
 
     lines.append("Summary")
-    lines.append("-" * 40)
-    lines.append(f"Signatures        : {s.signature_count}")
-    lines.append(f"Graph Nodes       : {s.graph_nodes}")
-    lines.append(f"Graph Edges       : {s.graph_edges}")
+    lines.append("-" * 60)
+
+    lines.append(f"Signatures            : {s.signature_count}")
+    lines.append(f"Graph Nodes          : {s.graph_nodes}")
+    lines.append(f"Graph Edges          : {s.graph_edges}")
+
     lines.append("")
 
-    lines.append("Distance")
-    lines.append("-" * 40)
-    lines.append(f"Minimum           : {d.minimum:.6f}")
-    lines.append(f"Maximum           : {d.maximum:.6f}")
-    lines.append(f"Mean              : {d.mean:.6f}")
-    lines.append(f"Median            : {d.median:.6f}")
-    lines.append(f"Std               : {d.std:.6f}")
+    lines.append("Distance Statistics")
+    lines.append("-" * 60)
+
+    lines.append(f"Minimum              : {d.minimum:.6f}")
+    lines.append(f"Maximum              : {d.maximum:.6f}")
+    lines.append(f"Mean                 : {d.mean:.6f}")
+    lines.append(f"Median               : {d.median:.6f}")
+    lines.append(f"Standard Deviation   : {d.std:.6f}")
+
     lines.append("")
 
     lines.append("Topology")
-    lines.append("-" * 40)
+    lines.append("-" * 60)
+
     lines.append(
-        f"Connected Components : {t.connected_components}"
+        f"Connected            : {t.connectivity.connected}"
     )
+
     lines.append(
-        f"Largest Component    : {t.largest_component}"
+        f"Components           : {t.connectivity.connected_components}"
     )
+
     lines.append(
-        f"Lambda2              : {t.lambda2:.6f}"
+        f"Largest Component    : {t.connectivity.largest_component}"
     )
+
     lines.append(
-        f"Clustering           : {t.clustering:.6f}"
+        f"Isolated Nodes       : {t.summary.isolated}"
     )
+
+    lines.append("")
+
+    lines.append("Spectral")
+    lines.append("-" * 60)
+
     lines.append(
-        f"Modularity           : {t.modularity:.6f}"
+        f"Lambda2              : {t.spectral.lambda2:.6f}"
+    )
+
+    lines.append(
+        f"Spectral Gap         : {t.spectral.spectral_gap:.6f}"
+    )
+
+    lines.append("")
+
+    lines.append("Descriptive")
+    lines.append("-" * 60)
+
+    lines.append(
+        f"Clustering           : {t.descriptive.clustering:.6f}"
+    )
+
+    lines.append(
+        f"Modularity           : {t.descriptive.modularity:.6f}"
     )
 
     return "\n".join(lines)
 
 
 # ============================================================
-# Public interface
+# PUBLIC INTERFACE
 # ============================================================
 
-def run(results, repository: ResultsRepository):
+def run(
+    results: StatisticsResults,
+    repository: ResultsRepository,
+):
     """
-    Generates every experiment output.
-
-    The actual persistence is performed by the GER CORE.
+    Generates every official experiment output.
     """
-
-    report = build_report(results)
-
-    summary = build_summary(results)
 
     repository.save_json(
+
         "results",
-        report,
+
+        build_report(results),
+
     )
 
     repository.save_text(
+
         "summary",
-        summary,
+
+        build_summary(results),
+
     )
 
 
 # ============================================================
-# Public symbols
+# PUBLIC SYMBOLS
 # ============================================================
 
 __all__ = [
+
+    "build_report",
+
+    "build_summary",
+
     "run",
+
 ]
