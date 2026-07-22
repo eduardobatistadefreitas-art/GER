@@ -2,14 +2,16 @@
 ============================================================
 GER
 S29-E6.2
+
 Topology Analysis
 ============================================================
 
 Topological analysis of the Relational Signature Space.
 
-This module consumes the generic graph algorithms provided
-by GER.CORE.GRAPH and computes the structural observables
-used by S29-E6.2.
+This module computes the intrinsic topological observables
+of the Signature Graph.
+
+It performs NO statistical aggregation and NO persistence.
 
 Author
 ------
@@ -26,64 +28,156 @@ Version
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from GER.CORE.GRAPH.graph_algorithms import (
     summary,
     degree_distribution,
     adjacency_matrix,
     laplacian_matrix,
+    connected_components,
+    largest_component,
 )
 
 
 # ============================================================
-# Analysis
+# DATA STRUCTURES
 # ============================================================
 
-def run(graph):
-    """
-    Compute topological observables.
-    """
+@dataclass(frozen=True)
+class ConnectivityResults:
 
-    graph_summary = summary(graph)
+    connected_components: int
 
-    degree_stats = degree_distribution(graph)
+    largest_component: int
 
-    adjacency = adjacency_matrix(graph)
+    connected: bool
 
-    laplacian = laplacian_matrix(graph)
 
-    return {
+@dataclass(frozen=True)
+class SpectralResults:
 
-        "summary":
-            graph_summary,
+    adjacency_matrix: list
 
-        "degree_distribution":
-            degree_stats,
+    laplacian_matrix: list
 
-        "adjacency_matrix":
-            adjacency,
+    #
+    # Filled in future versions
+    #
 
-        "laplacian_matrix":
-            laplacian,
+    lambda2: float = 0.0
 
-    }
+    spectral_gap: float = 0.0
+
+
+@dataclass(frozen=True)
+class DescriptiveResults:
+
+    degree_distribution: dict
+
+    clustering: float = 0.0
+
+    modularity: float = 0.0
+
+
+@dataclass(frozen=True)
+class SummaryResults:
+
+    nodes: int
+
+    edges: int
+
+    isolated: int
+
+
+@dataclass(frozen=True)
+class TopologyResults:
+
+    summary: SummaryResults
+
+    connectivity: ConnectivityResults
+
+    descriptive: DescriptiveResults
+
+    spectral: SpectralResults
 
 
 # ============================================================
-# Convenience
+# MAIN ANALYSIS
 # ============================================================
 
-def compute_summary(graph):
+def run(graph) -> TopologyResults:
     """
-    Alias for report generation.
+    Computes every topological observable.
     """
 
-    return run(graph)
+    info = summary(graph)
 
+    return TopologyResults(
+
+        summary=SummaryResults(
+
+            nodes=info["nodes"],
+
+            edges=info["edges"],
+
+            isolated=info["isolated"],
+
+        ),
+
+        connectivity=ConnectivityResults(
+
+            connected_components=len(
+                connected_components(graph)
+            ),
+
+            largest_component=len(
+                largest_component(graph)
+            ),
+
+            connected=info["connected"],
+
+        ),
+
+        descriptive=DescriptiveResults(
+
+            degree_distribution=degree_distribution(
+                graph
+            ),
+
+        ),
+
+        spectral=SpectralResults(
+
+            adjacency_matrix=adjacency_matrix(
+                graph
+            ),
+
+            laplacian_matrix=laplacian_matrix(
+                graph
+            ),
+
+        ),
+
+    )
+
+
+# ============================================================
+# PUBLIC SYMBOLS
+# ============================================================
 
 __all__ = [
 
-    "run",
+    "ConnectivityResults",
 
-    "compute_summary",
+    "SpectralResults",
+
+    "DescriptiveResults",
+
+    "SummaryResults",
+
+    "TopologyResults",
+
+    "run",
 
 ]
