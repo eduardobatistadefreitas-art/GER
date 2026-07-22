@@ -5,15 +5,12 @@ S29-E6.2
 Configuration Module
 ============================================================
 
-Experiment
-----------
-Existence of the Relational Signature Space
+Centralized configuration for S29-E6.2.
 
-This module centralizes every configuration parameter used
-throughout S29-E6.2.
+This module contains ONLY experiment parameters.
 
-No other module should contain hard-coded paths, filenames
-or experiment constants.
+Directory creation, persistence and export are delegated
+to the GER CORE infrastructure.
 
 Author
 ------
@@ -26,13 +23,9 @@ GER — Geometria Espectral Relacional
 Version
 -------
 1.0
-============================================================
 """
 
 from __future__ import annotations
-
-from pathlib import Path
-from datetime import datetime
 
 # ============================================================
 # Experiment Metadata
@@ -60,9 +53,7 @@ DESCRIPTION = (
 # ============================================================
 
 #
-# E6.2 never reads observables directly.
-# Every signature must be obtained through the public
-# Signature Provider API.
+# The experiment must NEVER instantiate signatures directly.
 #
 
 SIGNATURE_PROVIDER_MODULE = (
@@ -73,12 +64,6 @@ SIGNATURE_PROVIDER_MODULE = (
 # Metric Configuration
 # ============================================================
 
-#
-# Future-proof.
-# Even if only one metric exists today,
-# experiments should always reference this constant.
-#
-
 METRIC = "euclidean"
 
 NORMALIZE_SIGNATURES = True
@@ -88,10 +73,10 @@ NORMALIZE_SIGNATURES = True
 # ============================================================
 
 #
-# Two supported modes:
+# Available modes
 #
-#   "knn"
-#   "radius"
+# "knn"
+# "radius"
 #
 
 GRAPH_MODE = "knn"
@@ -109,192 +94,71 @@ FLOAT_PRECISION = 10
 EPSILON = 1e-12
 
 # ============================================================
-# Result Directories
-# ============================================================
-
-RESULT_ROOT = Path(
-    "/content/drive/MyDrive/GER_RESULTS/S29_E6_2"
-)
-
-TIMESTAMP = datetime.now().strftime(
-    "%Y%m%d_%H%M%S"
-)
-
-RESULT_DIR = RESULT_ROOT / TIMESTAMP
-
-LOG_DIR = RESULT_DIR / "logs"
-
-TABLE_DIR = RESULT_DIR / "tables"
-
-GRAPH_DIR = RESULT_DIR / "graphs"
-
-EXPORT_DIR = RESULT_DIR / "exports"
-
-# ============================================================
-# Output Files
-# ============================================================
-
-FILES = {
-
-    "summary":
-        "experiment_summary.json",
-
-    "metrics":
-        "signature_metrics.csv",
-
-    "statistics":
-        "space_statistics.csv",
-
-    "distance_matrix":
-        "distance_matrix.parquet",
-
-    "graph":
-        "signature_graph.graphml",
-
-    "components":
-        "connected_components.csv",
-
-    "centrality":
-        "centrality_metrics.csv",
-
-    "degree":
-        "degree_distribution.csv",
-
-    "log":
-        "execution_log.txt",
-
-}
-
-# ============================================================
 # Runtime
 # ============================================================
 
 VERBOSE = True
 
-SAVE_PARQUET = True
-
-SAVE_JSON = True
-
-SAVE_CSV = True
-
-SAVE_TXT = True
-
 # ============================================================
-# Helper Functions
+# Metadata helper
 # ============================================================
-
-def initialize_result_directory() -> Path:
-    """
-    Creates the complete experiment directory tree.
-
-    Returns
-    -------
-    Path
-        Root directory of the current execution.
-    """
-
-    RESULT_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    LOG_DIR.mkdir(
-        exist_ok=True,
-    )
-
-    TABLE_DIR.mkdir(
-        exist_ok=True,
-    )
-
-    GRAPH_DIR.mkdir(
-        exist_ok=True,
-    )
-
-    EXPORT_DIR.mkdir(
-        exist_ok=True,
-    )
-
-    return RESULT_DIR
-
 
 def experiment_metadata() -> dict:
     """
     Returns experiment metadata.
-
-    Returns
-    -------
-    dict
     """
 
     return {
 
-        "experiment":
+        "experiment": EXPERIMENT_ID,
 
-            EXPERIMENT_ID,
+        "name": EXPERIMENT_NAME,
 
-        "name":
+        "framework": FRAMEWORK,
 
-            EXPERIMENT_NAME,
+        "version": VERSION,
 
-        "framework":
+        "author": AUTHOR,
 
-            FRAMEWORK,
+        "description": DESCRIPTION,
 
-        "version":
+        "metric": METRIC,
 
-            VERSION,
+        "normalize_signatures": NORMALIZE_SIGNATURES,
 
-        "author":
+        "graph_mode": GRAPH_MODE,
 
-            AUTHOR,
+        "k_neighbors": K_NEIGHBORS,
 
-        "description":
-
-            DESCRIPTION,
-
-        "timestamp":
-
-            TIMESTAMP,
-
-        "metric":
-
-            METRIC,
-
-        "normalize_signatures":
-
-            NORMALIZE_SIGNATURES,
-
-        "graph_mode":
-
-            GRAPH_MODE,
-
-        "k_neighbors":
-
-            K_NEIGHBORS,
-
-        "radius":
-
-            RADIUS,
+        "radius": RADIUS,
 
     }
 
 
+# ============================================================
+# Console helper
+# ============================================================
+
 def print_configuration() -> None:
-    """
-    Prints the current experiment configuration.
-    """
 
     print("=" * 60)
+
     print(FRAMEWORK)
+
     print(EXPERIMENT_ID)
+
     print(EXPERIMENT_NAME)
+
     print("=" * 60)
 
-    print(f"Version      : {VERSION}")
-    print(f"Metric       : {METRIC}")
-    print(f"Normalize    : {NORMALIZE_SIGNATURES}")
-    print(f"Graph Mode   : {GRAPH_MODE}")
-    print(f"K Neighbors  : {K_NEIGHBORS}")
-    print(f"Result Folder: {RESULT_DIR}")
+    print(f"Version       : {VERSION}")
+
+    print(f"Metric        : {METRIC}")
+
+    print(f"Normalize     : {NORMALIZE_SIGNATURES}")
+
+    print(f"Graph Mode    : {GRAPH_MODE}")
+
+    print(f"K Neighbors   : {K_NEIGHBORS}")
 
     print("=" * 60)
