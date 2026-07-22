@@ -236,10 +236,10 @@ def summary(graph):
     return {
 
         "nodes":
-            graph.number_of_nodes(),
+            graph.number_of_nodes,
 
         "edges":
-            graph.number_of_edges(),
+            graph.number_of_edges,
 
         "connected":
             is_connected(graph),
