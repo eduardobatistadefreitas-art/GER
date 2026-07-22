@@ -26,11 +26,22 @@ class Node:
 
     metadata
         Optional user-defined metadata.
+
+    Notes
+    -----
+    Metadata is auxiliary information and does not participate
+    in node identity. Two nodes are considered equal if their
+    identifying fields are equal, regardless of metadata.
     """
 
     id: Any
+
     label: str | None = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    metadata: Dict[str, Any] = field(
+        default_factory=dict,
+        compare=False,
+    )
 
     def to_dict(self) -> dict:
         """
