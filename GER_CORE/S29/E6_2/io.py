@@ -83,22 +83,20 @@ def validate_signatures(collection):
     """
 
     if collection is None:
-
         raise RuntimeError(
             "Signature Provider returned None."
         )
 
     if len(collection) == 0:
-
         raise RuntimeError(
             "No signatures were loaded."
         )
 
-    dimension = len(collection[0])
+    dimension = collection.dimension()
 
     for index, signature in enumerate(collection):
 
-        if len(signature) != dimension:
+        if signature.dimension() != dimension:
 
             raise ValueError(
                 "Signature dimension mismatch "
@@ -123,7 +121,7 @@ def signature_dimension(collection):
     Returns the signature dimension.
     """
 
-    return len(collection[0])
+    return collection.dimension()
 
 
 # ============================================================
