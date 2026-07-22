@@ -37,14 +37,14 @@ def nodes(graph):
     """
     Returns the list of nodes.
     """
-    return list(graph.nodes())
+    return list(graph.nodes)
 
 
 def edges(graph):
     """
     Returns the list of edges.
     """
-    return list(graph.edges())
+    return list(graph.edges)
 
 
 # ============================================================
@@ -58,7 +58,7 @@ def neighbors(graph, node):
 
     result = []
 
-    for edge in graph.edges():
+    for edge in graph.edges:
 
         if edge.source == node:
             result.append(edge.target)
@@ -82,7 +82,7 @@ def degree_distribution(graph):
     """
     return {
         node: degree(graph, node)
-        for node in graph.nodes()
+        for node in graph.nodes
     }
 
 
@@ -98,7 +98,7 @@ def connected_components(graph):
     visited = set()
     components = []
 
-    for node in graph.nodes():
+    for node in graph.nodes:
 
         if node in visited:
             continue
@@ -164,7 +164,7 @@ def isolated_nodes(graph):
 
         node
 
-        for node in graph.nodes()
+        for node in graph.nodes
 
         if degree(graph, node) == 0
 
@@ -177,7 +177,7 @@ def isolated_nodes(graph):
 
 def adjacency_matrix(graph):
 
-    nodes_list = list(graph.nodes())
+    nodes_list = list(graph.nodes)
 
     index = {
 
@@ -191,7 +191,7 @@ def adjacency_matrix(graph):
 
     A = [[0] * n for _ in range(n)]
 
-    for edge in graph.edges():
+    for edge in graph.edges:
 
         i = index[edge.source]
 
