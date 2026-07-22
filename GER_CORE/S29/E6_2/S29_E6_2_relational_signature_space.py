@@ -68,6 +68,10 @@ from . import report
 # GRAPH BUILDERS
 # ============================================================
 
+import numpy as np
+from scipy.spatial import cKDTree
+
+
 def build_radius_graph(collection, radius):
 
     graph = Graph()
@@ -75,27 +79,39 @@ def build_radius_graph(collection, radius):
     for i in range(len(collection)):
         graph.add_node(Node(str(i)))
 
-    D = collection.distance_matrix()
+    X = collection.to_numpy()
 
-    for i in range(len(collection)):
+    tree = cKDTree(X)
 
-        for j in range(i + 1, len(collection)):
+    neighbours = tree.query_ball_point(
+        X,
+        r=radius,
+    )
 
-            if D[i, j] <= radius:
+    for i, ids in enumerate(neighbours):
 
-                graph.add_edge(
+        for j in ids:
 
-                    Edge(
+            if j <= i:
+                continue
 
-                        str(i),
+            d = np.linalg.norm(
+                X[i] - X[j]
+            )
 
-                        str(j),
+            graph.add_edge(
 
-                        weight=float(D[i, j]),
+                Edge(
 
-                    )
+                    str(i),
+
+                    str(j),
+
+                    weight=float(d),
 
                 )
+
+            )
 
     return graph
 
@@ -107,13 +123,21 @@ def build_knn_graph(collection, k):
     for i in range(len(collection)):
         graph.add_node(Node(str(i)))
 
-    D = collection.distance_matrix()
+    X = collection.to_numpy()
+
+    tree = cKDTree(X)
+
+    distances, neighbours = tree.query(
+        X,
+        k=k + 1,
+    )
 
     for i in range(len(collection)):
 
-        neighbours = D[i].argsort()[1 : k + 1]
-
-        for j in neighbours:
+        for d, j in zip(
+            distances[i][1:],
+            neighbours[i][1:],
+        ):
 
             graph.add_edge(
 
@@ -123,7 +147,7 @@ def build_knn_graph(collection, k):
 
                     str(j),
 
-                    weight=float(D[i, j]),
+                    weight=float(d),
 
                 )
 
