@@ -55,6 +55,7 @@ from GER.CORE.ger_dashboard import Dashboard
 from GER.CORE.GRAPH.graph import Graph
 from GER.CORE.GRAPH.node import Node
 from GER.CORE.GRAPH.edge import Edge
+from GER.CORE.bootstrap import initialize
 
 from . import config
 from . import io
@@ -167,6 +168,8 @@ def build_graph(collection):
 # ============================================================
 
 def run():
+    
+    initialize()
 
     start = time.time()
 
