@@ -1,16 +1,16 @@
 """
 ============================================================
 GER
-S29-E6.2-L1.9
-Frequency Inequality Observatory
+L1.9 Frequency Inequality Observatory
 ============================================================
 
 Scientific Question
 -------------------
-How concentrated is the occupation of the Signature Space?
+How concentrated is the occupation of the Relational
+Signature Space?
 
-This observatory measures the inequality of the frequency
-distribution using complementary concentration indices.
+This observatory measures inequality and concentration
+of the frequency spectrum.
 
 Outputs
 -------
@@ -35,18 +35,20 @@ import json
 import numpy as np
 import pandas as pd
 
-from GER_CORE.S29.E6_2.storage import ExperimentStorage
+from GER.CORE.ger_storage import ExperimentStorage
 
-from GER_CORE.S29.E6_2.io import load_signatures
+from ...io import load_signatures
 
-from GER_CORE.S29.E6_2.statistics.spectrum import (
+from ...statistics.spectrum import (
     compute_frequency_table,
 )
 
-from GER_CORE.S29.E6_2.statistics.descriptive import (
+from ...statistics.descriptive import (
     compute_entropy,
     compute_gini,
 )
+
+TITLE = "GER\nL1.9 Frequency Inequality Observatory"
 
 
 # ============================================================
@@ -57,7 +59,12 @@ def compute_hhi(values):
 
     values = np.asarray(values, dtype=float)
 
-    p = values / values.sum()
+    total = values.sum()
+
+    if total == 0:
+        return 0.0
+
+    p = values / total
 
     return float(np.sum(p ** 2))
 
@@ -68,11 +75,7 @@ def compute_hhi(values):
 
 def compute_simpson(values):
 
-    values = np.asarray(values, dtype=float)
-
-    p = values / values.sum()
-
-    return float(np.sum(p ** 2))
+    return compute_hhi(values)
 
 
 # ============================================================
@@ -90,7 +93,7 @@ def effective_number(values):
 
 
 # ============================================================
-# CONCENTRATION CLASS
+# CLASSIFICATION
 # ============================================================
 
 def classify_concentration(gini):
@@ -108,9 +111,7 @@ def classify_concentration(gini):
 # ANALYSIS
 # ============================================================
 
-def analyse():
-
-    df = load_signatures()
+def analyse(df: pd.DataFrame):
 
     frequency = compute_frequency_table(df)
 
@@ -127,48 +128,64 @@ def analyse():
     effective = effective_number(values)
 
     metrics = pd.DataFrame(
-        [
 
-            {
-                "Metric": "Entropy",
-                "Value": entropy,
-            },
+        {
 
-            {
-                "Metric": "Gini",
-                "Value": gini,
-            },
+            "Metric": [
 
-            {
-                "Metric": "HHI",
-                "Value": hhi,
-            },
+                "Entropy",
 
-            {
-                "Metric": "Simpson",
-                "Value": simpson,
-            },
+                "Gini",
 
-            {
-                "Metric": "Effective Signatures",
-                "Value": effective,
-            },
+                "HHI",
 
-        ]
+                "Simpson",
+
+                "Effective Signatures",
+
+                "Unique Signatures",
+
+                "Total Occurrences",
+
+            ],
+
+            "Value": [
+
+                entropy,
+
+                gini,
+
+                hhi,
+
+                simpson,
+
+                effective,
+
+                len(values),
+
+                int(values.sum()),
+
+            ],
+
+        }
 
     )
 
-    certificate = {
+    summary = {
 
-        "entropy": entropy,
+        "entropy": float(entropy),
 
-        "gini": gini,
+        "gini": float(gini),
 
-        "hhi": hhi,
+        "hhi": float(hhi),
 
-        "simpson": simpson,
+        "simpson": float(simpson),
 
-        "effective_signatures": effective,
+        "effective_signatures": float(effective),
+
+        "unique_signatures": int(len(values)),
+
+        "total_occurrences": int(values.sum()),
 
         "concentration": classify_concentration(gini),
 
@@ -178,44 +195,59 @@ def analyse():
 
     return {
 
+        "summary": summary,
+
         "metrics": metrics,
 
-        "certificate": certificate,
-
     }
-
 
 # ============================================================
 # SAVE
 # ============================================================
 
-def save(storage, result):
+def save(storage: ExperimentStorage, result: dict):
+
+    summary = result["summary"]
+
+    storage.create_folder("report")
+    storage.create_folder("tables")
+    storage.create_folder("json")
+    storage.create_folder("certificate")
+
+    report_folder = storage.folder("report")
+    tables_folder = storage.folder("tables")
+    json_folder = storage.folder("json")
+    certificate_folder = storage.folder("certificate")
+
+    # --------------------------------------------------------
+    # TABLE
+    # --------------------------------------------------------
 
     result["metrics"].to_csv(
 
-        storage.path(
-            "tables",
-            "inequality_metrics.csv",
-        ),
+        tables_folder / "inequality_metrics.csv",
 
         index=False,
 
     )
 
+    # --------------------------------------------------------
+    # JSON
+    # --------------------------------------------------------
+
     with open(
 
-        storage.path(
-            "json",
-            "inequality.json",
-        ),
+        json_folder / "inequality.json",
 
         "w",
+
+        encoding="utf-8",
 
     ) as f:
 
         json.dump(
 
-            result["certificate"],
+            summary,
 
             f,
 
@@ -223,20 +255,35 @@ def save(storage, result):
 
         )
 
+    # --------------------------------------------------------
+    # CERTIFICATE
+    # --------------------------------------------------------
+
+    certificate = {
+
+        "observatory": "L1.9",
+
+        "title": "Frequency Inequality Observatory",
+
+        "concentration": summary["concentration"],
+
+        "status": summary["status"],
+
+    }
+
     with open(
 
-        storage.path(
-            "certificate",
-            "certificate.json",
-        ),
+        certificate_folder / "certificate.json",
 
         "w",
+
+        encoding="utf-8",
 
     ) as f:
 
         json.dump(
 
-            result["certificate"],
+            certificate,
 
             f,
 
@@ -244,53 +291,63 @@ def save(storage, result):
 
         )
 
+    # --------------------------------------------------------
+    # REPORT
+    # --------------------------------------------------------
+
+    report = f"""
+============================================================
+GER
+L1.9 Frequency Inequality Observatory
+============================================================
+
+Entropy
+{summary['entropy']:.6f}
+
+Gini
+{summary['gini']:.6f}
+
+Herfindahl-Hirschman Index
+{summary['hhi']:.6f}
+
+Simpson Concentration Index
+{summary['simpson']:.6f}
+
+Effective Number of Signatures
+{summary['effective_signatures']:.6f}
+
+Unique Signatures
+{summary['unique_signatures']}
+
+Total Occurrences
+{summary['total_occurrences']}
+
+Concentration
+{summary['concentration']}
+
+Status
+{summary['status']}
+
+============================================================
+"""
+
     with open(
 
-        storage.path(
-            "report",
-            "inequality_report.txt",
-        ),
+        report_folder / "inequality_report.txt",
 
         "w",
 
+        encoding="utf-8",
+
     ) as f:
 
-        f.write(
-            "==================================================\n"
-        )
-        f.write(
-            "GER\n"
-        )
-        f.write(
-            "Frequency Inequality Observatory\n"
-        )
-        f.write(
-            "==================================================\n\n"
-        )
+        f.write(report)
 
-        for _, row in result["metrics"].iterrows():
-
-            f.write(
-
-                f"{row['Metric']:<30}"
-
-                f"{row['Value']:.6f}\n"
-
-            )
-
-        f.write("\n")
-
-        f.write(
-            f"Concentration : {result['certificate']['concentration']}\n"
-        )
-
-        f.write(
-            f"Status        : {result['certificate']['status']}\n"
-        )
+    print(report)
 
 
 # ============================================================
-# RUN
+# MAIN
 # ============================================================
 
 def run():
@@ -313,24 +370,15 @@ def run():
 
     )
 
-    result = analyse()
+    print("=" * 60)
+    print(TITLE)
+    print("=" * 60)
+
+    df = load_signatures()
+
+    result = analyse(df)
 
     save(storage, result)
-
-    print("=" * 60)
-    print("GER")
-    print("Frequency Inequality Observatory")
-    print("=" * 60)
-
-    print()
-
-    print(result["metrics"])
-
-    print()
-
-    print("Concentration :", result["certificate"]["concentration"])
-
-    print("Status        :", result["certificate"]["status"])
 
 
 # ============================================================
