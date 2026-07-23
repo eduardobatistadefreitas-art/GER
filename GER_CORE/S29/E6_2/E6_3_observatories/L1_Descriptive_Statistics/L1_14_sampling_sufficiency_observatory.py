@@ -221,6 +221,8 @@ sampling_index = (
                 std_samples,
 
                 coefficient_variation,
+                
+                minimum_coverage,
 
                 sampling_index,
 
@@ -267,6 +269,10 @@ sampling_index = (
         "coefficient_variation":
 
             coefficient_variation,
+        
+        "minimum_coverage":
+
+            minimum_coverage,
 
         "sampling_sufficiency_index":
 
@@ -382,6 +388,9 @@ def save(
 
         "maximum_samples":
             summary["maximum_samples"],
+        
+        "minimum_coverage":
+            summary["minimum_coverage"],
 
         "coefficient_variation":
             summary["coefficient_variation"],
@@ -447,6 +456,9 @@ Maximum Samples
 
 Coefficient of Variation
 {summary['coefficient_variation']:.6f}
+
+Minimum Coverage
+{summary['minimum_coverage']:.6f}
 
 Sampling Sufficiency Index
 {summary['sampling_sufficiency_index']:.6f}
