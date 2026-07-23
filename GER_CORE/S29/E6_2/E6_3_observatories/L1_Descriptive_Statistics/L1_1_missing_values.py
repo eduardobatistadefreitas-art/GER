@@ -133,6 +133,11 @@ def analyse(df: pd.DataFrame) -> dict:
 
 def save(storage: ExperimentStorage, result: dict):
 
+    storage.create_folder("report")
+    storage.create_folder("tables")
+    storage.create_folder("json")
+    storage.create_folder("certificate")
+
     report_folder = storage.folder("report")
     tables_folder = storage.folder("tables")
     json_folder = storage.folder("json")
@@ -140,69 +145,53 @@ def save(storage: ExperimentStorage, result: dict):
 
     # ---------------- CSV ----------------
 
-    table = pd.DataFrame(result["summary"])
+    table = pd.DataFrame([result["summary"]])
 
     table.to_csv(
-
         tables_folder / "missing_values_summary.csv",
-
         index=False,
-
     )
 
     # ---------------- JSON ----------------
 
     with open(
-
         json_folder / "missing_values_summary.json",
-
         "w",
-
         encoding="utf-8",
-
     ) as f:
 
         json.dump(
-
             result,
-
             f,
-
             indent=4,
-
         )
 
     with open(
-
         certificate_folder / "certificate.json",
-
         "w",
-
         encoding="utf-8",
-
     ) as f:
 
         json.dump(
-
             {
-
                 "observatory": "L1.1",
-
-                "status": result["status"],
-
-                "rows": result["rows"],
-
-                "columns": result["columns"],
-
+                "status": result["summary"]["status"],
+                "rows": result["summary"]["rows"],
+                "columns": result["summary"]["columns"],
             },
-
             f,
-
             indent=4,
-
         )
 
     # ---------------- TXT ----------------
+
+    with open(
+        report_folder / "missing_values_report.txt",
+        "w",
+        encoding="utf-8",
+    ) as f:
+
+        f.write(result["report"])
 
     report = []
 
