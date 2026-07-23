@@ -139,24 +139,38 @@ def analyse(
     )
 
     # --------------------------------------------------------
-    # Sampling Sufficiency Index
-    # --------------------------------------------------------
+# Minimum Coverage
+# --------------------------------------------------------
 
-    sampling_index = (
+minimum_coverage = (
 
-        mean_samples
+    minimum_samples
 
-        /
+    /
 
-        (
+    mean_samples
 
-            mean_samples
+)
 
-            + coefficient_variation
+# --------------------------------------------------------
+# Sampling Sufficiency Index
+# --------------------------------------------------------
 
-        )
+sampling_index = (
+
+    minimum_coverage
+
+    /
+
+    (
+
+        1.0
+
+        + coefficient_variation
 
     )
+
+)
 
     metrics = pd.DataFrame(
 
