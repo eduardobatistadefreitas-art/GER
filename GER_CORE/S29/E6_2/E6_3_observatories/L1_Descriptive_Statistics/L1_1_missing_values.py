@@ -132,11 +132,7 @@ def analyse(df: pd.DataFrame) -> dict:
 # ============================================================
 
 def save(storage: ExperimentStorage, result: dict):
-    from pathlib import Path
-
-for folder in ["report", "tables", "json", "certificate"]:
-    p = storage.folder(folder)
-    print(folder, list(p.iterdir()))
+    
     print("SAVE START")
     storage.create_folder("report")
     storage.create_folder("tables")
@@ -267,6 +263,11 @@ def run():
     result = analyse(df)
 
     save(storage, result)
+    from pathlib import Path
+
+    for folder in ["report", "tables", "json", "certificate"]:
+    p = storage.folder(folder)
+    print(folder, list(p.iterdir()))
 
     print("=" * 60)
     print("GER")
