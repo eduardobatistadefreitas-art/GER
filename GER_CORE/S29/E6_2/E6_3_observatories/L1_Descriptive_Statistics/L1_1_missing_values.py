@@ -145,7 +145,7 @@ def save(storage: ExperimentStorage, result: dict):
 
     # ---------------- CSV ----------------
 
-    table = pd.DataFrame([result["summary"]])
+    table = pd.DataFrame(result["summary"])
 
     table.to_csv(
         tables_folder / "missing_values_summary.csv",
@@ -166,6 +166,8 @@ def save(storage: ExperimentStorage, result: dict):
             indent=4,
         )
 
+    # ---------------- CERTIFICATE ----------------
+
     with open(
         certificate_folder / "certificate.json",
         "w",
@@ -175,23 +177,15 @@ def save(storage: ExperimentStorage, result: dict):
         json.dump(
             {
                 "observatory": "L1.1",
-                "status": result["summary"]["status"],
-                "rows": result["summary"]["rows"],
-                "columns": result["summary"]["columns"],
+                "status": result["status"],
+                "rows": result["rows"],
+                "columns": result["columns"],
             },
             f,
             indent=4,
         )
 
     # ---------------- TXT ----------------
-
-    with open(
-        report_folder / "missing_values_report.txt",
-        "w",
-        encoding="utf-8",
-    ) as f:
-
-        f.write(result["report"])
 
     report = []
 
@@ -215,47 +209,21 @@ def save(storage: ExperimentStorage, result: dict):
     )
 
     report.append("")
-
     report.append("-" * 60)
 
     for item in result["summary"]:
 
         report.append(item["column"])
-
-        report.append(
-
-            f"    dtype      : {item['dtype']}"
-
-        )
-
-        report.append(
-
-            f"    missing    : {item['missing']}"
-
-        )
-
-        report.append(
-
-            f"    infinite   : {item['infinite']}"
-
-        )
-
-        report.append(
-
-            f"    duplicates : {item['duplicate_values']}"
-
-        )
-
+        report.append(f"    dtype      : {item['dtype']}")
+        report.append(f"    missing    : {item['missing']}")
+        report.append(f"    infinite   : {item['infinite']}")
+        report.append(f"    duplicates : {item['duplicate_values']}")
         report.append("")
 
     with open(
-
         report_folder / "missing_values_report.txt",
-
         "w",
-
         encoding="utf-8",
-
     ) as f:
 
         f.write("\n".join(report))
