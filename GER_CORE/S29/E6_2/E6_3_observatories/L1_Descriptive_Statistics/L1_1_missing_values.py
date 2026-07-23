@@ -60,7 +60,7 @@ import pandas as pd
 
 from GER.CORE.ger_storage import ExperimentStorage
 
-from ..io import load_signatures
+from ...io import load_signatures
 
 
 # ============================================================
