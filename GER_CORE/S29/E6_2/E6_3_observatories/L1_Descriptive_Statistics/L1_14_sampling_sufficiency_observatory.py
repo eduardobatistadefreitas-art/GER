@@ -55,10 +55,10 @@ def classify_sampling(
     index: float,
 ) -> str:
 
-    if index >= 0.95:
+    if index >= 0.15:
         return "HIGH"
 
-    if index >= 0.80:
+    if index >= 0.08:
         return "MODERATE"
 
     return "LOW"
