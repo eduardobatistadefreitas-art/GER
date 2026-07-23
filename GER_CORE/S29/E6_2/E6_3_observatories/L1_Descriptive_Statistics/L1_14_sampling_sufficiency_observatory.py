@@ -138,39 +138,40 @@ def analyse(
 
     )
 
+
     # --------------------------------------------------------
-# Minimum Coverage
-# --------------------------------------------------------
+    # Minimum Coverage
+    # --------------------------------------------------------
 
-minimum_coverage = (
+    minimum_coverage = (
 
-    minimum_samples
+        minimum_samples
 
-    /
+        /
 
-    mean_samples
+        mean_samples
 
-)
+    )
 
-# --------------------------------------------------------
-# Sampling Sufficiency Index
-# --------------------------------------------------------
+    # --------------------------------------------------------
+    # Sampling Sufficiency Index
+    # --------------------------------------------------------
 
-sampling_index = (
+    sampling_index = (
 
-  minimum_coverage
+        minimum_coverage
 
-  /
+        /
 
-  (
+        (
 
-    1.0
+            1.0
 
-    + coefficient_variation
+            + coefficient_variation
 
-  )
+        )
 
-)
+    )
 
     metrics = pd.DataFrame(
 
@@ -195,7 +196,7 @@ sampling_index = (
                 "Std Samples",
 
                 "Coefficient of Variation",
-                
+
                 "Minimum Coverage",
 
                 "Sampling Sufficiency Index",
@@ -221,7 +222,7 @@ sampling_index = (
                 std_samples,
 
                 coefficient_variation,
-                
+
                 minimum_coverage,
 
                 sampling_index,
@@ -269,7 +270,7 @@ sampling_index = (
         "coefficient_variation":
 
             coefficient_variation,
-        
+
         "minimum_coverage":
 
             minimum_coverage,
@@ -302,8 +303,8 @@ sampling_index = (
 
             metrics,
 
-  }
-
+    }    
+    
 # ============================================================
 # SAVE
 # ============================================================
