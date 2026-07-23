@@ -268,6 +268,12 @@ def run():
     print(f"Duplicated Rows   : {result['duplicated_rows']}")
     print(f"Status            : {result['status']}")
     print("=" * 60)
+    from pathlib import Path
+
+    print()
+    print(storage.database)
+    print(storage.database.exists())
+    print(list(storage.database.iterdir()))
 
     return result
 
