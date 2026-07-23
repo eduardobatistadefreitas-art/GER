@@ -237,7 +237,7 @@ def run():
 
     storage = ExperimentStorage(
 
-        experiment="S29_E6_3_L1_1",
+        experiment="S29_E6_2_L1_1",
 
         folders=[
 
