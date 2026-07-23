@@ -132,7 +132,7 @@ def analyse(df: pd.DataFrame) -> dict:
 # ============================================================
 
 def save(storage: ExperimentStorage, result: dict):
-
+    print("SAVE START")
     storage.create_folder("report")
     storage.create_folder("tables")
     storage.create_folder("json")
@@ -151,6 +151,7 @@ def save(storage: ExperimentStorage, result: dict):
         tables_folder / "missing_values_summary.csv",
         index=False,
     )
+    print("CSV OK")
 
     # ---------------- JSON ----------------
 
@@ -165,6 +166,7 @@ def save(storage: ExperimentStorage, result: dict):
             f,
             indent=4,
         )
+        print("JSON OK")
 
     # ---------------- CERTIFICATE ----------------
 
@@ -184,6 +186,7 @@ def save(storage: ExperimentStorage, result: dict):
             f,
             indent=4,
         )
+        print("CERTIFICATE OK")
 
     # ---------------- TXT ----------------
 
@@ -227,6 +230,7 @@ def save(storage: ExperimentStorage, result: dict):
     ) as f:
 
         f.write("\n".join(report))
+        print("TXT OK")
 
 
 # ============================================================
