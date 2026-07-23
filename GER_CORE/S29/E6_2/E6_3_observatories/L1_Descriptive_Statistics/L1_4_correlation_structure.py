@@ -149,6 +149,7 @@ def analyse(df: pd.DataFrame) -> dict:
         "covariance": covariance,
 
         "ranking": ranking,
+    }
 
           # ============================================================
 # SAVE
