@@ -195,6 +195,8 @@ sampling_index = (
                 "Std Samples",
 
                 "Coefficient of Variation",
+                
+                "Minimum Coverage",
 
                 "Sampling Sufficiency Index",
 
