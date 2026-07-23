@@ -6,12 +6,12 @@ L2.5 Support Analysis
 
 Scientific Objective
 --------------------
-Characterize the effective support of each numeric
-variable in the Relational Signature dataset.
+Characterize the intrinsic geometry of the support of
+each numeric variable.
 
-This observatory investigates the occupied domain,
-support continuity and the existence of gaps within
-the observed interval.
+Instead of analysing probability distributions, this
+observatory studies how the observed values occupy
+their domain.
 
 Outputs
 -------
@@ -20,6 +20,7 @@ report/
 
 tables/
     support_analysis.csv
+    spacing_distribution.csv
 
 json/
     support_analysis.json
@@ -58,6 +59,8 @@ def analyse(
 
     rows = []
 
+    spacing_rows = []
+
     total_observations = len(df)
 
     for column in df.columns:
@@ -70,7 +73,9 @@ def analyse(
 
         values = np.sort(
 
-            series.dropna().unique()
+            series
+            .dropna()
+            .unique()
 
         )
 
@@ -82,73 +87,79 @@ def analyse(
 
         unique_values = len(values)
 
-        observed_values = unique_values
+        if unique_values > 1:
 
-        is_integer = np.all(
+            spacing = np.diff(values)
 
-            np.isclose(
+            minimum_spacing = float(
 
-                values,
-
-                np.round(values),
+                spacing.min()
 
             )
 
-        )
+            mean_spacing = float(
 
-        if is_integer:
+                spacing.mean()
 
-            expected_values = int(
+            )
 
-                round(maximum - minimum)
+            maximum_spacing = float(
 
-            ) + 1
+                spacing.max()
 
-            gap_count = (
+            )
 
-                expected_values
+            spacing_cv = (
 
-                - unique_values
+                float(spacing.std())
+
+                /
+
+                float(spacing.mean())
+
+                if spacing.mean() > 0
+
+                else 0.0
+
+            )
+
+            regular = np.allclose(
+
+                spacing,
+
+                spacing[0],
+
+                rtol=1e-6,
+
+                atol=1e-12,
 
             )
 
         else:
 
-            expected_values = unique_values
+            spacing = np.array([])
 
-            gap_count = 0
+            minimum_spacing = 0.0
 
-        support_occupancy = (
+            mean_spacing = 0.0
 
-            observed_values
+            maximum_spacing = 0.0
 
-            /
+            spacing_cv = 0.0
 
-            expected_values
+            regular = True
 
-        )
-
-        gap_ratio = (
-
-            gap_count
-
-            /
-
-            expected_values
-
-        )
-
-        if support_occupancy >= 0.95:
-
-            support_type = "Continuous"
-
-        elif support_occupancy >= 0.50:
+        if unique_values <= 20:
 
             support_type = "Discrete"
 
+        elif regular:
+
+            support_type = "Regular"
+
         else:
 
-            support_type = "Sparse"
+            support_type = "Irregular"
 
         rows.append(
 
@@ -174,25 +185,21 @@ def analyse(
 
                     unique_values,
 
-                "Observed Values":
+                "Minimum Resolution":
 
-                    observed_values,
+                    minimum_spacing,
 
-                "Expected Values":
+                "Mean Spacing":
 
-                    expected_values,
+                    mean_spacing,
 
-                "Support Occupancy":
+                "Maximum Spacing":
 
-                    support_occupancy,
+                    maximum_spacing,
 
-                "Gap Count":
+                "Spacing CV":
 
-                    gap_count,
-
-                "Gap Ratio":
-
-                    gap_ratio,
+                    spacing_cv,
 
                 "Support Type":
 
@@ -202,7 +209,31 @@ def analyse(
 
         )
 
+        for value in spacing:
+
+            spacing_rows.append(
+
+                {
+
+                    "Variable":
+
+                        column,
+
+                    "Spacing":
+
+                        float(value),
+
+                }
+
+            )
+
     support = pd.DataFrame(rows)
+
+    spacing_distribution = pd.DataFrame(
+
+        spacing_rows
+
+    )
 
     summary = {
 
@@ -230,6 +261,10 @@ def analyse(
 
             support,
 
+        "spacing_distribution":
+
+            spacing_distribution,
+
     }
 
 # ============================================================
@@ -254,12 +289,20 @@ def save(
     certificate_folder = storage.folder("certificate")
 
     # --------------------------------------------------------
-    # TABLE
+    # TABLES
     # --------------------------------------------------------
 
     result["support"].to_csv(
 
         tables_folder / "support_analysis.csv",
+
+        index=False,
+
+    )
+
+    result["spacing_distribution"].to_csv(
+
+        tables_folder / "spacing_distribution.csv",
 
         index=False,
 
@@ -345,6 +388,11 @@ Variables Analysed
 
 Total Observations
 {summary['total_observations']}
+
+Outputs
+
+support_analysis.csv
+spacing_distribution.csv
 
 Status
 {summary['status']}
