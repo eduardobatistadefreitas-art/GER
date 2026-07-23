@@ -29,13 +29,12 @@ certificate/
 ============================================================
 """
 
-from pathlib import Path
 import json
 
 import numpy as np
 import pandas as pd
 
-from GER.CORE.ger_repository import ExperimentStorage
+from GER.CORE.ger_storage import ExperimentStorage
 
 from GER_CORE.S29.E6_2.io import (
     load_signatures,
