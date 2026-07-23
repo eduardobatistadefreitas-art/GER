@@ -158,17 +158,17 @@ minimum_coverage = (
 
 sampling_index = (
 
-    minimum_coverage
+  minimum_coverage
 
-    /
+  /
 
-    (
+  (
 
-        1.0
+    1.0
 
-        + coefficient_variation
+    + coefficient_variation
 
-    )
+  )
 
 )
 
