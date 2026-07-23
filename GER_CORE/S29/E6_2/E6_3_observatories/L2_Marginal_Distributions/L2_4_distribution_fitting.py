@@ -119,6 +119,16 @@ def analyse(
 
                 )
 
+                accepted = (
+
+                    "YES"
+
+                    if ks_statistic <= 0.10
+
+                    else "NO"
+
+                )
+
                 results.append(
 
                     {
@@ -138,6 +148,10 @@ def analyse(
                         "P Value":
 
                             float(p_value),
+
+                        "Accepted":
+
+                            accepted,
 
                     }
 
@@ -205,7 +219,7 @@ def analyse(
 
             best,
 
-  }
+    }
 
 # ============================================================
 # SAVE
@@ -337,6 +351,26 @@ Total Observations
 
 Status
 {summary['status']}
+
+------------------------------------------------------------
+Methodological Notes
+------------------------------------------------------------
+
+The Kolmogorov-Smirnov statistic is used primarily
+for comparative ranking between candidate models.
+
+Because this dataset contains more than one million
+observations, the KS p-values are expected to be
+extremely small even for minor deviations from the
+theoretical distributions.
+
+The "Accepted" column is therefore an empirical
+descriptor based on:
+
+KS Statistic <= 0.10
+
+It should not be interpreted as a formal hypothesis
+acceptance criterion.
 
 ============================================================
 """
