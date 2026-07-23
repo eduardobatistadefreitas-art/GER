@@ -25,12 +25,9 @@ from scipy import stats
 # ENTROPY
 # ============================================================
 
-def compute_entropy(values):
+def compute_entropy(values, base="e"):
 
     values = np.asarray(values, dtype=float)
-
-    if len(values) == 0:
-        return 0.0
 
     total = values.sum()
 
@@ -41,7 +38,19 @@ def compute_entropy(values):
 
     p = p[p > 0]
 
-    return float(-np.sum(p * np.log2(p)))
+    if base in ("e", "natural", None):
+
+        return float(-np.sum(p * np.log(p)))
+
+    if base in (2, "2", "bits"):
+
+        return float(-np.sum(p * np.log2(p)))
+
+    if base in (10, "10"):
+
+        return float(-np.sum(p * np.log10(p)))
+
+    raise ValueError(f"Unsupported entropy base: {base}")
 
 
 # ============================================================
