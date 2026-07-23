@@ -135,7 +135,7 @@ def analyse(df: pd.DataFrame):
 
     values = frequency["Frequency"].values
 
-    entropy = compute_entropy(values)
+    entropy = compute_entropy(values, base="e")
 
     richness = len(values)
 
