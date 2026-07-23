@@ -266,8 +266,8 @@ def run():
     from pathlib import Path
 
     for folder in ["report", "tables", "json", "certificate"]:
-    p = storage.folder(folder)
-    print(folder, list(p.iterdir()))
+       p = storage.folder(folder)
+       print(folder, list(p.iterdir()))
 
     print("=" * 60)
     print("GER")
