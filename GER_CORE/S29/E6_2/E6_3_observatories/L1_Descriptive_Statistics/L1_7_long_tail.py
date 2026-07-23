@@ -146,7 +146,10 @@ def analyse(df: pd.DataFrame) -> dict:
     class_summary = (
 
         grouped
-        .groupby("Class")
+        .groupby(
+           "Class",
+           observed=False,
+        )
         .agg(
 
             Signatures=("Frequency", "count"),
