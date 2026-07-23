@@ -325,86 +325,115 @@ def analyse(
 
 def save(
     storage: ExperimentStorage,
-    results,
+    result: dict,
 ):
 
-    summary = results["summary"]
+    summary = result["summary"]
 
-    metrics = results["metrics"]
+    storage.create_folder("report")
+    storage.create_folder("tables")
+    storage.create_folder("json")
+    storage.create_folder("certificate")
 
-    progression = results["progression"]
+    report_folder = storage.folder("report")
+    tables_folder = storage.folder("tables")
+    json_folder = storage.folder("json")
+    certificate_folder = storage.folder("certificate")
 
-    metrics.to_csv(
+    # --------------------------------------------------------
+    # TABLES
+    # --------------------------------------------------------
 
-        storage.path(
+    result["metrics"].to_csv(
 
-            "tables",
-            "coverage_saturation_metrics.csv",
-
-        ),
-
-        index=False,
-
-    )
-
-    progression.to_csv(
-
-        storage.path(
-
-            "tables",
-            "coverage_progression.csv",
-
-        ),
+        tables_folder / "coverage_saturation_metrics.csv",
 
         index=False,
 
     )
 
+    result["progression"].to_csv(
+
+        tables_folder / "coverage_progression.csv",
+
+        index=False,
+
+    )
+
+    # --------------------------------------------------------
+    # JSON
+    # --------------------------------------------------------
+
     with open(
 
-        storage.path(
-
-            "json",
-            "coverage_saturation.json",
-
-        ),
+        json_folder / "coverage_saturation.json",
 
         "w",
 
-    ) as fp:
+        encoding="utf-8",
+
+    ) as f:
 
         json.dump(
 
             summary,
 
-            fp,
+            f,
 
             indent=4,
 
         )
+
+    # --------------------------------------------------------
+    # CERTIFICATE
+    # --------------------------------------------------------
+
+    certificate = {
+
+        "observatory": "L1.15",
+
+        "title": "Coverage Saturation Observatory",
+
+        "saturation_ratio":
+            summary["saturation_ratio"],
+
+        "final_discovery_rate":
+            summary["final_discovery_rate"],
+
+        "plateau_score":
+            summary["plateau_score"],
+
+        "coverage":
+            summary["coverage"],
+
+        "status":
+            summary["status"],
+
+    }
 
     with open(
 
-        storage.path(
-
-            "certificate",
-            "certificate.json",
-
-        ),
+        certificate_folder / "certificate.json",
 
         "w",
 
-    ) as fp:
+        encoding="utf-8",
+
+    ) as f:
 
         json.dump(
 
-            summary,
+            certificate,
 
-            fp,
+            f,
 
             indent=4,
 
         )
+
+    # --------------------------------------------------------
+    # REPORT
+    # --------------------------------------------------------
 
     report = f"""
 ============================================================
@@ -438,18 +467,15 @@ Status
 
     with open(
 
-        storage.path(
-
-            "report",
-            "coverage_saturation_report.txt",
-
-        ),
+        report_folder / "coverage_saturation_report.txt",
 
         "w",
 
-    ) as fp:
+        encoding="utf-8",
 
-        fp.write(report)
+    ) as f:
+
+        f.write(report)
 
     print(report)
 
@@ -465,6 +491,7 @@ def run():
     print(TITLE)
 
     print("=" * 60)
+
     print()
 
     storage = ExperimentStorage(
@@ -487,13 +514,227 @@ def run():
 
     df = load_signatures()
 
-    results = analyse(df)
+    result = analyse(df)
 
     save(
 
         storage,
 
-        results,
+        result,
+
+    )
+
+
+# ============================================================
+# ENTRY POINT
+# ============================================================
+
+if __name__ == "__main__":
+
+    run()
+
+# ============================================================
+# SAVE
+# ============================================================
+
+def save(
+    storage: ExperimentStorage,
+    result: dict,
+):
+
+    summary = result["summary"]
+
+    storage.create_folder("report")
+    storage.create_folder("tables")
+    storage.create_folder("json")
+    storage.create_folder("certificate")
+
+    report_folder = storage.folder("report")
+    tables_folder = storage.folder("tables")
+    json_folder = storage.folder("json")
+    certificate_folder = storage.folder("certificate")
+
+    # --------------------------------------------------------
+    # TABLES
+    # --------------------------------------------------------
+
+    result["metrics"].to_csv(
+
+        tables_folder / "coverage_saturation_metrics.csv",
+
+        index=False,
+
+    )
+
+    result["progression"].to_csv(
+
+        tables_folder / "coverage_progression.csv",
+
+        index=False,
+
+    )
+
+    # --------------------------------------------------------
+    # JSON
+    # --------------------------------------------------------
+
+    with open(
+
+        json_folder / "coverage_saturation.json",
+
+        "w",
+
+        encoding="utf-8",
+
+    ) as f:
+
+        json.dump(
+
+            summary,
+
+            f,
+
+            indent=4,
+
+        )
+
+    # --------------------------------------------------------
+    # CERTIFICATE
+    # --------------------------------------------------------
+
+    certificate = {
+
+        "observatory": "L1.15",
+
+        "title": "Coverage Saturation Observatory",
+
+        "saturation_ratio":
+            summary["saturation_ratio"],
+
+        "final_discovery_rate":
+            summary["final_discovery_rate"],
+
+        "plateau_score":
+            summary["plateau_score"],
+
+        "coverage":
+            summary["coverage"],
+
+        "status":
+            summary["status"],
+
+    }
+
+    with open(
+
+        certificate_folder / "certificate.json",
+
+        "w",
+
+        encoding="utf-8",
+
+    ) as f:
+
+        json.dump(
+
+            certificate,
+
+            f,
+
+            indent=4,
+
+        )
+
+    # --------------------------------------------------------
+    # REPORT
+    # --------------------------------------------------------
+
+    report = f"""
+============================================================
+GER
+L1.15 Coverage Saturation Observatory
+============================================================
+
+Total Observations
+{summary['total_observations']}
+
+Unique Signatures
+{summary['unique_signatures']}
+
+Saturation Ratio
+{summary['saturation_ratio']:.6f}
+
+Final Discovery Rate
+{summary['final_discovery_rate']:.6f}
+
+Plateau Score
+{summary['plateau_score']:.6f}
+
+Coverage Saturation
+{summary['coverage']}
+
+Status
+{summary['status']}
+
+============================================================
+"""
+
+    with open(
+
+        report_folder / "coverage_saturation_report.txt",
+
+        "w",
+
+        encoding="utf-8",
+
+    ) as f:
+
+        f.write(report)
+
+    print(report)
+
+
+# ============================================================
+# RUN
+# ============================================================
+
+def run():
+
+    print("=" * 60)
+
+    print(TITLE)
+
+    print("=" * 60)
+
+    print()
+
+    storage = ExperimentStorage(
+
+        experiment="S29_E6_2_L1_15",
+
+        folders=[
+
+            "report",
+
+            "tables",
+
+            "json",
+
+            "certificate",
+
+        ],
+
+    )
+
+    df = load_signatures()
+
+    result = analyse(df)
+
+    save(
+
+        storage,
+
+        result,
 
     )
 
