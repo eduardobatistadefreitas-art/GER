@@ -128,13 +128,16 @@ def analyse(
         # Density estimation
         # ----------------------------------------
 
-        grid, density = density_grid(
-
+        density_df = density_grid(
+   
             values_kde,
-
-            grid_points=GRID_POINTS,
-
+            
+            grid_size=GRID_POINTS,
+            
         )
+        grid = density_df["Value"].to_numpy()
+        
+        density = density_df["Density"].to_numpy()
 
         peak_location, peak_density = density_peak(
 
