@@ -51,7 +51,7 @@ from .correlation_observatory.certificate import (
     build_certificate,
 )
 
-from ...io import load_signatures
+from ...statistical_observatory.io import load_signatures
 
 from .correlation_observatory.io import (
     save_csv,
