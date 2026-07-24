@@ -51,8 +51,9 @@ from .correlation_observatory.certificate import (
     build_certificate,
 )
 
+from ...io import load_signatures
+
 from .correlation_observatory.io import (
-    load_csv,
     save_csv,
     save_json,
 )
@@ -334,9 +335,10 @@ def write_scientific_report(
 # ============================================================
 
 def run_experiment(
-    dataset_file,
     output_folder,
 ):
+
+    df = load_signatures()
     """
     Runs the complete L3.1 Experiment E1.
     """
@@ -352,7 +354,7 @@ def run_experiment(
     # Load
     # --------------------------------------------------------
 
-    df = load_csv(dataset_file)
+    df = load_signatures()
 
     # --------------------------------------------------------
     # Analysis
@@ -521,18 +523,13 @@ def run_experiment(
 
 def main():
 
-    DATASET = "observables.csv"
-
     OUTPUT = "RESULTS/L3_1_E1"
 
     run_experiment(
 
-        dataset_file=DATASET,
-
         output_folder=OUTPUT,
 
     )
-
 
 # ============================================================
 # Entry Point
