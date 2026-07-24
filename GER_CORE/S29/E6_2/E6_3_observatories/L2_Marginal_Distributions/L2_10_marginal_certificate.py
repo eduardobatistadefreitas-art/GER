@@ -8,25 +8,13 @@ Marginal Certificate
 Scientific Objective
 --------------------
 
-Consolidate the complete marginal distribution analysis.
+Consolidate the complete Marginal Distributions module.
 
-This observatory does not perform new statistical analyses.
+This observatory performs no statistical analysis.
 
-Instead, it validates the completeness of the Marginal
-Distributions module and produces a unified certificate.
-
-Certified observatories
-
-    L2.1
-    L2.2
-    L2.3
-    L2.4
-    L2.5
-    L2.6
-    L2.7
-    L2.7.1
-    L2.8
-    L2.9
+Instead, it validates that every observatory belonging to
+Layer L2 completed successfully and emitted a valid
+certificate.
 
 Outputs
 -------
@@ -49,6 +37,7 @@ certificate/
 from __future__ import annotations
 
 import json
+
 from pathlib import Path
 
 import pandas as pd
@@ -62,58 +51,72 @@ TITLE = (
 )
 
 # ============================================================
-# OBSERVATORIES
+# CONFIGURATION
 # ============================================================
+
+RESULTS_ROOT = Path(
+    "/content/drive/MyDrive/GER_RESULTS"
+)
 
 OBSERVATORIES = [
 
     (
         "L2.1",
+        "S29_E6_2_L2_1",
         "Location"
     ),
 
     (
         "L2.2",
+        "S29_E6_2_L2_2",
         "Dispersion"
     ),
 
     (
         "L2.3",
+        "S29_E6_2_L2_3",
         "Shape"
     ),
 
     (
         "L2.4",
+        "S29_E6_2_L2_4",
         "Quantiles"
     ),
 
     (
         "L2.5",
+        "S29_E6_2_L2_5",
         "Distribution Summary"
     ),
 
     (
         "L2.6",
+        "S29_E6_2_L2_6",
         "Marginal Dashboard"
     ),
 
     (
         "L2.7",
+        "S29_E6_2_L2_7",
         "Distribution Comparison"
     ),
 
     (
         "L2.7.1",
+        "S29_E6_2_L2_7_1",
         "Normalized Comparison"
     ),
 
     (
         "L2.8",
+        "S29_E6_2_L2_8",
         "Tail Behaviour"
     ),
 
     (
         "L2.9",
+        "S29_E6_2_L2_9",
         "Marginal Stability"
     ),
 
@@ -124,114 +127,211 @@ OBSERVATORIES = [
 # ============================================================
 
 
-def find_certificate_files(
-    root: Path,
+def certificate_path(
+    experiment: str,
 ):
 
-    certificates = {}
+    return (
 
-    for observatory, _ in OBSERVATORIES:
+        RESULTS_ROOT
 
-        matches = list(
+        / experiment
 
-            root.rglob(
+        / "certificate"
 
-                f"{observatory}/**/certificate.json"
+        / "certificate.json"
 
-            )
-
-        )
-
-        if not matches:
-
-            matches = list(
-
-                root.rglob(
-
-                    f"*{observatory}*/**/certificate.json"
-
-                )
-
-            )
-
-        certificates[
-            observatory
-        ] = matches
-
-    return certificates
-
-
-def analyse(
-    root: Path,
-):
-
-    certificates = find_certificate_files(
-        root
     )
 
-    summary = []
 
-    completed = 0
+def load_certificate(
+    experiment: str,
+):
 
-    for observatory, description in OBSERVATORIES:
+    path = certificate_path(
+        experiment
+    )
 
-        files = certificates[
-            observatory
-        ]
+    if not path.exists():
 
-        status = (
-            "PASS"
-            if files
-            else "MISSING"
+        return {
+
+            "exists": False,
+
+            "status": "MISSING",
+
+            "certificate": None,
+
+            "path": str(path),
+
+        }
+
+    try:
+
+        with open(
+
+            path,
+
+            "r",
+
+            encoding="utf-8",
+
+        ) as f:
+
+            data = json.load(f)
+
+    except Exception:
+
+        return {
+
+            "exists": True,
+
+            "status": "INVALID",
+
+            "certificate": None,
+
+            "path": str(path),
+
+        }
+
+    return {
+
+        "exists": True,
+
+        "status": data.get(
+            "status",
+            "UNKNOWN",
+        ),
+
+        "certificate": data,
+
+        "path": str(path),
+
+    }
+
+
+# ============================================================
+# ANALYSIS
+# ============================================================
+
+
+def analyse():
+
+    rows = []
+
+    total = len(
+        OBSERVATORIES
+    )
+
+    found = 0
+
+    passed = 0
+
+    failed = 0
+
+    missing = 0
+
+    for (
+
+        observatory,
+
+        experiment,
+
+        description,
+
+    ) in OBSERVATORIES:
+
+        cert = load_certificate(
+            experiment
         )
 
-        if files:
+        if cert["exists"]:
 
-            completed += 1
+            found += 1
 
-        summary.append({
+        else:
+
+            missing += 1
+
+        status = cert["status"]
+
+        if status == "PASS":
+
+            passed += 1
+
+        elif status != "MISSING":
+
+            failed += 1
+
+        rows.append({
 
             "observatory":
                 observatory,
 
+            "experiment":
+                experiment,
+
             "description":
                 description,
+
+            "exists":
+                cert["exists"],
 
             "status":
                 status,
 
-            "files_found":
-                len(files),
+            "certificate":
+                cert["path"],
 
         })
 
-    results = {
+    summary = pd.DataFrame(
+        rows
+    )
+
+    return {
 
         "summary":
-            pd.DataFrame(
-                summary
-            ),
+            summary,
 
-        "completed":
-            completed,
+        "total":
+            total,
+
+        "found":
+            found,
+
+        "passed":
+            passed,
+
+        "failed":
+            failed,
 
         "missing":
-            len(
-                OBSERVATORIES
-            ) - completed,
+            missing,
 
         "status":
-            (
-                "PASS"
-                if completed == len(
-                    OBSERVATORIES
-                )
-                else "INCOMPLETE"
-            ),
+
+            "PASS"
+
+            if (
+
+                passed == total
+
+                and
+
+                missing == 0
+
+                and
+
+                failed == 0
+
+            )
+
+            else
+
+            "INCOMPLETE",
 
     }
-
-    return results
 
 # ============================================================
 # SAVE
@@ -255,8 +355,11 @@ def save(
     summary = results["summary"]
 
     summary.to_csv(
+
         tables_dir / "marginal_summary.csv",
+
         index=False,
+
     )
 
     json_output = {
@@ -267,11 +370,17 @@ def save(
         "version":
             "1.0",
 
-        "total_observatories":
-            len(OBSERVATORIES),
+        "expected_observatories":
+            results["total"],
 
-        "completed":
-            results["completed"],
+        "found":
+            results["found"],
+
+        "passed":
+            results["passed"],
+
+        "failed":
+            results["failed"],
 
         "missing":
             results["missing"],
@@ -321,13 +430,17 @@ def save(
         "status":
             results["status"],
 
-        "completed":
-            results["completed"],
+        "expected":
+            results["total"],
 
-        "total":
-            len(
-                OBSERVATORIES
-            ),
+        "passed":
+            results["passed"],
+
+        "failed":
+            results["failed"],
+
+        "missing":
+            results["missing"],
 
     }
 
@@ -361,36 +474,62 @@ def save(
     report.append("=" * 60)
     report.append("")
 
-    report.append(
-        "Certified Observatories"
-    )
-
-    report.append(
-        "-" * 40
-    )
+    report.append("Certified Observatories")
+    report.append("-" * 60)
 
     for _, row in summary.iterrows():
 
         symbol = (
+
             "✓"
+
             if row["status"] == "PASS"
+
             else "✗"
+
         )
 
         report.append(
 
             f"{symbol} "
 
-            f"{row['observatory']}"
+            f"{row['observatory']:<7}"
 
-            f"  "
+            f"{row['description']:<30}"
 
-            f"{row['description']}"
+            f"{row['status']}"
 
         )
 
     report.append("")
-    report.append("-" * 40)
+    report.append("-" * 60)
+    report.append("")
+
+    report.append("Module Summary")
+    report.append("")
+
+    report.append(
+        f"Expected : {results['total']}"
+    )
+
+    report.append(
+        f"Found    : {results['found']}"
+    )
+
+    report.append(
+        f"Passed   : {results['passed']}"
+    )
+
+    report.append(
+        f"Failed   : {results['failed']}"
+    )
+
+    report.append(
+        f"Missing  : {results['missing']}"
+    )
+
+    report.append("")
+    report.append("-" * 60)
     report.append("")
 
     report.append(
@@ -410,22 +549,28 @@ def save(
     report.append("• Sampling stability")
 
     report.append("")
-    report.append("-" * 40)
+    report.append("-" * 60)
     report.append("")
 
     report.append(
-        f"Completed : {results['completed']}/{len(OBSERVATORIES)}"
+        f"FINAL STATUS : {results['status']}"
     )
 
-    report.append(
-        f"Missing   : {results['missing']}"
-    )
+    if results["status"] == "PASS":
 
-    report.append("")
+        report.append("")
 
-    report.append(
-        f"STATUS : {results['status']}"
-    )
+        report.append(
+            "Marginal Distributions module successfully certified."
+        )
+
+    else:
+
+        report.append("")
+
+        report.append(
+            "Marginal Distributions module is incomplete."
+        )
 
     with open(
 
@@ -476,17 +621,14 @@ def run():
 
     )
 
-    results_root = Path(
-        storage.base_output.parent
-    )
-
-    results = analyse(
-        results_root
-    )
+    results = analyse()
 
     save(
+
         storage,
+
         results,
+
     )
 
 
