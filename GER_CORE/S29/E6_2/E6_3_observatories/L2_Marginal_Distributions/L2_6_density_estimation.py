@@ -50,12 +50,10 @@ from ...statistics import (
     effective_support,
 )
 
-
 TITLE = (
     "GER\n"
     "L2.6 Density Estimation"
 )
-
 
 # ============================================================
 # CONSTANTS
@@ -66,7 +64,6 @@ GRID_POINTS = 512
 MAX_KDE_SAMPLE = 100_000
 
 RANDOM_SEED = 42
-
 
 # ============================================================
 # ANALYSIS
@@ -89,13 +86,9 @@ def analyse(
     for column in df.columns:
 
         series = (
-
             df[column]
-
             .dropna()
-
             .astype(float)
-
         )
 
         if len(series) < 2:
@@ -104,91 +97,66 @@ def analyse(
 
         values = series.to_numpy()
 
-        # ----------------------------------------
-        # KDE sample (for scalability)
-        # ----------------------------------------
+        # ----------------------------------------------------
+        # KDE sample
+        # ----------------------------------------------------
 
         if len(values) > MAX_KDE_SAMPLE:
 
             values_kde = rng.choice(
-
                 values,
-
                 size=MAX_KDE_SAMPLE,
-
                 replace=False,
-
             )
 
         else:
 
             values_kde = values
 
-        # ----------------------------------------
+        # ----------------------------------------------------
         # Density estimation
-        # ----------------------------------------
+        # ----------------------------------------------------
 
         density_df = density_grid(
-   
             values_kde,
-            
             grid_size=GRID_POINTS,
-            
         )
+
         grid = density_df["Value"].to_numpy()
-        
+
         density = density_df["Density"].to_numpy()
 
         peak = density_peak(
-            
             values_kde,
-        
         )
-        
+
         peak_location = float(
-            
             peak["value"]
-            
         )
-        
+
         peak_density = float(
-            
             peak["density"]
-            
         )
 
         integral = float(
-
             trapezoid(
-
                 density,
-
                 grid,
-
             )
-
         )
 
         mean_density = float(
-
             np.mean(
-
                 density
-
             )
-
         )
 
         support_info = effective_support(
-            
             values_kde,
-            
         )
-        
+
         support = float(
-            
             support_info["range"]
-            
         )
 
         profile_rows.append(
@@ -196,39 +164,30 @@ def analyse(
             {
 
                 "Variable":
-
                     column,
 
                 "Sample Size":
-
                     len(values),
 
                 "KDE Sample":
-
                     len(values_kde),
 
                 "Grid Points":
-
                     GRID_POINTS,
 
                 "Density Peak":
-
                     peak_density,
 
                 "Peak Location":
-
                     peak_location,
 
                 "Mean Density":
-
                     mean_density,
 
                 "Density Integral":
-
                     integral,
 
                 "Effective Support Width":
-
                     support,
 
             }
@@ -240,61 +199,46 @@ def analyse(
             {
 
                 "Variable":
-
                     column,
 
                 "X":
-
                     float(x),
 
                 "Density":
-
                     float(y),
 
             }
 
             for x, y in zip(
-
                 grid,
-
                 density,
-
             )
 
         )
 
     profile = pd.DataFrame(
-
         profile_rows
-
     )
 
     density_grid_table = pd.DataFrame(
-
         density_rows
-
     )
 
     summary = {
 
         "variables":
-
             len(profile),
 
         "grid_points":
-
             GRID_POINTS,
 
         "max_kde_sample":
-
             MAX_KDE_SAMPLE,
 
         "total_observations":
-
             total_observations,
 
         "status":
-
             "PASS",
 
     }
@@ -302,15 +246,12 @@ def analyse(
     return {
 
         "summary":
-
             summary,
 
         "profile":
-
             profile,
 
         "density_grid":
-
             density_grid_table,
 
     }
@@ -320,50 +261,24 @@ def analyse(
 # ============================================================
 
 def save(
-    results,
+    storage: ExperimentStorage,
+    results: dict,
 ):
 
-    storage = ExperimentStorage()
+    summary = results["summary"]
 
-    storage.create_folder(
+    storage.create_folder("report")
+    storage.create_folder("tables")
+    storage.create_folder("json")
+    storage.create_folder("certificate")
 
-        "S29/E6_2/L2_6_density_estimation"
-
-    )
-
-    folder = storage.folder(
-
-        "S29/E6_2/L2_6_density_estimation"
-
-    )
-
-    report_dir = folder / "report"
-    tables_dir = folder / "tables"
-    json_dir = folder / "json"
-    certificate_dir = folder / "certificate"
-
-    report_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    tables_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    json_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    certificate_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    report_dir = storage.folder("report")
+    tables_dir = storage.folder("tables")
+    json_dir = storage.folder("json")
+    certificate_dir = storage.folder("certificate")
 
     # --------------------------------------------------------
-    # Tables
+    # TABLES
     # --------------------------------------------------------
 
     results["profile"].to_csv(
@@ -398,7 +313,7 @@ def save(
 
         json.dump(
 
-            results["summary"],
+            summary,
 
             f,
 
@@ -407,22 +322,31 @@ def save(
         )
 
     # --------------------------------------------------------
-    # Certificate
+    # CERTIFICATE
     # --------------------------------------------------------
 
     certificate = {
 
-        "title": TITLE,
+        "observatory":
+            "L2.6",
 
-        "status": results["summary"]["status"],
+        "title":
+            "Density Estimation",
 
-        "variables": results["summary"]["variables"],
+        "variables":
+            summary["variables"],
 
-        "grid_points": results["summary"]["grid_points"],
+        "grid_points":
+            summary["grid_points"],
 
-        "max_kde_sample": results["summary"]["max_kde_sample"],
+        "max_kde_sample":
+            summary["max_kde_sample"],
 
-        "total_observations": results["summary"]["total_observations"],
+        "total_observations":
+            summary["total_observations"],
+
+        "status":
+            summary["status"],
 
     }
 
@@ -447,27 +371,37 @@ def save(
         )
 
     # --------------------------------------------------------
-    # Report
+    # REPORT
     # --------------------------------------------------------
 
-    report = []
+    report = f"""
+============================================================
+GER
+L2.6 Density Estimation
+============================================================
 
-    report.append("=" * 60)
-    report.append("GER")
-    report.append("L2.6 Density Estimation")
-    report.append("=" * 60)
-    report.append("")
+Variables Analysed
+{summary['variables']}
 
-    for key, value in results["summary"].items():
+Total Observations
+{summary['total_observations']}
 
-        report.append(
+KDE Grid Points
+{summary['grid_points']}
 
-            f"{key:25s}: {value}"
+Maximum KDE Sample
+{summary['max_kde_sample']}
 
-        )
+Outputs
 
-    report.append("")
-    report.append("Density profiles computed successfully.")
+density_profile.csv
+density_grid.csv
+
+Status
+{summary['status']}
+
+============================================================
+"""
 
     with open(
 
@@ -479,11 +413,9 @@ def save(
 
     ) as f:
 
-        f.write(
+        f.write(report)
 
-            "\n".join(report)
-
-        )
+    print(report)
 
 
 # ============================================================
@@ -493,9 +425,30 @@ def save(
 def run():
 
     print("=" * 60)
+
     print(TITLE)
+
     print("=" * 60)
+
     print()
+
+    storage = ExperimentStorage(
+
+        experiment="S29_E6_2_L2_6",
+
+        folders=[
+
+            "report",
+
+            "tables",
+
+            "json",
+
+            "certificate",
+
+        ],
+
+    )
 
     df = load_signatures()
 
@@ -515,33 +468,15 @@ def run():
 
     save(
 
+        storage,
+
         results,
 
     )
 
-    print()
-
-    print("Density estimation completed.")
-
-    print(
-
-        f"Variables analysed : {results['summary']['variables']}"
-
-    )
-
-    print(
-
-        f"KDE grid points    : {results['summary']['grid_points']}"
-
-    )
-
-    print()
-
-    print("Status : PASS")
-
 
 # ============================================================
-# MAIN
+# ENTRY POINT
 # ============================================================
 
 if __name__ == "__main__":
