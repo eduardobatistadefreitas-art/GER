@@ -11,7 +11,7 @@ Analysis
 
 from __future__ import annotations
 
-from ...statistics.correlation import (
+from ....statistics.correlation import (
 
     clean_dataframe,
 
