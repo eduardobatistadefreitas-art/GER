@@ -42,7 +42,7 @@ from scipy.integrate import trapezoid
 
 from GER.CORE.ger_storage import ExperimentStorage
 
-from ...io import load_signatures
+from ...statistical_observatory.io import load_signatures
 
 from ...statistics import (
     density_grid,
