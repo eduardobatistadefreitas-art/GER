@@ -15,6 +15,18 @@ Implemented metrics
 - Jensen-Shannon Distance
 - Overlap Coefficient
 
+Version
+-------
+2.0
+
+Improvements
+------------
+
+- KDE cache (computed once per variable)
+- Common support construction
+- Shared evaluation grid
+- Reusable density evaluation
+
 ============================================================
 """
 
@@ -26,14 +38,25 @@ import pandas as pd
 from itertools import combinations
 
 from scipy.stats import (
+
     wasserstein_distance,
+
     ks_2samp,
+
     gaussian_kde,
+
 )
 
 from scipy.spatial.distance import (
+
     jensenshannon,
+
 )
+
+GRID_POINTS = 512
+
+EPSILON = 1e-12
+
 
 # ============================================================
 # INTERNAL
@@ -81,6 +104,157 @@ def _empty_matrix(
 
     )
 
+
+# ============================================================
+# KDE CACHE
+# ============================================================
+
+
+def _build_kde_cache(
+    df: pd.DataFrame,
+):
+
+    cache = {}
+
+    variables = _numeric_columns(
+        df
+    )
+
+    for variable in variables:
+
+        values = (
+
+            df[variable]
+
+            .dropna()
+
+            .to_numpy()
+
+        )
+
+        cache[variable] = {
+
+            "values": values,
+
+            "minimum": float(
+                values.min()
+            ),
+
+            "maximum": float(
+                values.max()
+            ),
+
+            "kde": gaussian_kde(
+                values
+            ),
+
+        }
+
+    return cache
+
+
+# ============================================================
+# COMMON SUPPORT
+# ============================================================
+
+
+def _common_grid(
+    cache,
+    a,
+    b,
+    grid_points=GRID_POINTS,
+):
+
+    xmin = min(
+
+        cache[a]["minimum"],
+
+        cache[b]["minimum"],
+
+    )
+
+    xmax = max(
+
+        cache[a]["maximum"],
+
+        cache[b]["maximum"],
+
+    )
+
+    grid = np.linspace(
+
+        xmin,
+
+        xmax,
+
+        grid_points,
+
+    )
+
+    return grid
+
+
+# ============================================================
+# SHARED DENSITIES
+# ============================================================
+
+
+def _pair_densities(
+    cache,
+    a,
+    b,
+    grid_points=GRID_POINTS,
+):
+
+    grid = _common_grid(
+
+        cache,
+
+        a,
+
+        b,
+
+        grid_points,
+
+    )
+
+    pdf_a = cache[a]["kde"](
+        grid
+    )
+
+    pdf_b = cache[b]["kde"](
+        grid
+    )
+
+    pdf_a = np.maximum(
+        pdf_a,
+        EPSILON,
+    )
+
+    pdf_b = np.maximum(
+        pdf_b,
+        EPSILON,
+    )
+
+    pdf_a /= np.trapz(
+        pdf_a,
+        grid,
+    )
+
+    pdf_b /= np.trapz(
+        pdf_b,
+        grid,
+    )
+
+    return (
+
+        grid,
+
+        pdf_a,
+
+        pdf_b,
+
+    )
 
 # ============================================================
 # WASSERSTEIN
@@ -169,10 +343,15 @@ def pairwise_ks(
 
 def pairwise_js(
     df: pd.DataFrame,
-    bins=100,
 ):
 
-    variables = _numeric_columns(df)
+    variables = _numeric_columns(
+        df
+    )
+
+    cache = _build_kde_cache(
+        df
+    )
 
     matrix = _empty_matrix(
         variables
@@ -183,53 +362,22 @@ def pairwise_js(
         2,
     ):
 
-        xa = df[a].dropna()
+        _, pa, pb = _pair_densities(
 
-        xb = df[b].dropna()
+            cache,
 
-        minimum = min(
-            xa.min(),
-            xb.min(),
-        )
+            a,
 
-        maximum = max(
-            xa.max(),
-            xb.max(),
-        )
-
-        pa, _ = np.histogram(
-
-            xa,
-
-            bins=bins,
-
-            range=(minimum, maximum),
-
-            density=True,
+            b,
 
         )
-
-        pb, _ = np.histogram(
-
-            xb,
-
-            bins=bins,
-
-            range=(minimum, maximum),
-
-            density=True,
-
-        )
-
-        pa += 1e-12
-        pb += 1e-12
-
-        pa /= pa.sum()
-        pb /= pb.sum()
 
         d = jensenshannon(
+
             pa,
+
             pb,
+
         )
 
         matrix.loc[a, b] = d
@@ -245,10 +393,15 @@ def pairwise_js(
 
 def pairwise_overlap(
     df: pd.DataFrame,
-    grid_points=512,
 ):
 
-    variables = _numeric_columns(df)
+    variables = _numeric_columns(
+        df
+    )
+
+    cache = _build_kde_cache(
+        df
+    )
 
     matrix = _empty_matrix(
         variables
@@ -264,43 +417,24 @@ def pairwise_overlap(
         2,
     ):
 
-        xa = df[a].dropna().to_numpy()
+        grid, da, db = _pair_densities(
 
-        xb = df[b].dropna().to_numpy()
+            cache,
 
-        xmin = min(
-            xa.min(),
-            xb.min(),
-        )
+            a,
 
-        xmax = max(
-            xa.max(),
-            xb.max(),
-        )
-
-        grid = np.linspace(
-
-            xmin,
-
-            xmax,
-
-            grid_points,
+            b,
 
         )
-
-        da = gaussian_kde(
-            xa
-        )(grid)
-
-        db = gaussian_kde(
-            xb
-        )(grid)
 
         overlap = np.trapz(
 
             np.minimum(
+
                 da,
+
                 db,
+
             ),
 
             grid,
@@ -380,4 +514,4 @@ def summary_statistics(
                 np.mean(values)
             ),
 
-  }
+    }
