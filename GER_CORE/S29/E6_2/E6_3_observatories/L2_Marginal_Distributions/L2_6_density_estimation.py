@@ -139,12 +139,22 @@ def analyse(
         
         density = density_df["Density"].to_numpy()
 
-        peak_location, peak_density = density_peak(
-
-            grid,
-
-            density,
-
+        peak = density_peak(
+            
+            values_kde,
+        
+        )
+        
+        peak_location = float(
+            
+            peak["value"]
+            
+        )
+        
+        peak_density = float(
+            
+            peak["density"]
+            
         )
 
         integral = float(
