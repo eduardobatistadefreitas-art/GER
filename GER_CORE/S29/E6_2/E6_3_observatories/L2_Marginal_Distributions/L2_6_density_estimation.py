@@ -44,7 +44,7 @@ from GER.CORE.ger_storage import ExperimentStorage
 
 from ...io import load_signatures
 
-from ..statistics import (
+from ...statistics import (
     density_grid,
     density_peak,
     effective_support,
