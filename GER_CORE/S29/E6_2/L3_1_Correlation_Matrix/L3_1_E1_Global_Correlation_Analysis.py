@@ -33,31 +33,31 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from correlation_observatory.analysis import (
+from .correlation_observatory.analysis import (
     run_analysis,
     build_summary,
     validate_results,
 )
 
-from correlation_observatory.dashboard import (
+from .correlation_observatory.dashboard import (
     print_dashboard,
 )
 
-from correlation_observatory.report import (
+from .correlation_observatory.report import (
     write_report,
 )
 
-from correlation_observatory.certificate import (
+from .correlation_observatory.certificate import (
     build_certificate,
 )
 
-from correlation_observatory.io import (
+from .correlation_observatory.io import (
     load_csv,
     save_csv,
     save_json,
 )
 
-from correlation_observatory.config import *
+from .correlation_observatory.config import *
 
 
 # ============================================================
