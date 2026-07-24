@@ -179,14 +179,16 @@ def analyse(
 
         )
 
+        support_info = effective_support(
+            
+            values_kde,
+            
+        )
+        
         support = float(
-
-            effective_support(
-
-                values_kde,
-
-            )
-
+            
+            support_info["range"]
+            
         )
 
         profile_rows.append(
