@@ -830,7 +830,8 @@ class Statistics:
         df.describe().T.to_csv(
 
             STATISTICS_DIR /
-            "signature_statistics.csv"
+            "signature_statistics.csv",
+            index=False
 
         )
 
@@ -839,7 +840,8 @@ class Statistics:
         ).to_csv(
 
             STATISTICS_DIR /
-            "signature_correlation.csv"
+            "signature_correlation.csv",
+            index=False
 
         )
 
