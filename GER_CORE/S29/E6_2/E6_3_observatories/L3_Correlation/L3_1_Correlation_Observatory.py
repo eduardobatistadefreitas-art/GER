@@ -62,7 +62,7 @@ PAIR_THRESHOLDS = {
     "Very Strong": 0.90,
     "Strong": 0.70,
     "Moderate": 0.50,
-    "Weak": 0.30,
+    "Weak": 0.10,
     "Negligible": 0.00,
 
 }
