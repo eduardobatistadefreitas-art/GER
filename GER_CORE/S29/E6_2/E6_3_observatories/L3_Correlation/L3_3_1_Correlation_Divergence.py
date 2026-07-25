@@ -246,7 +246,7 @@ def build_master_table(results):
 
         drop=True
 
-  )
+    )
 
 # ============================================================
 # DIVERGENCE METRICS
@@ -468,21 +468,32 @@ def build_divergence_table(master):
 
     )
 
-    table.insert(
+    # --------------------------------------------------------
+    # Recria o ranking por divergência
+    # mesmo que já exista uma coluna "rank"
+    # --------------------------------------------------------
 
-        0,
+    if "rank" in table.columns:
 
-        "rank",
+        table = table.drop(columns=["rank"])
 
-        np.arange(
+    table["rank"] = np.arange(
 
-            1,
+        1,
 
-            len(table)+1
-
-        )
+        len(table) + 1
 
     )
+
+    cols = ["rank"] + [
+
+        c for c in table.columns
+
+        if c != "rank"
+
+    ]
+
+    table = table[cols]
 
     return table
 
