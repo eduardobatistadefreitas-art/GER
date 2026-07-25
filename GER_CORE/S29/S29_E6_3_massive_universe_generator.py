@@ -427,13 +427,55 @@ class EventLogger:
 
 class DatabaseWriter:
 
+    """
+    Escrita incremental.
+
+    Cada flush gera um novo arquivo parquet.
+
+    Nunca reabre arquivos antigos.
+
+    Estrutura:
+
+        universes/
+            chunk_000001.parquet
+            chunk_000002.parquet
+            ...
+
+    """
+
     def __init__(self):
 
         self.universes = []
-
         self.signatures = []
-
         self.certificates = []
+
+        self.chunk_id = self._discover_next_chunk()
+
+    # --------------------------------------------------------
+
+    def _discover_next_chunk(self):
+
+        chunks = []
+
+        for file in UNIVERSE_DIR.glob("chunk_*.parquet"):
+
+            try:
+
+                number = int(
+                    file.stem.split("_")[1]
+                )
+
+                chunks.append(number)
+
+            except Exception:
+
+                pass
+
+        if len(chunks) == 0:
+
+            return 1
+
+        return max(chunks) + 1
 
     # --------------------------------------------------------
 
@@ -445,47 +487,45 @@ class DatabaseWriter:
 
         signature,
 
-        certificate
+        certificate,
 
     ):
 
-        self.universes.append(
-            universe
-        )
+        self.universes.append(universe)
 
-        self.signatures.append(
-            signature
-        )
+        self.signatures.append(signature)
 
-        self.certificates.append(
-            certificate
-        )
+        self.certificates.append(certificate)
 
     # --------------------------------------------------------
 
     def flush(self):
 
-        self._append(
+        if len(self.universes) == 0:
 
-            UNIVERSE_FILE,
+            return
 
-            self.universes
+        self._write_chunk(
 
-        )
+            UNIVERSE_DIR,
 
-        self._append(
-
-            SIGNATURE_FILE,
-
-            self.signatures
+            self.universes,
 
         )
 
-        self._append(
+        self._write_chunk(
 
-            CERTIFICATE_FILE,
+            SIGNATURE_DIR,
 
-            self.certificates
+            self.signatures,
+
+        )
+
+        self._write_chunk(
+
+            CERTIFICATE_DIR,
+
+            self.certificates,
 
         )
 
@@ -495,83 +535,75 @@ class DatabaseWriter:
 
         self.certificates.clear()
 
-   # --------------------------------------------------------
+        self.chunk_id += 1
 
-    def _append(
+    # --------------------------------------------------------
+
+    def _sanitize(self, obj):
+
+        if isinstance(obj, dict):
+
+            if len(obj) == 0:
+
+                return None
+
+            return {
+
+                k: self._sanitize(v)
+
+                for k, v in obj.items()
+
+            }
+
+        if isinstance(obj, list):
+
+            return [
+
+                self._sanitize(v)
+
+                for v in obj
+
+            ]
+
+        return obj
+
+    # --------------------------------------------------------
+
+    def _write_chunk(
 
         self,
 
-        file,
+        folder,
 
-        rows
+        rows,
 
     ):
 
-        if len(rows) == 0:
-
-            return
-
-        def sanitize(obj):
-
-            if isinstance(obj, dict):
-
-                if len(obj) == 0:
-
-                    return None
-
-                return {
-
-                    k: sanitize(v)
-
-                    for k, v in obj.items()
-
-                }
-
-            if isinstance(obj, list):
-
-                return [
-
-                    sanitize(v)
-
-                    for v in obj
-
-                ]
-
-            return obj
-
         rows = [
 
-            sanitize(row)
+            self._sanitize(r)
 
-            for row in rows
+            for r in rows
 
         ]
 
         df = pd.DataFrame(rows)
 
-        if file.exists():
+        filename = (
 
-            old = pd.read_parquet(file)
+            folder
 
-            df = pd.concat(
+            /
 
-                [
+            f"chunk_{self.chunk_id:06d}.parquet"
 
-                    old,
-
-                    df
-
-                ],
-
-                ignore_index=True
-
-            )
+        )
 
         df.to_parquet(
 
-            file,
+            filename,
 
-            index=False
+            index=False,
 
         )
 
