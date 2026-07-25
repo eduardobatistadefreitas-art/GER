@@ -298,7 +298,12 @@ def save_results(
     certificate,
 ):
 
-    output = workspace.create_output_folder(OUTPUT_FOLDER)
+    output = workspace.root / OUTPUT_FOLDER
+    output.mkdir(
+        
+        parents=True,
+        exist_ok=True,
+        )
 
     correlation.to_csv(
         output / "correlation_matrix.csv",
