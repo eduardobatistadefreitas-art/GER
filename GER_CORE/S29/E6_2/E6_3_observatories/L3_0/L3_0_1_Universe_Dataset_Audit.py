@@ -19,7 +19,7 @@ BASE_RESULTS = Path(
 L30_FOLDER = (
     BASE_RESULTS /
     "S29_E6.3" /
-    "L3_0_Universe_Builder"
+    "L3_0_Universe_Manager"
 )
 
 RESULTS_DIR = (
