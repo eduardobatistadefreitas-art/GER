@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .L3_0_Workspace_Manager import load_dataset
+from .L3_0_Workspace_Manager import build_workspace
 
 
 # ============================================================
@@ -109,7 +109,9 @@ def load_signatures():
 
     print("Loading signatures...")
 
-    df = load_dataset("signatures")
+    workspace = build_workspace()
+
+    df = workspace.load_dataframe("signatures")
 
     df = df[CORRELATION_FIELDS].copy()
 
@@ -117,7 +119,7 @@ def load_signatures():
     print(f"Cols : {len(df.columns)}")
     print()
 
-    return df
+    return workspace, df
 
 
 # ============================================================
@@ -447,7 +449,7 @@ def main():
 
     banner()
 
-    signatures = load_signatures()
+    workspace, signatures = load_signatures()
 
 
     correlation, covariance, absolute = (
