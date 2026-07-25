@@ -10,11 +10,17 @@ L3.0 - Workspace Manager
 
 Responsabilidades
 
-- Descobrir datasets
-- Detectar datasets lógicos
-- Suportar arquivo único e chunk_*.parquet
-- Construir catálogo
-- Disponibilizar API para todos os L3
+• Descobrir datasets
+• Detectar datasets lógicos
+• Suportar Parquet único
+• Suportar chunk_*.parquet
+• Construir catálogo
+• Disponibilizar API para todos os L3
+
+Esta é a única camada de acesso aos dados da série L3.
+
+Todos os observatórios devem utilizar exclusivamente
+a classe Workspace.
 
 """
 
@@ -121,23 +127,26 @@ def classify_file(path: Path):
     if "certificate" in name:
         return "Certificate"
 
-    if "correlation" in name:
-        return "Correlation"
-
     if "statistics" in name:
         return "Statistics"
 
+    if "correlation" in name:
+        return "Correlation"
+
     if "checkpoint" in name:
         return "Checkpoint"
-
-    if "metadata" in name:
-        return "Metadata"
 
     if "network" in name:
         return "Network"
 
     if "matrix" in name:
         return "Matrix"
+
+    if "metadata" in name:
+        return "Metadata"
+
+    if "workspace" in name:
+        return "Workspace"
 
     if "log" in name:
         return "Log"
@@ -156,7 +165,7 @@ def discover_datasets(files):
     for file in files:
 
         # ----------------------------------------------------
-        # chunk_XXXX.parquet
+        # chunk_000001.parquet
         # ----------------------------------------------------
 
         if CHUNK_PATTERN.match(file.name):
@@ -168,15 +177,18 @@ def discover_datasets(files):
                 datasets[dataset_name] = {
 
                     "name": dataset_name,
+
                     "logical": True,
-                    "chunked": True,
-                    "chunks": [],
-                    "files": []
+
+                    "files": [],
+
+                    "chunks": []
 
                 }
 
-            datasets[dataset_name]["chunks"].append(file)
             datasets[dataset_name]["files"].append(file)
+
+            datasets[dataset_name]["chunks"].append(file)
 
             continue
 
@@ -188,37 +200,53 @@ def discover_datasets(files):
 
             dataset_name = file.stem
 
-            datasets[dataset_name] = {
+            if dataset_name not in datasets:
 
-                "name": dataset_name,
-                "logical": True,
-                "chunked": False,
-                "chunks": [],
-                "files": [file]
+                datasets[dataset_name] = {
 
-            }
+                    "name": dataset_name,
+
+                    "logical": True,
+
+                    "files": [],
+
+                    "chunks": []
+
+                }
+
+            datasets[dataset_name]["files"].append(file)
 
             continue
 
         # ----------------------------------------------------
-        # arquivos auxiliares
+        # auxiliares
         # ----------------------------------------------------
 
         datasets[file.name] = {
 
             "name": file.name,
+
             "logical": False,
-            "chunked": False,
-            "chunks": [],
-            "files": [file]
+
+            "files": [file],
+
+            "chunks": []
 
         }
 
-    # ordenar chunks
+    # --------------------------------------------------------
+    # normalização
+    # --------------------------------------------------------
 
     for dataset in datasets.values():
 
         dataset["chunks"] = sorted(dataset["chunks"])
+
+        dataset["chunked"] = (
+
+            len(dataset["chunks"]) > 0
+
+        )
 
     return datasets
 
@@ -230,9 +258,11 @@ def discover_datasets(files):
 def load_single_dataframe(path: Path):
 
     if path.suffix == ".csv":
+
         return pd.read_csv(path)
 
     if path.suffix == ".parquet":
+
         return pd.read_parquet(path)
 
     return None
@@ -247,17 +277,20 @@ def build_dataset_metadata(dataset):
     files = dataset["files"]
 
     size = sum(
+
         f.stat().st_size
+
         for f in files
+
     )
 
-    metadata = {
+    return {
 
         "name": dataset["name"],
 
         "logical": dataset["logical"],
 
-        "chunked": dataset["chunked"],
+        "chunked": len(dataset["chunks"]) > 0,
 
         "chunks": len(dataset["chunks"]),
 
@@ -281,15 +314,19 @@ def build_dataset_metadata(dataset):
 
         "status": "UNKNOWN"
 
-    }
-
-    return metadata
+            }
 
 # ============================================================
 # WORKSPACE
 # ============================================================
 
 class Workspace:
+
+    """
+    Camada única de acesso aos dados da série L3.
+
+    Observatórios NÃO devem acessar arquivos diretamente.
+    """
 
     def __init__(self, root: Path = RESULTS_ROOT):
 
@@ -321,20 +358,20 @@ class Workspace:
 
         try:
 
+            first_file = dataset["files"][0]
+
             # ------------------------------------------------
-            # DATASET NÃO TABULAR
+            # NÃO TABULAR
             # ------------------------------------------------
 
-            first = dataset["files"][0]
-
-            if first.suffix not in (".csv", ".parquet"):
+            if first_file.suffix not in (".csv", ".parquet"):
 
                 metadata["status"] = "NOT_A_TABLE"
 
                 return metadata
 
             # ------------------------------------------------
-            # CHUNKED DATASET
+            # DATASET CHUNKED
             # ------------------------------------------------
 
             if dataset["chunked"]:
@@ -393,7 +430,7 @@ class Workspace:
             # DATASET ÚNICO
             # ------------------------------------------------
 
-            df = load_single_dataframe(first)
+            df = load_single_dataframe(first_file)
 
             metadata["rows"] = int(len(df))
 
@@ -443,88 +480,15 @@ class Workspace:
 
     # --------------------------------------------------------
 
-    def get_metadata(self, dataset):
-
-        return self.metadata[dataset]
-
-    # --------------------------------------------------------
-
     def exists(self, dataset):
 
         return dataset in self.datasets
 
     # --------------------------------------------------------
 
-    def load_dataframe(self, dataset):
+    def get_metadata(self, dataset):
 
-        info = self.datasets[dataset]
-
-        # --------------------------------------------
-        # DATASET CHUNKED
-        # --------------------------------------------
-
-        if info["chunked"]:
-
-            frames = []
-
-            for chunk in info["chunks"]:
-
-                frames.append(
-                    pd.read_parquet(chunk)
-                )
-
-            return pd.concat(
-                frames,
-                ignore_index=True
-            )
-
-        # --------------------------------------------
-        # DATASET ÚNICO
-        # --------------------------------------------
-
-        return load_single_dataframe(
-            info["files"][0]
-        )
-
-    # --------------------------------------------------------
-
-    def iter_chunks(self, dataset):
-
-        info = self.datasets[dataset]
-
-        if info["chunked"]:
-
-            for chunk in info["chunks"]:
-
-                yield pd.read_parquet(chunk)
-
-        else:
-
-            yield self.load_dataframe(dataset)
-
-    # --------------------------------------------------------
-
-    def load_preview(
-        self,
-        dataset,
-        rows=5
-    ):
-
-        df = self.load_dataframe(dataset)
-
-        return json.loads(
-
-            json.dumps(
-
-                df.head(rows).to_dict(
-                    orient="records"
-                ),
-
-                default=json_serializer
-
-            )
-
-        )
+        return self.metadata[dataset]
 
     # --------------------------------------------------------
 
@@ -550,6 +514,124 @@ class Workspace:
 
     # --------------------------------------------------------
 
+    def load_dataframe(self, dataset):
+
+        """
+        Carrega o dataset completo.
+
+        Recomendado apenas para datasets pequenos ou médios.
+
+        Para grandes datasets utilizar iter_chunks().
+        """
+
+        info = self.datasets[dataset]
+
+        # --------------------------------------------
+        # DATASET CHUNKED
+        # --------------------------------------------
+
+        if info["chunked"]:
+
+            frames = []
+
+            for chunk in info["chunks"]:
+
+                frames.append(
+
+                    pd.read_parquet(chunk)
+
+                )
+
+            return pd.concat(
+
+                frames,
+
+                ignore_index=True
+
+            )
+
+        # --------------------------------------------
+        # DATASET ÚNICO
+        # --------------------------------------------
+
+        return load_single_dataframe(
+
+            info["files"][0]
+
+        )
+
+    # --------------------------------------------------------
+
+    def iter_chunks(self, dataset):
+
+        """
+        Iterador para processamento streaming.
+
+        Deve ser o método preferido pelos observatórios L3.
+        """
+
+        info = self.datasets[dataset]
+
+        if info["chunked"]:
+
+            for chunk in info["chunks"]:
+
+                yield pd.read_parquet(chunk)
+
+        else:
+
+            yield self.load_dataframe(dataset)
+
+    # --------------------------------------------------------
+
+    def load_preview(
+        self,
+        dataset,
+        rows=5
+    ):
+
+        """
+        Retorna apenas uma pequena amostra.
+
+        Nunca concatena todos os chunks.
+        """
+
+        info = self.datasets[dataset]
+
+        if info["chunked"]:
+
+            df = pd.read_parquet(
+
+                info["chunks"][0]
+
+            )
+
+        else:
+
+            df = load_single_dataframe(
+
+                info["files"][0]
+
+            )
+
+        return json.loads(
+
+            json.dumps(
+
+                df.head(rows).to_dict(
+
+                    orient="records"
+
+                ),
+
+                default=json_serializer
+
+            )
+
+        )
+
+    # --------------------------------------------------------
+
     def summary(self):
 
         report = []
@@ -562,30 +644,40 @@ class Workspace:
 
         report.append("")
 
-        for name in self.list_datasets():
+        for dataset in self.list_datasets():
 
-            meta = self.get_metadata(name)
+            meta = self.get_metadata(dataset)
 
-            report.append(name)
+            report.append(dataset)
 
             report.append(
+
                 f"  status   : {meta['status']}"
+
             )
 
             report.append(
+
                 f"  rows     : {meta['rows']}"
+
             )
 
             report.append(
+
                 f"  columns  : {meta['columns']}"
+
             )
 
             report.append(
+
                 f"  chunked  : {meta['chunked']}"
+
             )
 
             report.append(
+
                 f"  chunks   : {meta['chunks']}"
+
             )
 
             report.append("")
@@ -606,39 +698,78 @@ def build_workspace():
     ws = Workspace()
 
     catalog = []
+
     schemas = {}
+
     previews = {}
+
+    manifest = {}
+
+    index = {}
+
+    # --------------------------------------------------------
+    # BUILD
+    # --------------------------------------------------------
 
     for dataset in ws.list_datasets():
 
-        meta = dict(ws.get_metadata(dataset))
+        meta = dict(
+
+            ws.get_metadata(dataset)
+
+        )
 
         catalog.append(meta)
+
+        index[dataset] = meta
+
+        manifest[dataset] = {
+
+            "category": meta["category"],
+
+            "logical": meta["logical"],
+
+            "status": meta["status"],
+
+            "chunked": meta["chunked"],
+
+            "chunks": meta["chunks"],
+
+            "rows": meta["rows"],
+
+            "columns": meta["columns"]
+
+        }
 
         if meta["status"] == "OK":
 
             schemas[dataset] = {
 
                 "rows": meta["rows"],
+
                 "columns": meta["columns"],
+
                 "column_names": meta["column_names"],
+
                 "dtypes": meta["dtypes"],
+
                 "missing_values": meta["missing_values"],
+
                 "memory_bytes": meta["memory_bytes"],
+
                 "chunked": meta["chunked"],
+
                 "chunks": meta["chunks"]
 
             }
 
             previews[dataset] = ws.load_preview(dataset)
 
-    df = pd.DataFrame(catalog)
+    # ========================================================
+    # CATALOG CSV
+    # ========================================================
 
-    # --------------------------------------------------------
-    # CSV
-    # --------------------------------------------------------
-
-    df.to_csv(
+    pd.DataFrame(catalog).to_csv(
 
         WORKSPACE_DIR / "workspace_catalog.csv",
 
@@ -646,9 +777,9 @@ def build_workspace():
 
     )
 
-    # --------------------------------------------------------
-    # JSON
-    # --------------------------------------------------------
+    # ========================================================
+    # CATALOG JSON
+    # ========================================================
 
     with open(
 
@@ -674,9 +805,9 @@ def build_workspace():
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # SCHEMA
-    # --------------------------------------------------------
+    # ========================================================
 
     with open(
 
@@ -702,9 +833,9 @@ def build_workspace():
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # PREVIEW
-    # --------------------------------------------------------
+    # ========================================================
 
     with open(
 
@@ -730,15 +861,9 @@ def build_workspace():
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # INDEX
-    # --------------------------------------------------------
-
-    index = {}
-
-    for dataset in ws.list_datasets():
-
-        index[dataset] = ws.get_metadata(dataset)
+    # ========================================================
 
     with open(
 
@@ -764,9 +889,37 @@ def build_workspace():
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
+    # MANIFEST
+    # ========================================================
+
+    with open(
+
+        WORKSPACE_DIR / "workspace_manifest.json",
+
+        "w",
+
+        encoding="utf8"
+
+    ) as f:
+
+        json.dump(
+
+            manifest,
+
+            f,
+
+            indent=4,
+
+            ensure_ascii=False,
+
+            default=json_serializer
+
+        )
+
+    # ========================================================
     # SUMMARY
-    # --------------------------------------------------------
+    # ========================================================
 
     lines = []
 
@@ -778,7 +931,12 @@ def build_workspace():
     lines.append(f"Root : {RESULTS_ROOT}")
     lines.append("")
 
-    lines.append(f"Datasets : {len(ws.list_datasets())}")
+    lines.append(
+
+        f"Datasets : {len(ws.list_datasets())}"
+
+    )
+
     lines.append("")
 
     for dataset in ws.list_datasets():
@@ -787,12 +945,48 @@ def build_workspace():
 
         lines.append(dataset)
 
-        lines.append(f"    Status      : {meta['status']}")
-        lines.append(f"    Rows        : {meta['rows']}")
-        lines.append(f"    Columns     : {meta['columns']}")
-        lines.append(f"    Chunked     : {meta['chunked']}")
-        lines.append(f"    Chunks      : {meta['chunks']}")
-        lines.append(f"    Category    : {meta['category']}")
+        lines.append(
+
+            f"    Status      : {meta['status']}"
+
+        )
+
+        lines.append(
+
+            f"    Category    : {meta['category']}"
+
+        )
+
+        lines.append(
+
+            f"    Logical     : {meta['logical']}"
+
+        )
+
+        lines.append(
+
+            f"    Rows        : {meta['rows']}"
+
+        )
+
+        lines.append(
+
+            f"    Columns     : {meta['columns']}"
+
+        )
+
+        lines.append(
+
+            f"    Chunked     : {meta['chunked']}"
+
+        )
+
+        lines.append(
+
+            f"    Chunks      : {meta['chunks']}"
+
+        )
+
         lines.append("")
 
     with open(
@@ -805,10 +999,13 @@ def build_workspace():
 
     ) as f:
 
-        f.write("\n".join(lines))
+        f.write(
+
+            "\n".join(lines)
+
+        )
 
     return ws
-
 
 # ============================================================
 # DASHBOARD
@@ -829,6 +1026,7 @@ def print_dashboard(ws):
 
         print(f"    Status      : {meta['status']}")
         print(f"    Category    : {meta['category']}")
+        print(f"    Logical     : {meta['logical']}")
         print(f"    Chunked     : {meta['chunked']}")
         print(f"    Chunks      : {meta['chunks']}")
 
@@ -840,12 +1038,11 @@ def print_dashboard(ws):
             if meta["column_names"]:
 
                 print()
-
                 print("    Fields")
 
-                for c in meta["column_names"]:
+                for column in meta["column_names"]:
 
-                    print(f"       - {c}")
+                    print(f"       - {column}")
 
         else:
 
@@ -871,12 +1068,21 @@ def print_dashboard(ws):
 
     print("Generated")
 
-    print("   workspace_catalog.csv")
-    print("   workspace_catalog.json")
-    print("   workspace_schema.json")
-    print("   workspace_preview.json")
-    print("   workspace_index.json")
-    print("   workspace_summary.txt")
+    generated = [
+
+        "workspace_catalog.csv",
+        "workspace_catalog.json",
+        "workspace_schema.json",
+        "workspace_preview.json",
+        "workspace_index.json",
+        "workspace_manifest.json",
+        "workspace_summary.txt",
+
+    ]
+
+    for file in generated:
+
+        print(f"   {file}")
 
     print()
 
