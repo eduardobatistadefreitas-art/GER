@@ -1090,6 +1090,46 @@ def print_dashboard(ws):
     print("Workspace ready.")
     print("=" * 60)
 
+# ============================================================
+# PUBLIC API
+# ============================================================
+
+def get_workspace():
+    """
+    Builds and returns the complete workspace dictionary.
+    """
+    return build_workspace()
+
+
+def load_dataset(name: str):
+    """
+    Loads a dataset from the workspace.
+
+    Parameters
+    ----------
+    name : str
+        Dataset logical name.
+
+    Returns
+    -------
+    pandas.DataFrame
+    """
+
+    workspace = build_workspace()
+
+    datasets = workspace["datasets"]
+
+    if name not in datasets:
+        raise KeyError(f"Dataset '{name}' not found.")
+
+    dataset = datasets[name]
+
+    if dataset["status"] != "OK":
+        raise RuntimeError(
+            f"Dataset '{name}' is not available."
+        )
+
+    return dataset["data"]
 
 # ============================================================
 # MAIN
