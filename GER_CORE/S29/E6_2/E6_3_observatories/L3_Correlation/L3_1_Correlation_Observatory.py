@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .L3_0_Workspace_Manager import WorkspaceManager
+from .L3_0_Workspace_Manager import load_dataset
 
 
 # ============================================================
@@ -105,11 +105,11 @@ def classify_strength(value: float) -> str:
 # LOAD SIGNATURES
 # ============================================================
 
-def load_signatures(workspace):
+def load_signatures():
 
     print("Loading signatures...")
 
-    df = workspace.load("signatures")
+    df = load_dataset("signatures")
 
     df = df[CORRELATION_FIELDS].copy()
 
@@ -447,18 +447,7 @@ def main():
 
     banner()
 
-    workspace = WorkspaceManager()
-
-    workspace.load_workspace()
-
-
-
-    signatures = load_signatures(
-
-        workspace
-
-    )
-
+    signatures = load_signatures()
 
 
     correlation, covariance, absolute = (
