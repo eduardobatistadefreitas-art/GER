@@ -1,13 +1,13 @@
 """
-GER_CORE/S29/E6_2/E6_3_observatories/L3_0_Workspace_Builder.py
+GER_CORE/S29/E6_2/E6_3_observatories/L3_Correlation/L3_0_Workspace_Builder.py
 
 GER - Geometria Espectral Relacional
 S29 / E6.3
 
 L3.0 - Observatory Workspace Builder
 
-Constrói automaticamente um Workspace contendo um catálogo
-completo dos artefatos produzidos pela E6.3.
+Constrói automaticamente um catálogo completo dos artefatos
+produzidos pela E6.3.
 
 Suporta:
 
@@ -15,8 +15,6 @@ Suporta:
     PARQUET
     JSON
     TXT
-
-Autor: Eduardo Batista de Freitas
 """
 
 from __future__ import annotations
@@ -24,6 +22,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 
@@ -36,6 +35,43 @@ RESULTS_ROOT = Path(
 )
 
 WORKSPACE_DIR = RESULTS_ROOT / "workspace"
+
+
+# ============================================================
+# SERIALIZAÇÃO JSON
+# ============================================================
+
+def json_serializer(obj):
+    """
+    Converte automaticamente qualquer objeto incompatível
+    com JSON.
+    """
+
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+
+    if isinstance(obj, np.integer):
+        return int(obj)
+
+    if isinstance(obj, np.floating):
+        return float(obj)
+
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+
+    if isinstance(obj, pd.Timestamp):
+        return obj.isoformat()
+
+    if isinstance(obj, pd.Timedelta):
+        return str(obj)
+
+    if isinstance(obj, Path):
+        return str(obj)
+
+    if isinstance(obj, set):
+        return list(obj)
+
+    return str(obj)
 
 
 # ============================================================
@@ -95,6 +131,12 @@ def classify_file(path: Path):
     if "metadata" in name:
         return "Metadata"
 
+    if "checkpoint" in name:
+        return "Checkpoint"
+
+    if "log" in name:
+        return "Log"
+
     return "Unknown"
 
 
@@ -107,11 +149,9 @@ def load_dataframe(path: Path):
     suffix = path.suffix.lower()
 
     if suffix == ".csv":
-
         return pd.read_csv(path)
 
     if suffix == ".parquet":
-
         return pd.read_parquet(path)
 
     return None
@@ -142,10 +182,11 @@ def inspect_table(path: Path):
 
             }
 
-        preview = (
-            df
-            .head(5)
-            .to_dict(orient="records")
+        preview = json.loads(
+            json.dumps(
+                df.head(5).to_dict(orient="records"),
+                default=json_serializer
+            )
         )
 
         return {
@@ -157,11 +198,8 @@ def inspect_table(path: Path):
             "column_names": list(df.columns),
 
             "dtypes": {
-
                 c: str(t)
-
                 for c, t in df.dtypes.items()
-
             },
 
             "missing_values": int(
@@ -169,9 +207,7 @@ def inspect_table(path: Path):
             ),
 
             "memory_bytes": int(
-                df.memory_usage(
-                    deep=True
-                ).sum()
+                df.memory_usage(deep=True).sum()
             ),
 
             "preview": preview,
@@ -201,7 +237,10 @@ def inspect_table(path: Path):
 
 def build_workspace():
 
-    WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
+    WORKSPACE_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
     files = discover_files(RESULTS_ROOT)
 
@@ -214,10 +253,12 @@ def build_workspace():
         entry = {
 
             "name": path.name,
-            "relative_path": str(path.relative_to(RESULTS_ROOT)),
+            "relative_path": str(
+                path.relative_to(RESULTS_ROOT)
+            ),
             "extension": path.suffix.lower(),
             "category": classify_file(path),
-            "size_bytes": path.stat().st_size
+            "size_bytes": int(path.stat().st_size)
 
         }
 
@@ -244,9 +285,9 @@ def build_workspace():
 
     df = pd.DataFrame(catalog)
 
-    # --------------------------------------------------------
-    # CATÁLOGO CSV
-    # --------------------------------------------------------
+    # ========================================================
+    # CATALOG CSV
+    # ========================================================
 
     df.to_csv(
 
@@ -256,9 +297,9 @@ def build_workspace():
 
     )
 
-    # --------------------------------------------------------
-    # CATÁLOGO JSON
-    # --------------------------------------------------------
+    # ========================================================
+    # CATALOG JSON
+    # ========================================================
 
     with open(
 
@@ -278,13 +319,15 @@ def build_workspace():
 
             indent=4,
 
-            ensure_ascii=False
+            ensure_ascii=False,
+
+            default=json_serializer
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # SCHEMA
-    # --------------------------------------------------------
+    # ========================================================
 
     with open(
 
@@ -304,13 +347,15 @@ def build_workspace():
 
             indent=4,
 
-            ensure_ascii=False
+            ensure_ascii=False,
+
+            default=json_serializer
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # PREVIEW
-    # --------------------------------------------------------
+    # ========================================================
 
     with open(
 
@@ -332,13 +377,13 @@ def build_workspace():
 
             ensure_ascii=False,
 
-            default=str
+            default=json_serializer
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # INDEX
-    # --------------------------------------------------------
+    # ========================================================
 
     index = {
 
@@ -366,13 +411,15 @@ def build_workspace():
 
             indent=4,
 
-            ensure_ascii=False
+            ensure_ascii=False,
+
+            default=json_serializer
 
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # SUMMARY
-    # --------------------------------------------------------
+    # ========================================================
 
     summary = []
 
@@ -386,17 +433,17 @@ def build_workspace():
 
     for ext in [".csv", ".parquet", ".json", ".txt"]:
 
-        count = int((df["extension"] == ext).sum())
+        total = int((df["extension"] == ext).sum())
 
-        summary.append(f"{ext:<10} : {count}")
+        summary.append(f"{ext:<10} : {total}")
 
     summary.append("")
     summary.append("CATEGORIES")
     summary.append("-" * 60)
 
-    for cat, count in df["category"].value_counts().items():
+    for cat, total in df["category"].value_counts().items():
 
-        summary.append(f"{cat:<20} {count}")
+        summary.append(f"{cat:<20}{total}")
 
     with open(
 
@@ -436,22 +483,21 @@ def main():
         print(f"✓ {row['name']}")
 
         print(f"    Category : {row['category']}")
-
         print(f"    Type     : {row['extension']}")
 
         if pd.notna(row["rows"]):
 
             print(f"    Rows     : {int(row['rows'])}")
-
             print(f"    Columns  : {int(row['columns'])}")
 
-            if isinstance(row["column_names"], list):
+            cols = row["column_names"]
 
-                print("")
+            if isinstance(cols, list):
 
+                print()
                 print("    Fields")
 
-                for col in row["column_names"]:
+                for col in cols:
 
                     print(f"       - {col}")
 
@@ -461,52 +507,35 @@ def main():
 
     print()
     print("=" * 60)
-
     print("SUMMARY")
-
     print("=" * 60)
 
-    print(f"Files       : {len(df)}")
-
-    print(f"CSV         : {(df.extension=='.csv').sum()}")
-
-    print(f"PARQUET     : {(df.extension=='.parquet').sum()}")
-
-    print(f"JSON        : {(df.extension=='.json').sum()}")
-
-    print(f"TXT         : {(df.extension=='.txt').sum()}")
+    print(f"Files      : {len(df)}")
+    print(f"CSV        : {(df.extension=='.csv').sum()}")
+    print(f"PARQUET    : {(df.extension=='.parquet').sum()}")
+    print(f"JSON       : {(df.extension=='.json').sum()}")
+    print(f"TXT        : {(df.extension=='.txt').sum()}")
 
     print()
-
     print("Workspace")
 
     print(WORKSPACE_DIR)
 
     print()
-
-    print("Generated")
+    print("Generated files")
 
     print("   workspace_catalog.csv")
-
     print("   workspace_catalog.json")
-
     print("   workspace_schema.json")
-
     print("   workspace_preview.json")
-
     print("   workspace_index.json")
-
     print("   workspace_summary.txt")
 
     print()
-
     print("=" * 60)
-
     print("Workspace successfully built.")
-
     print("=" * 60)
 
 
 if __name__ == "__main__":
-
     main()
