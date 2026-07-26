@@ -112,7 +112,11 @@ observables = atlas.loc[
     "Observable"
 ].tolist()
 
-matrix = space.to_numpy()
+space = space.apply(pd.to_numeric, errors="coerce")
+
+space = space.dropna()
+
+matrix = space.to_numpy(dtype=np.float64)
 
 dimension = matrix.shape[1]
 
