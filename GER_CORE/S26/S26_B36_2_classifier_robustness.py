@@ -19,8 +19,9 @@ import numpy as np
 # ============================================================
 
 
-from GER_CORE.S26.S26_B36_stationary_scan import stationary_scan
-
+from GER_CORE.S26.S26_B36_1_classifier_audit import (
+    run_classifier_audit,
+)
 
 
 # ------------------------------------------------------------
@@ -31,14 +32,21 @@ def run_single_test(
     observables,
     dt,
     K,
-    epsilon
+    epsilon,
 ):
+    """
+    Executa uma classificação utilizando
+    o Classifier Audit oficial.
 
-    result = run_stationary_scan(
+    O parâmetro epsilon é mantido apenas para
+    compatibilidade da interface. Atualmente
+    o classificador não depende dele.
+    """
+
+    result = run_classifier_audit(
         observables,
-        dt=dt,
+        dt,
         K=K,
-        epsilon=epsilon
     )
 
     return {
