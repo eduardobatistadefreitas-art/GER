@@ -4,7 +4,7 @@ import os
 
 from GER.CORE.ger_engine import run_engine
 
-from GER_CORE.S26_B35_persistence_metrics import (
+from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 from GER.CORE.signature_api import Signature
