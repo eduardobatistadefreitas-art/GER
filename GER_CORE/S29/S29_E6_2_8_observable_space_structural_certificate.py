@@ -213,8 +213,8 @@ structural_certificate = {
         bounding["hyperbox_volume"],
 
     "compactness":
-
-    bounding["compactness_index"],
+    
+        bounding["compactness_index"],
 
         # --------------------------------------------------------
     # Density
