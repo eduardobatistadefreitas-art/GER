@@ -10,7 +10,7 @@
 # Apenas verifica conformidade com a especificação.
 # ============================================================
 
-from GER_CORE.S26_B36_stationary_scan import (
+from GER_CORE.S26.S26_B36_stationary_scan import (
     stationary_scan,
 )
 
