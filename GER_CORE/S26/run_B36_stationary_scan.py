@@ -173,13 +173,9 @@ def run_B36_stationary_scan(
     print("5) Saving results...")
 
     save_json(
-
+        "S26_B36_stationary_scan",
+        "stationary_scan",
         result,
-
-        experiment="S26_B36_stationary_scan",
-
-        filename="stationary_scan.json",
-
     )
 
     print("OK")
