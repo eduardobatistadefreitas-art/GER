@@ -47,7 +47,7 @@ BASE = Path(
 BOUNDING = (
     BASE
     / "E6_2_1_BoundingGeometry"
-    / "bounding_certificate.json"
+    / "scientific_certificate.json"
 )
 
 DENSITY = (
