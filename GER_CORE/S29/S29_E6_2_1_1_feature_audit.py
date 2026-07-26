@@ -32,7 +32,7 @@ import pandas as pd
 INPUT_ROOT = Path("/content/drive/MyDrive/GER_RESULTS/S29_E6.1")
 INPUT_FILE = (
     INPUT_ROOT
-    / "E6_1_16_StructuralAtlas"
+    / "L16_StructuralAtlas"
     / "structural_atlas.csv"
 )
 
