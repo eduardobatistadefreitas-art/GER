@@ -131,7 +131,6 @@ def run_B36(**engine_kwargs):
         stationary = stationary_scan(
                 
                 observables,
-                dt,
         )
 
         results["stationary_scan"] = stationary
