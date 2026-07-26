@@ -214,7 +214,7 @@ structural_certificate = {
 
     "compactness":
 
-        bounding["compactness"],
+    bounding["compactness_index"],
 
         # --------------------------------------------------------
     # Density
