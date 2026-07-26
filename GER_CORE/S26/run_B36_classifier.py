@@ -35,7 +35,7 @@ from GER_CORE.S26.S26_B36_2_classifier_robustness import (
     run_classifier_robustness,
 )
 
-from GER.CORE.result_manager import (
+from GER_CORE.S26.OPERATORS.result_manager import (
     save_json,
 )
 
@@ -60,7 +60,13 @@ def run_B36_classifier():
     print()
     print("1) Running Engine...")
 
-    snapshots = run_engine()
+    engine = run_engine(
+        beta=beta,
+        sigma=sigma,
+        potential=potential,
+        timesteps=timesteps,
+        dt=dt,
+    )
 
     print("OK")
 
@@ -200,13 +206,20 @@ def run_B36_classifier():
     # --------------------------------------------------------
 
     result = {
-
-        "classification":
-            classification,
-
-        "robustness":
-            robustness
-
+        "configuration": {
+            
+            "beta": beta,
+            "sigma": sigma,
+            "potential": potential,
+            "timesteps": timesteps,
+            "dt": dt,
+            
+        },
+        
+        "classification": classification,
+        
+        "robustness": robustness,
+        
     }
 
     # --------------------------------------------------------
