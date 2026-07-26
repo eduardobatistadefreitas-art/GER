@@ -242,7 +242,7 @@ structural_certificate = {
 
     "most_concentrated":
 
-        concentration["most_concentrated"],
+        concentration["most_concentrated_observable"],
 
     "mean_concentration":
 
@@ -262,7 +262,7 @@ structural_certificate = {
 
     "maximum_distance":
 
-        relational["maximum_distance"],
+        relational["maximum_distance_to_nucleus"],
 
     # --------------------------------------------------------
     # Occupancy
