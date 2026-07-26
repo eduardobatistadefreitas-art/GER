@@ -2,7 +2,6 @@ import os
 import json
 from datetime import datetime
 
-
 # ============================================================
 # S26-B36.1
 # Classificador de Regimes Dinâmicos
@@ -20,6 +19,7 @@ from datetime import datetime
 # ============================================================
 # Salvamento dos Resultados
 # ============================================================
+from GER_CORE.S26.OPERATORS.result_manager import save_json
 
 def save_classifier_audit(result):
 
@@ -275,13 +275,16 @@ def classify_regime(
 # ============================================================
 
 def run_classifier_audit(obs, dt, K=None):
+    """
+    Interface pública oficial do Classifier Audit.
+    """
 
-    result = classify_regime(
-        obs,
-        dt,
-        K=K
+    result = classify_regime(obs, dt, K=K)
+
+    save_json(
+        "S26_B36_1_classifier_audit",
+        "classifier_audit",
+        result
     )
-
-    save_classifier_audit(result)
 
     return result
