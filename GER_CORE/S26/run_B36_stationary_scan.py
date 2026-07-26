@@ -25,22 +25,21 @@ from pprint import pprint
 
 from GER.CORE.ger_engine import run_engine
 
-from GER_CORE.S26_B35_persistence_metrics import (
+from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-from GER_CORE.S26_B36_geometry_scan import (
+from GER_CORE.S26.S26_B36_geometry_scan import (
     generate_signature,
 )
 
-from GER_CORE.S26_B36_stationary_scan import (
+from GER_CORE.S26.S26_B36_stationary_scan import (
     stationary_scan,
 )
 
 from GER_CORE.S26.OPERATORS.result_manager import (
     save_json,
 )
-
 
 def run_B36_stationary_scan(
     beta=1.0,
