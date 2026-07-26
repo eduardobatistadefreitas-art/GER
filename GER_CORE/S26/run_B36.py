@@ -35,14 +35,15 @@ from GER_CORE.S26.S26_B35_persistence_metrics import (
 )
 
 from GER_CORE.S26_B36_stationary_scan import (
+from GER_CORE.S26.S26_B36_stationary_scan import (
     run_stationary_scan,
 )
 
-from GER_CORE.S26_B36_1_classifier_audit import (
+from GER_CORE.S26.S26_B36_1_classifier_audit import (
     run_classifier_audit,
 )
 
-from GER_CORE.S26_B36_2_classifier_robustness import (
+from GER_CORE.S26.S26_B36_2_classifier_robustness import (
     run_classifier_robustness,
 )
 
