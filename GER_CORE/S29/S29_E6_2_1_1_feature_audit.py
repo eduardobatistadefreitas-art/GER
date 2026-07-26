@@ -29,7 +29,7 @@ import pandas as pd
 # PATHS
 # ======================================================================
 
-INPUT_ROOT = Path("/content/drive/MyDrive/GER_RESULTS/S29_E6.2")
+INPUT_ROOT = Path("/content/drive/MyDrive/GER_RESULTS/S29_E6.1")
 INPUT_FILE = (
     INPUT_ROOT
     / "E6_1_16_StructuralAtlas"
