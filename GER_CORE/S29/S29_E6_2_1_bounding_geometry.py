@@ -1,15 +1,22 @@
-from pathlib import Path
-import json
-import numpy as np
-import pandas as pd
-
 # ============================================================
 # GER
 # S29-E6.2.1
 # Bounding Geometry of the Observable Space
 # ============================================================
 
+from pathlib import Path
+import json
+import numpy as np
+import pandas as pd
+
 ROOT = Path("/content/drive/MyDrive/GER_RESULTS/S29_E6.1")
+
+# Alteração 1: Adicionar a leitura da máscara
+MASK_FILE = (
+    Path("/content/drive/MyDrive/GER_RESULTS/S29_E6.2")
+    / "E6_2_1_1_FeatureAudit"
+    / "geometric_feature_mask.csv"
+)
 
 OUT = ROOT / "E6_2_1_BoundingGeometry"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -57,32 +64,40 @@ if atlas is None:
 
     )
 
+# Alteração 2: Carregar a máscara
+mask = load_csv(MASK_FILE)
+
+if mask is None:
+
+    raise FileNotFoundError(
+
+        f"geometric_feature_mask.csv not found at {MASK_FILE}"
+
+    )
+
+# Alteração 3: Construir a lista oficial de atributos
+geometry_features = (
+    mask.loc[
+        mask["RecommendedForGeometry"],
+        "Feature"
+    ]
+    .tolist()
+)
+
+if len(geometry_features) == 0:
+
+    raise RuntimeError(
+
+        "No features recommended for geometry found in mask."
+
+    )
 
 # ============================================================
 # NUMERIC SPACE
 # ============================================================
 
-numeric_columns = []
-
-for col in atlas.columns:
-
-    if col.lower() == "observable":
-
-        continue
-
-    if pd.api.types.is_numeric_dtype(atlas[col]):
-
-        numeric_columns.append(col)
-
-if len(numeric_columns) == 0:
-
-    raise RuntimeError(
-
-        "No numeric observables found."
-
-    )
-
-space = atlas[numeric_columns].copy()
+# Alteração 4: Filtrar o atlas com a lista oficial de atributos
+space = atlas[geometry_features].copy()
 
 space = space.replace(
 
@@ -97,16 +112,6 @@ space = space.replace(
 
 )
 
-space = space.dropna()
-
-if len(space) == 0:
-
-    raise RuntimeError(
-
-        "Observable space is empty."
-
-    )
-
 observables = atlas.loc[
     space.index,
     "Observable"
@@ -115,6 +120,14 @@ observables = atlas.loc[
 space = space.apply(pd.to_numeric, errors="coerce")
 
 space = space.dropna()
+
+if len(space) == 0:
+
+    raise RuntimeError(
+
+        "Observable space is empty after cleaning."
+
+    )
 
 matrix = space.to_numpy(dtype=np.float64)
 
@@ -150,7 +163,7 @@ ranges = maximum - minimum
 
 bounding = pd.DataFrame({
 
-    "Dimension": numeric_columns,
+    "Dimension": geometry_features,
 
     "Minimum": minimum,
 
@@ -183,7 +196,7 @@ centroid = np.mean(
 
 centroid_df = pd.DataFrame({
 
-    "Dimension": numeric_columns,
+    "Dimension": geometry_features,
 
     "Centroid": centroid
 
@@ -281,7 +294,7 @@ volume = float(
 
 statistics = []
 
-for i, column in enumerate(numeric_columns):
+for i, column in enumerate(geometry_features):
 
     values = matrix[:, i]
 
@@ -340,7 +353,7 @@ range_cv = (
 
 anisotropy_df = pd.DataFrame({
 
-    "Dimension": numeric_columns,
+    "Dimension": geometry_features,
 
     "Range": ranges,
 
@@ -375,7 +388,7 @@ collapsed = ranges <= collapsed_threshold
 
 collapsed_df = pd.DataFrame({
 
-    "Dimension": numeric_columns,
+    "Dimension": geometry_features,
 
     "Collapsed": collapsed,
 
@@ -398,7 +411,7 @@ collapsed_df.to_csv(
 
 bounding_box = pd.DataFrame({
 
-    "Dimension": numeric_columns,
+    "Dimension": geometry_features,
 
     "Minimum": minimum,
 
@@ -611,6 +624,7 @@ ordered_dimensions.to_csv(
 # GEOMETRY REPORT
 # ============================================================
 
+# Alteração 6: Atualizar o relatório com as informações da máscara
 with open(
 
     OUT /
@@ -625,6 +639,13 @@ with open(
     f.write("S29-E6.2.1\n")
     f.write("Bounding Geometry of the Observable Space\n")
     f.write("=" * 60 + "\n\n")
+
+    f.write("Geometry built from certified feature mask.\n")
+    f.write(f"Certified dimensions: {len(geometry_features)}\n")
+    f.write("Features used:\n")
+    for feature in geometry_features:
+        f.write(f" - {feature}\n")
+    f.write("\n" + "-" * 60 + "\n\n")
 
     f.write(f"Observables              : {samples}\n")
     f.write(f"Dimensions               : {dimension}\n")
@@ -673,11 +694,16 @@ with open(
 # SCIENTIFIC CERTIFICATE
 # ============================================================
 
+# Alteração 5: Atualizar o certificado científico
 certificate = {
 
     "experiment": "S29-E6.2.1",
 
     "title": "Bounding Geometry of the Observable Space",
+
+    "feature_mask": str(MASK_FILE),
+
+    "geometry_dimensions": len(geometry_features),
 
     "observables": int(samples),
 
@@ -771,8 +797,8 @@ print("=" * 70)
 def main():
 
     pass
-    # (ou mover todo o código principal para dentro desta função)
 
 if __name__ == "__main__":
 
     main()
+    
