@@ -19,7 +19,7 @@ import numpy as np
 # ============================================================
 
 
-from GER_CORE.S26.S26_B36_stationary_scan import ...
+from GER_CORE.S26.S26_B36_stationary_scan import stationary_scan
 
 
 
