@@ -12,7 +12,7 @@
 
 from GER.CORE.ger_engine import run_engine
 
-from GER_CORE.S26_B36_geometry_scan import (
+from GER_CORE.S26.S26_B36_geometry_scan import (
     DEFAULT_BETAS,
     DEFAULT_SIGMAS,
     DEFAULT_POTENTIALS,
