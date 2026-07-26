@@ -34,7 +34,6 @@ from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-from GER_CORE.S26_B36_stationary_scan import (
 from GER_CORE.S26.S26_B36_stationary_scan import (
     run_stationary_scan,
 )
