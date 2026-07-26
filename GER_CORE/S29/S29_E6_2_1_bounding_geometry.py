@@ -1,8 +1,35 @@
-# ============================================================
-# GER
-# S29-E6.2.1
-# Bounding Geometry of the Observable Space
-# ============================================================
+"""
+============================================================
+GER
+S29-E6.2.1
+BOUNDING GEOMETRY OF THE OBSERVABLE SPACE
+============================================================
+
+Objective
+---------
+Characterize the global geometric envelope occupied by the
+Observable Space produced by the Structural Atlas.
+
+This experiment computes the fundamental geometric limits of
+the certified observable representation, including the
+bounding box, centroid, geometric radius, compactness and
+dimensional extent.
+
+The analysis is performed exclusively on the certified
+geometric features produced by the Feature Audit
+(S29-E6.2.1.1), ensuring that only geometrically meaningful
+attributes participate in the construction of the space.
+
+This experiment establishes the geometric boundary of the
+Observable Space and provides the reference structure for all
+subsequent occupancy analyses developed in the E6.2 series.
+
+python -m GER_CORE.S29.S29_E6_2_1_bounding_geometry
+
+Author
+Eduardo Batista de Freitas 
+GER Project
+"""
 
 from pathlib import Path
 import json
