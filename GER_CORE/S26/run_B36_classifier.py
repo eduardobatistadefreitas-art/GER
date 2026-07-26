@@ -44,7 +44,13 @@ from GER_CORE.S26.OPERATORS.result_manager import (
 # Runner
 # ============================================================
 
-def run_B36_classifier():
+def run_B36_classifier(
+    beta=1.0,
+    sigma=0.20,
+    potential="A",
+    timesteps=2000,
+    dt=2.5e-4,
+):
 
     print()
     print("=" * 70)
@@ -76,18 +82,13 @@ def run_B36_classifier():
 
     print()
     print("2) Running Persistence Observatory...")
-
+    
     observables = run_persistence_observatory(
-        snapshots
+        engine["snapshots"],
+        engine["configuration"]["dt"],
     )
 
     print("OK")
-
-    # --------------------------------------------------------
-    # Time Step
-    # --------------------------------------------------------
-
-    dt = 1.0
 
     # --------------------------------------------------------
     # Classifier Audit
@@ -97,8 +98,9 @@ def run_B36_classifier():
     print("3) Running Classifier Audit...")
 
     classification = run_classifier_audit(
+        
         observables,
-        dt,
+        engine["configuration"]["dt"],
     )
 
     print("OK")
