@@ -403,7 +403,6 @@ print(f"Most Peripheral       : {structural_certificate['most_peripheral_observa
 
 print()
 
-
 # ============================================================
 # Scientific Report
 # ============================================================
