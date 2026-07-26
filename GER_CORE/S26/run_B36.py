@@ -35,7 +35,7 @@ from GER_CORE.S26.S26_B35_persistence_metrics import (
 )
 
 from GER_CORE.S26.S26_B36_stationary_scan import (
-    run_stationary_scan,
+    stationary_scan,
 )
 
 from GER_CORE.S26.S26_B36_1_classifier_audit import (
@@ -128,9 +128,10 @@ def run_B36(**engine_kwargs):
 
     try:
 
-        stationary = run_stationary_scan(
-            observables,
-            dt,
+        stationary = stationary_scan(
+                
+                observables,
+                dt,
         )
 
         results["stationary_scan"] = stationary
