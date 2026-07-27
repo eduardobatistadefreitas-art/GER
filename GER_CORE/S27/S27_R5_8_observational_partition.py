@@ -16,11 +16,11 @@ from GER.CORE.partition_builder import build_partition
 
 from GER.CORE.signature_api import Signature
 
-from GER_CORE.S26_B35_persistence_metrics import (
+from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-from GER_CORE.S26_B36_geometry_scan import (
+from GER_CORE.S26.S26_B36_geometry_scan import (
     run_geometry_scan,
     build_trajectory,
     compute_confinement,
@@ -29,7 +29,7 @@ from GER_CORE.S26_B36_geometry_scan import (
     compute_drift,
 )
 
-from GER_CORE.S27_R5_5_geometric_signature import (
+from GER_CORE.S27.S27_R5_5_geometric_signature import (
     generate_snapshots,
 )
 
