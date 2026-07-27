@@ -8,7 +8,7 @@
 # Auditoria da estrutura algébrica das partições.
 # ============================================================
 
-from GER_CORE.S26_B36_geometry_scan import run_geometry_scan
+from GER_CORE.S26.S26_B36_geometry_scan import run_geometry_scan
 
 from GER.CORE.partition_builder import build_partition
 from GER.CORE.partition_algebra import meet
