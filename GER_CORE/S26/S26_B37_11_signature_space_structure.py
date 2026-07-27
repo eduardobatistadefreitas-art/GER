@@ -33,17 +33,15 @@ FIELDS = [
 # ============================================================
 
 def signature_to_vector(signature):
+    
+    if isinstance(signature, dict):
+        signature = signature["signature"]
 
     return [
-
         signature.diameter,
-
         signature.convergence,
-
         signature.recurrence,
-
         signature.drift,
-
     ]
 
 
