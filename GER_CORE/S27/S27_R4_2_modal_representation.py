@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from GER_CORE.S27_R4_1_logistic_state import (
+from GER_CORE.S27.S27_R4_1_logistic_state import (
     generate_logistic_state,
 )
 
