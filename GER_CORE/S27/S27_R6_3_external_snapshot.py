@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from GER_CORE.S27_R6_1_double_pendulum_state import (
+from GER_CORE.S27.S27_R6_1_double_pendulum_state import (
     generate_double_pendulum_state,
 )
 
