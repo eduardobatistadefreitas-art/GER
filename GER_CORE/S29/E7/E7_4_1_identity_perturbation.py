@@ -5,8 +5,7 @@ S29 - E7.4.1
 Identity Perturbation
 
 Evaluates the robustness of the canonical identity under
-controlled perturbations of each structural component of a
-DynamicRegime.
+controlled perturbations of a DynamicRegime.
 
 Author:
     Eduardo Batista de Freitas
@@ -14,7 +13,6 @@ Author:
 
 from __future__ import annotations
 
-import copy
 import json
 
 from pathlib import Path
@@ -77,7 +75,9 @@ def load_dynamic_regime(
 
         audit=Audit(
             **data["audit"]
-        ),
+        )
+        if data.get("audit") is not None
+        else None,
 
     )
 
@@ -199,7 +199,6 @@ def perturb_audit(
 
     )
 
-
 # ============================================================
 # MAIN
 # ============================================================
@@ -286,23 +285,28 @@ def main():
         print(f"[{name}]")
 
         print(
-            f"  Configuration : {result['configuration_match']}"
+            f"  Configuration : "
+            f"{result['configuration_match']}"
         )
 
         print(
-            f"  Signature     : {result['signature_match']}"
+            f"  Signature     : "
+            f"{result['signature_match']}"
         )
 
         print(
-            f"  Classification: {result['classification_match']}"
+            f"  Classification: "
+            f"{result['classification_match']}"
         )
 
         print(
-            f"  Audit         : {result['audit_match']}"
+            f"  Audit         : "
+            f"{result['audit_match']}"
         )
 
         print(
-            f"  Identity      : {result['canonical_identity']}"
+            f"  Canonical Identity : "
+            f"{result['canonical_identity']}"
         )
 
         print()
@@ -322,7 +326,7 @@ def main():
     )
 
     # ========================================================
-    # TEXT REPORT
+    # REPORT
     # ========================================================
 
     report_lines = []
@@ -340,8 +344,12 @@ def main():
     report_lines.append("")
 
     report_lines.append(
-        "{:<20} {:<8}".format(
+        "{:<20} {:<6} {:<6} {:<6} {:<6} {:<8}".format(
             "Perturbation",
+            "Cfg",
+            "Sig",
+            "Cls",
+            "Aud",
             "Identity",
         )
     )
@@ -350,19 +358,21 @@ def main():
 
     for result in results:
 
-        status = (
-            "TRUE"
-            if result["canonical_identity"]
-            else "FALSE"
-        )
-
         report_lines.append(
 
-            "{:<20} {:<8}".format(
+            "{:<20} {:<6} {:<6} {:<6} {:<6} {:<8}".format(
 
                 result["perturbation"],
 
-                status,
+                str(result["configuration_match"]),
+
+                str(result["signature_match"]),
+
+                str(result["classification_match"]),
+
+                str(result["audit_match"]),
+
+                str(result["canonical_identity"]),
 
             )
 
@@ -453,7 +463,6 @@ def main():
     print()
 
     print(f"Report : {report_file}")
-
     print(f"JSON   : {json_file}")
 
     print()
