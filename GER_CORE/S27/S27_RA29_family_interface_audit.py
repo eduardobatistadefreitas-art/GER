@@ -11,7 +11,7 @@
 
 import inspect
 
-import GER_CORE.S27_E5_2_lattice_generating_basis as family
+import GER_CORE.S27.S27_E5_2_lattice_generating_basis as family
 
 print("=" * 60)
 print("GER")
