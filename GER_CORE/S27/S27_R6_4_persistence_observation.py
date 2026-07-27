@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from GER_CORE.S27_R6_1_double_pendulum_state import (
+from GER_CORE.S27.S27_R6_1_double_pendulum_state import (
     generate_double_pendulum_state,
 )
 
@@ -19,7 +19,7 @@ from GER.CORE.ger_observational_snapshot import (
     build_observational_snapshot,
 )
 
-from GER_CORE.S26_B35_persistence_metrics import (
+from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
