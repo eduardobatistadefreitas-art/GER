@@ -248,13 +248,13 @@ def build_catalog(
     )
 
     for run_id in range(total):
-
-       classifier = extract_classifier_entry(
-           classifier_files[run_id],
-           load_json(
-               classifier_files[run_id]
-           )
-       )
+        
+        classifier = extract_classifier_entry(
+            classifier_files[run_id],
+            load_json(
+                classifier_files[run_id]
+            )
+        )
 
         stationary = extract_stationary_entry(
             load_json(
