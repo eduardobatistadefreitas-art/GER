@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from GER_CORE.S27_R3_1_vanderpol_state import (
+from GER_CORE.S27.S27_R3_1_vanderpol_state import (
     generate_vanderpol_state,
 )
 
