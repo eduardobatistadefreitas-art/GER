@@ -101,6 +101,7 @@ def load_json(
 # ============================================================
 
 def extract_classifier_entry(
+    filename: Path,
     data: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
@@ -112,9 +113,24 @@ def extract_classifier_entry(
     classification = data["classification"]
 
     statistics = classification["statistics"]
+    
+    run_folder = filename.parent
+    
+    run_id = run_folder.name
+    
+    timestamp = run_folder.name
 
     return {
-
+        
+        "run_id":
+        run_id,
+        
+        "timestamp":
+        timestamp,
+        
+        "system":
+        "GER",
+        
         "beta":
             configuration["beta"],
 
@@ -233,11 +249,12 @@ def build_catalog(
 
     for run_id in range(total):
 
-        classifier = extract_classifier_entry(
-            load_json(
-                classifier_files[run_id]
-            )
-        )
+       classifier = extract_classifier_entry(
+           classifier_files[run_id],
+           load_json(
+               classifier_files[run_id]
+           )
+       )
 
         stationary = extract_stationary_entry(
             load_json(
@@ -250,7 +267,6 @@ def build_catalog(
             stationary,
         )
 
-        record["run_id"] = run_id + 1
 
         records.append(record)
 
