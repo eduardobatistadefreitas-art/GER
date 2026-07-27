@@ -100,25 +100,98 @@ def audit_property(
         filename
     )
 
+    # --------------------------------------------------------
+    # E7.4.1 (formato em lista)
+    # --------------------------------------------------------
+
+    if isinstance(
+        data,
+        list,
+    ):
+
+        approved = True
+
+        for item in data:
+
+            perturbation = item[
+                "perturbation"
+            ]
+
+            identity = item[
+                "canonical_identity"
+            ]
+
+            if perturbation in (
+
+                "Configuration",
+
+                "Signature",
+
+            ):
+
+                approved = (
+
+                    approved
+
+                    and
+
+                    identity is False
+
+                )
+
+            elif perturbation in (
+
+                "Classification",
+
+                "Audit",
+
+            ):
+
+                approved = (
+
+                    approved
+
+                    and
+
+                    identity is True
+
+                )
+
+        return {
+
+            "property": name,
+
+            "approved": approved,
+
+            "file": str(
+                filename
+            ),
+
+        }
+
+    # --------------------------------------------------------
+    # E7.4.2 até E7.4.6 (formato em dicionário)
+    # --------------------------------------------------------
+
     key = next(
 
         k
 
-        for k in data.keys()
+        for k in data
 
-        if k.startswith("operator_")
+        if k.startswith(
+            "operator_"
+        )
 
-    )
-
-    approved = bool(
-        data[key]
     )
 
     return {
 
         "property": name,
 
-        "approved": approved,
+        "approved": bool(
+            data[key]
+        ),
 
         "file": str(
             filename
