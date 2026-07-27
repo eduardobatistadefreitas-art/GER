@@ -20,7 +20,7 @@ import json
 
 from pathlib import Path
 
-from GER.CORE.storage import ExperimentStorage
+from GER.CORE.ger_storage import ExperimentStorage
 
 from GER_CORE.S29.E7.E7_builder import (
     DynamicRegimeBuilder,
