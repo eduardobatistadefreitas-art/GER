@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from GER_CORE.S27_R5_1_lorenz_state import (
+from GER_CORE.S27.S27_R5_1_lorenz_state import (
     generate_lorenz_state,
 )
 
