@@ -23,16 +23,15 @@ from GER_CORE.S26.S26_B36_geometry_scan import (
 
 def signature_to_dict(signature):
 
+    # Compatibilidade com o novo Geometry Scan
+    if isinstance(signature, dict):
+        signature = signature["signature"]
+
     return {
-
         "diameter": signature.diameter,
-
         "convergence": signature.convergence,
-
         "recurrence": signature.recurrence,
-
         "drift": signature.drift,
-
     }
 
 
