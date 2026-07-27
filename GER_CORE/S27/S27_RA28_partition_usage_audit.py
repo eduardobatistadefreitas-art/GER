@@ -11,7 +11,7 @@
 
 import inspect
 
-from GER_CORE.S27_E1_1_operator_partitions import main
+from GER_CORE.S27.S27_E1_1_operator_partitions import main
 
 print("=" * 60)
 print("GER")
