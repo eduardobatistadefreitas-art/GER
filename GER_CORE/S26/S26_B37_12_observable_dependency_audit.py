@@ -1,7 +1,7 @@
 import itertools
 import numpy as np
 
-from GER_CORE.S26_B36_geometry_scan import (
+from GER_CORE.S26.S26_B36_geometry_scan import (
     generate_signature_dataset,
 )
 
