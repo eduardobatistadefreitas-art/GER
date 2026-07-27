@@ -1,180 +1,100 @@
 """
-GER - Geometria Espectral Relacional
-S29 - E7
+============================================================
+GER
 
-certificate.py
+S29 — E7
 
-DynamicRegime Structural Certificate.
+Structural Certificate
 
-This module generates the canonical structural certificate
-for a DynamicRegime.
+============================================================
 
-The certificate is a pure Python dictionary and contains
-no file I/O.
+Representação textual oficial de um DynamicRegime.
 
-Author:
-    Eduardo Batista de Freitas
+Este módulo não grava arquivos.
+A persistência é responsabilidade do executável.
+
+============================================================
 """
 
 from __future__ import annotations
 
-import math
+from datetime import datetime
 
 from .model import DynamicRegime
+from .serializer import dynamic_regime_to_dict
 
 
-# =============================================================================
-# Helpers
-# =============================================================================
-
-def _is_finite(value) -> bool:
-    """
-    Return True if value is a finite number.
-    """
-
-    if not isinstance(value, (int, float)):
-        return False
-
-    return math.isfinite(value)
-
-
-# =============================================================================
-# Integrity
-# =============================================================================
-
-def _integrity_checks(
-    regime: DynamicRegime,
-) -> dict:
-    """
-    Execute structural integrity checks.
-    """
-
-    checks = {
-
-        "configuration_exists":
-            regime.configuration is not None,
-
-        "signature_exists":
-            regime.signature is not None,
-
-        "classification_exists":
-            regime.classification is not None,
-
-        "audit_exists":
-            regime.audit is not None,
-
-        "positive_dt":
-            regime.configuration.dt > 0,
-
-        "positive_timesteps":
-            regime.configuration.timesteps > 0,
-
-        "finite_diameter":
-            _is_finite(regime.signature.diameter),
-
-        "finite_convergence":
-            _is_finite(regime.signature.convergence),
-
-        "finite_recurrence":
-            _is_finite(regime.signature.recurrence),
-
-        "finite_drift":
-            _is_finite(regime.signature.drift),
-
-        "finite_persistence_score":
-            _is_finite(
-                regime.classification.persistence_score
-            ),
-
-        "finite_persistence_variance":
-            _is_finite(
-                regime.classification.persistence_variance
-            ),
-
-    }
-
-    passed = all(checks.values())
-
-    return {
-
-        "passed": passed,
-
-        "checks": checks,
-
-    }
-
-
-# =============================================================================
-# Public API
-# =============================================================================
+# ============================================================
+# Certificate
+# ============================================================
 
 def generate_certificate(
     regime: DynamicRegime,
-) -> dict:
+) -> str:
     """
-    Generate the canonical DynamicRegime certificate.
+    Gera o certificado estrutural em formato texto.
     """
 
-    integrity = _integrity_checks(regime)
+    data = dynamic_regime_to_dict(regime)
 
-    certificate = {
+    configuration = data["configuration"]
+    signature = data["signature"]
+    classification = data["classification"]
+    audit = data["audit"]
 
-        "configuration": {
+    lines = []
 
-            "beta":
-                regime.configuration.beta,
+    lines.append("=" * 60)
+    lines.append("GER")
+    lines.append("STRUCTURAL CERTIFICATE")
+    lines.append("=" * 60)
+    lines.append("")
 
-            "sigma":
-                regime.configuration.sigma,
+    lines.append(
+        f"Generated : {datetime.now().isoformat(timespec='seconds')}"
+    )
 
-            "potential":
-                regime.configuration.potential,
+    lines.append("")
 
-            "timesteps":
-                regime.configuration.timesteps,
+    # --------------------------------------------------------
 
-            "dt":
-                regime.configuration.dt,
+    lines.append("Configuration")
+    lines.append("-" * 60)
 
-        },
+    for key, value in configuration.items():
+        lines.append(f"{key:20} : {value}")
 
-        "signature": {
+    lines.append("")
 
-            "diameter":
-                regime.signature.diameter,
+    # --------------------------------------------------------
 
-            "convergence":
-                regime.signature.convergence,
+    lines.append("Geometric Signature")
+    lines.append("-" * 60)
 
-            "recurrence":
-                regime.signature.recurrence,
+    for key, value in signature.items():
+        lines.append(f"{key:20} : {value}")
 
-            "drift":
-                regime.signature.drift,
+    lines.append("")
 
-        },
+    # --------------------------------------------------------
 
-        "classification": {
+    lines.append("Classification")
+    lines.append("-" * 60)
 
-            "regime":
-                regime.classification.regime,
+    for key, value in classification.items():
+        lines.append(f"{key:20} : {value}")
 
-            "persistence_score":
-                regime.classification.persistence_score,
+    lines.append("")
 
-            "persistence_variance":
-                regime.classification.persistence_variance,
+    # --------------------------------------------------------
 
-        },
+    lines.append("Audit")
+    lines.append("-" * 60)
 
-        "audit":
-            regime.audit.data
-            if regime.audit is not None
-            else None,
+    for key, value in audit.items():
+        lines.append(f"{key:20} : {value}")
 
-        "integrity":
-            integrity,
+    lines.append("")
+    lines.append("=" * 60)
 
-    }
-
-    return certificate
+    return "\n".join(lines)
