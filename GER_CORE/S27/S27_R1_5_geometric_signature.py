@@ -15,11 +15,11 @@ from GER.CORE.signature_api import (
     Signature,
 )
 
-from GER_CORE.S26_B35_persistence_metrics import (
+from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-from GER_CORE.S26_B36_geometry_scan import (
+from GER_CORE.S26.S26_B36_geometry_scan import (
 
     build_trajectory,
 
