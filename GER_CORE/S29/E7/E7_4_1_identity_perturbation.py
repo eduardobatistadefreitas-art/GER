@@ -90,48 +90,119 @@ def perturb_configuration(
     regime: DynamicRegime,
 ) -> DynamicRegime:
 
-    new_regime = copy.deepcopy(regime)
+    return DynamicRegime(
 
-    new_regime.configuration.beta += 1
+        configuration=Configuration(
 
-    return new_regime
+            beta=regime.configuration.beta + 1,
+
+            sigma=regime.configuration.sigma,
+
+            potential=regime.configuration.potential,
+
+            timesteps=regime.configuration.timesteps,
+
+            dt=regime.configuration.dt,
+
+        ),
+
+        signature=regime.signature,
+
+        classification=regime.classification,
+
+        audit=regime.audit,
+
+    )
 
 
 def perturb_signature(
     regime: DynamicRegime,
 ) -> DynamicRegime:
 
-    new_regime = copy.deepcopy(regime)
+    return DynamicRegime(
 
-    new_regime.signature.diameter += 1e-6
+        configuration=regime.configuration,
 
-    return new_regime
+        signature=GeometricSignature(
+
+            diameter=regime.signature.diameter + 1e-6,
+
+            convergence=regime.signature.convergence,
+
+            recurrence=regime.signature.recurrence,
+
+            drift=regime.signature.drift,
+
+        ),
+
+        classification=regime.classification,
+
+        audit=regime.audit,
+
+    )
 
 
 def perturb_classification(
     regime: DynamicRegime,
 ) -> DynamicRegime:
 
-    new_regime = copy.deepcopy(regime)
+    return DynamicRegime(
 
-    new_regime.classification.regime = (
-        "TEST_CLASSIFICATION"
+        configuration=regime.configuration,
+
+        signature=regime.signature,
+
+        classification=Classification(
+
+            regime="TEST_CLASSIFICATION",
+
+            persistence_score=(
+                regime.classification.persistence_score
+            ),
+
+            persistence_variance=(
+                regime.classification.persistence_variance
+            ),
+
+        ),
+
+        audit=regime.audit,
+
     )
-
-    return new_regime
 
 
 def perturb_audit(
     regime: DynamicRegime,
 ) -> DynamicRegime:
 
-    new_regime = copy.deepcopy(regime)
+    return DynamicRegime(
 
-    new_regime.audit.regime = (
-        "TEST_AUDIT"
+        configuration=regime.configuration,
+
+        signature=regime.signature,
+
+        classification=regime.classification,
+
+        audit=Audit(
+
+            regime="TEST_AUDIT",
+
+            persistence_score=(
+                regime.audit.persistence_score
+            ),
+
+            persistence_variance=(
+                regime.audit.persistence_variance
+            ),
+
+            statistics=regime.audit.statistics,
+
+            history=regime.audit.history,
+
+        ),
+
     )
 
-    return new_regime
 
 # ============================================================
 # MAIN
