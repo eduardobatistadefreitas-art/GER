@@ -210,9 +210,6 @@ def main():
     scientific_conclusion()
 
 
-if __name__ == "__main__":
-    main()
-
 # ==========================================================
 # Auditoria de integridade
 # ==========================================================
@@ -784,3 +781,6 @@ def scientific_conclusion():
     print()
 
     print("=" * 60)
+
+if __name__ == "__main__":
+    main()
