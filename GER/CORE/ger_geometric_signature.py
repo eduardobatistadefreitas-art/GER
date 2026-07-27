@@ -97,3 +97,79 @@ def compute_geometric_signature(
         recurrence=recurrence,
         drift=drift,
     )
+
+
+# =========================================================
+# Compatibility API
+# =========================================================
+
+def is_signature(obj):
+    """
+    Returns True if the object is a GER Signature.
+    """
+
+    return isinstance(obj, Signature)
+
+
+def extract_signature(obj):
+    """
+    Extracts a GER Signature from supported objects.
+
+    Accepted inputs
+    ---------------
+    - Signature
+    - dict containing a "signature" field
+
+    Returns
+    -------
+    Signature
+
+    Raises
+    ------
+    TypeError
+        If the object cannot be interpreted as a
+        GER Signature.
+    """
+
+    if isinstance(obj, Signature):
+        return obj
+
+    if isinstance(obj, dict):
+
+        signature = obj.get("signature")
+
+        if isinstance(signature, Signature):
+            return signature
+
+    raise TypeError(
+        f"Cannot extract GER Signature from object "
+        f"of type '{type(obj).__name__}'."
+    )
+
+
+def extract_signature_metadata(obj):
+    """
+    Returns metadata associated with a Signature.
+
+    If the object is a Geometry Scan record,
+    returns all fields except 'signature'.
+
+    If the object is already a Signature,
+    returns an empty dictionary.
+    """
+
+    if isinstance(obj, dict):
+
+        return {
+            key: value
+            for key, value in obj.items()
+            if key != "signature"
+        }
+
+    if isinstance(obj, Signature):
+        return {}
+
+    raise TypeError(
+        f"Cannot extract metadata from object "
+        f"of type '{type(obj).__name__}'."
+    )
