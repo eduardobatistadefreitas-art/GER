@@ -8,7 +8,7 @@
 
 import inspect
 
-import GER_CORE.S27_E2_1_partition_lattice as lattice
+import GER_CORE.S27.S27_E2_1_partition_lattice as lattice
 
 print("=" * 60)
 print("GER")
