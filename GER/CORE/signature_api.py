@@ -17,8 +17,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, field, asdict
 from typing import Iterable
+import hashlib
 from .reference_provider import ReferenceProvider
 
 
@@ -32,11 +33,32 @@ class Signature:
     """
     Fundamental Geometric Signature of the RSG framework.
     """
-
+    
+    id: str = field(init=False)
+    
     diameter: float
     convergence: float
     recurrence: float
     drift: float
+
+    def __post_init__(self):
+        
+        payload = (
+            f"{self.diameter:.12f}|"
+            f"{self.convergence:.12f}|"
+            f"{self.recurrence:.12f}|"
+            f"{self.drift:.12f}"
+        )
+        
+        signature_id = hashlib.sha256(
+            payload.encode("utf-8")
+        ).hexdigest()
+        
+        object.__setattr__(
+            self,
+            "id",
+            signature_id,
+        )
 
     # --------------------------------------------------------
 
