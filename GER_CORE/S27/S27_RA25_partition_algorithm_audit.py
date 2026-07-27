@@ -11,7 +11,7 @@
 
 import inspect
 
-from GER_CORE.S27_E2_1_partition_lattice import (
+from GER_CORE.S27.S27_E2_1_partition_lattice import (
 
     build_partition,
 
