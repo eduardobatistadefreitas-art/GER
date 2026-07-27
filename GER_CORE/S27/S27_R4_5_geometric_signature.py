@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from GER_CORE.S27_R4_1_logistic_state import (
+from GER_CORE.S27.S27_R4_1_logistic_state import (
     generate_logistic_state,
 )
 
@@ -19,11 +19,11 @@ from GER.CORE.ger_observational_snapshot import (
     build_observational_snapshot,
 )
 
-from GER_CORE.S26_B35_persistence_metrics import (
+from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-from GER_CORE.S26_B36_geometry_scan import (
+from GER_CORE.S26.S26_B36_geometry_scan import (
 
     build_trajectory,
 
