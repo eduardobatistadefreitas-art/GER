@@ -1,0 +1,483 @@
+"""
+=========================================================================
+GER
+S26 EXECUTION RUNNER
+=========================================================================
+
+Executa todos os experimentos oficiais da Série S26.
+
+Saída:
+
+GER_RESULTS/
+└── S26/
+    └── YYYYMMDD_HHMMSS/
+
+        execution_summary.csv
+        execution_summary.json
+        execution_log.txt
+        manifest.json
+
+        console/
+            *.log
+
+=========================================================================
+
+Autor: GER Framework
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+import subprocess
+import time
+
+from pathlib import Path
+from datetime import datetime
+
+
+
+# ============================================================
+# CONFIGURAÇÃO
+# ============================================================
+
+SAVE_ONLY_SUCCESS = False
+
+CONTINUE_AFTER_FAILURE = True
+
+import sys
+
+PYTHON_EXECUTABLE = sys.executable
+
+
+
+# ============================================================
+# MÓDULOS OFICIAIS
+# ============================================================
+
+EXECUTABLE_MODULES = [
+
+    "GER_CORE.S26.S26_B36_A2_run_engine_exception_audit",
+
+    "GER_CORE.S26.S26_B36_geometry_scan",
+
+    "GER_CORE.S26.S26_B36_geometry_scan_V1",
+
+    "GER_CORE.S26.S26_B36_state_vector",
+
+    "GER_CORE.S26.S26_B36_stationary_scan",
+
+    "GER_CORE.S26.S26_B36_stationary_scan_audit",
+
+    "GER_CORE.S26.S26_B37_0_signature_separability",
+
+    "GER_CORE.S26.S26_B37_1_metric_sensitivity",
+
+    "GER_CORE.S26.S26_B37_2_ogf_influence",
+
+    "GER_CORE.S26.S26_B37_3_global_geometry",
+
+    "GER_CORE.S26.S26_B37_5_metric_candidates",
+
+    "GER_CORE.S26.S26_B37_6_normalized_metric_evaluation",
+
+    "GER_CORE.S26.S26_B37_7_distribution_robustness",
+
+    "GER_CORE.S26.S26_B37_8_ordinal_geometry",
+
+    "GER_CORE.S26.run_B36_classifier",
+
+    "GER_CORE.S26.run_B36_dynamic_regime_catalog",
+
+    "GER_CORE.S26.run_B36_stationary_scan",
+]
+
+
+
+# ============================================================
+# MÓDULOS TEMPORARIAMENTE DESABILITADOS
+# ============================================================
+
+DISABLED_MODULES = [
+
+    "GER_CORE.S26.S26_B36_operator_audit",
+
+    "GER_CORE.S26.S26_B37_9_real_signature_geometry",
+
+    "GER_CORE.S26.S26_B37_10_standardized_signature_geometry",
+
+    "GER_CORE.S26.S26_B37_11_signature_space_structure",
+
+    "GER_CORE.S26.S26_B37_12_observable_dependency_audit",
+]
+
+
+
+# ============================================================
+# DIRETÓRIOS
+# ============================================================
+
+TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+OUTPUT_DIR = (
+    Path("/content/drive/MyDrive/GER_RESULTS")
+    / "S26"
+    / TIMESTAMP
+)
+
+LOG_DIR = OUTPUT_DIR / "console"
+
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+
+
+# ============================================================
+# ARQUIVOS DE SAÍDA
+# ============================================================
+
+CSV_FILE = OUTPUT_DIR / "execution_summary.csv"
+
+JSON_FILE = OUTPUT_DIR / "execution_summary.json"
+
+LOG_FILE = OUTPUT_DIR / "execution_log.txt"
+
+MANIFEST_FILE = OUTPUT_DIR / "manifest.json"
+
+
+
+# ============================================================
+# ESTRUTURAS EM MEMÓRIA
+# ============================================================
+
+results = []
+
+total_start = time.perf_counter()
+
+
+
+# ============================================================
+# CABEÇALHO
+# ============================================================
+
+print("=" * 70)
+print("GER S26 EXECUTION RUNNER")
+print("=" * 70)
+
+print(f"Experimentos : {len(EXECUTABLE_MODULES)}")
+print(f"Desabilitados: {len(DISABLED_MODULES)}")
+print()
+
+print("Resultados em:")
+print(OUTPUT_DIR)
+print()
+
+# ============================================================
+# EXECUÇÃO DOS EXPERIMENTOS
+# ============================================================
+
+for index, module in enumerate(EXECUTABLE_MODULES, start=1):
+
+    print("=" * 70)
+    print(f"[{index}/{len(EXECUTABLE_MODULES)}]")
+    print(module)
+    print("=" * 70)
+
+    module_name = module.split(".")[-1]
+
+    log_path = LOG_DIR / f"{module_name}.log"
+
+    start = time.perf_counter()
+
+    success = False
+    return_code = -1
+
+    stdout = ""
+    stderr = ""
+
+    try:
+
+        completed = subprocess.run(
+
+            [
+                PYTHON_EXECUTABLE,
+                "-m",
+                module
+            ],
+
+            capture_output=True,
+            text=True
+
+        )
+
+        end = time.perf_counter()
+
+        elapsed = end - start
+
+        stdout = completed.stdout
+
+        stderr = completed.stderr
+
+        return_code = completed.returncode
+
+        success = return_code == 0
+
+    except Exception as exc:
+
+        end = time.perf_counter()
+
+        elapsed = end - start
+
+        stderr = str(exc)
+
+        success = False
+
+        return_code = -999
+
+    # --------------------------------------------------------
+    # LOG INDIVIDUAL
+    # --------------------------------------------------------
+
+    with open(log_path, "w", encoding="utf-8") as f:
+
+        f.write("=" * 70 + "\n")
+        f.write(module + "\n")
+        f.write("=" * 70 + "\n\n")
+
+        f.write(f"Status      : {'PASS' if success else 'FAIL'}\n")
+        f.write(f"Return Code : {return_code}\n")
+        f.write(f"Execution   : {elapsed:.3f} s\n\n")
+
+        f.write("=" * 70 + "\n")
+        f.write("STDOUT\n")
+        f.write("=" * 70 + "\n\n")
+
+        f.write(stdout)
+
+        f.write("\n\n")
+
+        f.write("=" * 70 + "\n")
+        f.write("STDERR\n")
+        f.write("=" * 70 + "\n\n")
+
+        f.write(stderr)
+
+    # --------------------------------------------------------
+    # REGISTRO EM MEMÓRIA
+    # --------------------------------------------------------
+
+    results.append(
+
+        {
+
+            "module": module,
+
+            "module_name": module_name,
+
+            "status": "PASS" if success else "FAIL",
+
+            "success": success,
+
+            "execution_time": round(elapsed, 3),
+
+            "return_code": return_code,
+
+            "stdout_lines": len(stdout.splitlines()),
+
+            "stderr_lines": len(stderr.splitlines()),
+
+            "log_file": str(log_path)
+
+        }
+
+    )
+
+    # --------------------------------------------------------
+    # TERMINAL
+    # --------------------------------------------------------
+
+    if success:
+
+        print(f"PASS   {elapsed:.2f} s")
+
+    else:
+
+        print(f"FAIL   {elapsed:.2f} s")
+
+        if not CONTINUE_AFTER_FAILURE:
+
+            print()
+            print("Execução interrompida.")
+
+            break
+
+    print()
+
+# ============================================================
+# FINALIZAÇÃO
+# ============================================================
+
+total_end = time.perf_counter()
+
+total_time = total_end - total_start
+
+passed = sum(r["success"] for r in results)
+
+failed = len(results) - passed
+
+
+# ============================================================
+# CSV
+# ============================================================
+
+with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
+
+    writer = csv.DictWriter(
+        f,
+        fieldnames=[
+            "module",
+            "module_name",
+            "status",
+            "success",
+            "execution_time",
+            "return_code",
+            "stdout_lines",
+            "stderr_lines",
+            "log_file",
+        ],
+    )
+
+    writer.writeheader()
+
+    for row in results:
+
+        if SAVE_ONLY_SUCCESS and not row["success"]:
+            continue
+
+        writer.writerow(row)
+
+
+# ============================================================
+# JSON
+# ============================================================
+
+with open(JSON_FILE, "w", encoding="utf-8") as f:
+
+    json.dump(results, f, indent=4, ensure_ascii=False)
+
+
+# ============================================================
+# MANIFEST
+# ============================================================
+
+manifest = {
+
+    "series": "S26",
+
+    "timestamp": TIMESTAMP,
+
+    "output_directory": str(OUTPUT_DIR),
+
+    "executed_modules": len(EXECUTABLE_MODULES),
+
+    "disabled_modules": len(DISABLED_MODULES),
+
+    "passed": passed,
+
+    "failed": failed,
+
+    "total_execution_time": round(total_time, 3),
+
+    "modules": EXECUTABLE_MODULES,
+
+    "disabled": DISABLED_MODULES,
+}
+
+with open(MANIFEST_FILE, "w", encoding="utf-8") as f:
+
+    json.dump(
+        manifest,
+        f,
+        indent=4,
+        ensure_ascii=False,
+    )
+
+
+# ============================================================
+# LOG GERAL
+# ============================================================
+
+with open(LOG_FILE, "w", encoding="utf-8") as f:
+
+    f.write("=" * 70 + "\n")
+    f.write("GER S26 EXECUTION REPORT\n")
+    f.write("=" * 70 + "\n\n")
+
+    f.write(f"Timestamp          : {TIMESTAMP}\n")
+    f.write(f"Output directory   : {OUTPUT_DIR}\n\n")
+
+    f.write(f"Executed modules   : {len(EXECUTABLE_MODULES)}\n")
+    f.write(f"Disabled modules   : {len(DISABLED_MODULES)}\n")
+    f.write(f"Successful         : {passed}\n")
+    f.write(f"Failed             : {failed}\n")
+    f.write(f"Total execution    : {total_time:.3f} s\n\n")
+
+    f.write("=" * 70 + "\n")
+    f.write("MODULE SUMMARY\n")
+    f.write("=" * 70 + "\n\n")
+
+    for row in results:
+
+        f.write(
+            f"[{row['status']}] "
+            f"{row['module_name']} "
+            f"({row['execution_time']:.2f} s)\n"
+        )
+
+    f.write("\n")
+
+    f.write("=" * 70 + "\n")
+    f.write("DISABLED MODULES\n")
+    f.write("=" * 70 + "\n\n")
+
+    for module in DISABLED_MODULES:
+
+        f.write(module + "\n")
+
+
+# ============================================================
+# RESUMO FINAL
+# ============================================================
+
+print()
+print("=" * 70)
+print("EXECUÇÃO CONCLUÍDA")
+print("=" * 70)
+
+print(f"Executados : {len(EXECUTABLE_MODULES)}")
+print(f"Sucesso    : {passed}")
+print(f"Falhas     : {failed}")
+print(f"Ignorados  : {len(DISABLED_MODULES)}")
+
+print()
+
+print(f"Tempo total: {total_time:.2f} s")
+
+print()
+
+print("Resultados gravados em:")
+
+print(OUTPUT_DIR)
+
+print()
+
+print("Arquivos produzidos:")
+
+print("   execution_summary.csv")
+print("   execution_summary.json")
+print("   execution_log.txt")
+print("   manifest.json")
+print("   console/*.log")
+
+print("=" * 70)
