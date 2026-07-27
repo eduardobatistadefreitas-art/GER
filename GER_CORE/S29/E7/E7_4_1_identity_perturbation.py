@@ -175,6 +175,14 @@ def perturb_audit(
     regime: DynamicRegime,
 ) -> DynamicRegime:
 
+    if regime.audit is None:
+
+        return regime
+
+    new_data = dict(regime.audit.data)
+
+    new_data["regime"] = "TEST_AUDIT"
+
     return DynamicRegime(
 
         configuration=regime.configuration,
@@ -185,19 +193,7 @@ def perturb_audit(
 
         audit=Audit(
 
-            regime="TEST_AUDIT",
-
-            persistence_score=(
-                regime.audit.persistence_score
-            ),
-
-            persistence_variance=(
-                regime.audit.persistence_variance
-            ),
-
-            statistics=regime.audit.statistics,
-
-            history=regime.audit.history,
+            data=new_data,
 
         ),
 
