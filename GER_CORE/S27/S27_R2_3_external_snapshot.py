@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from GER_CORE.S27_R2_1_damped_state import (
+from GER_CORE.S27.S27_R2_1_damped_state import (
     generate_damped_state,
 )
 
