@@ -37,17 +37,26 @@ from GER_CORE.S29.E7.representation_analyzer import (
 
 STATIONARY_SCAN = Path(
     "/content/drive/MyDrive/GER_RESULTS/"
-    "S26_B36_1/json/stationary_scan.json"
+    "S26/"
+    "S26_B36_stationary_scan/"
+    "20260726_211939/"
+    "stationary_scan.json"
 )
 
 CLASSIFIER = Path(
     "/content/drive/MyDrive/GER_RESULTS/"
-    "S26_B36_1/json/classifier.json"
+    "S26/"
+    "S26_B36_classifier/"
+    "20260726_222025/"
+    "classifier.json"
 )
 
 CLASSIFIER_AUDIT = Path(
     "/content/drive/MyDrive/GER_RESULTS/"
-    "S26_B36_1/json/classifier_audit.json"
+    "S26/"
+    "S26_B36_1_classifier_audit/"
+    "20260726_222025/"
+    "classifier_audit.json"
 )
 
 
