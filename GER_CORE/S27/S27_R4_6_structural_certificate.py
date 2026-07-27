@@ -11,15 +11,15 @@
 
 from GER.CORE.signature_api import Signature
 
-from GER_CORE.S27_R4_5_geometric_signature import (
+from GER_CORE.S27.S27_R4_5_geometric_signature import (
     generate_snapshots,
 )
 
-from GER_CORE.S26_B35_persistence_metrics import (
+from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-from GER_CORE.S26_B36_geometry_scan import (
+from GER_CORE.S26.S26_B36_geometry_scan import (
     build_trajectory,
     compute_confinement,
     compute_convergence,
@@ -27,7 +27,7 @@ from GER_CORE.S26_B36_geometry_scan import (
     compute_drift,
 )
 
-from GER_CORE.S26_B36_stationary_scan import (
+from GER_CORE.S26.S26_B36_stationary_scan import (
     stationary_scan,
 )
 
