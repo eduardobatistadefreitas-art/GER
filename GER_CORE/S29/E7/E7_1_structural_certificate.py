@@ -14,12 +14,19 @@ Author:
 from __future__ import annotations
 
 import json
+
 from pathlib import Path
 
-from GER_CORE.OPERATORS.result_manager import ResultManager
+from GER.CORE.ger_storage import (
+    ExperimentStorage,
+)
 
 from GER_CORE.S29.E7.E7_builder import (
     DynamicRegimeBuilder,
+)
+
+from GER_CORE.S29.E7.serializer import (
+    dynamic_regime_to_dict,
 )
 
 from GER_CORE.S29.E7.certificate import (
@@ -27,11 +34,13 @@ from GER_CORE.S29.E7.certificate import (
 )
 
 
-# =============================================================================
+# ============================================================
 # Configuration
-# =============================================================================
+# ============================================================
 
-RESULTS_ROOT = Path("/content/drive/MyDrive/GER_RESULTS/S26")
+RESULTS_ROOT = Path(
+    "/content/drive/MyDrive/GER_RESULTS/S26"
+)
 
 STATIONARY_SCAN = (
     RESULTS_ROOT /
@@ -49,28 +58,54 @@ CLASSIFIER_AUDIT = (
 )
 
 
-# =============================================================================
+# ============================================================
 # Helpers
-# =============================================================================
+# ============================================================
 
-def latest_json(folder: Path, filename: str) -> Path:
+def latest_json(
+
+    folder: Path,
+
+    filename: str,
+
+) -> Path:
+
+    """
+    Return latest execution JSON.
+    """
 
     runs = sorted(
-        p for p in folder.iterdir()
+
+        p
+
+        for p in folder.iterdir()
+
         if p.is_dir()
+
     )
 
     if not runs:
+
         raise RuntimeError(
+
             f"No executions found in {folder}"
+
         )
 
-    return runs[-1] / filename
+    return (
+
+        runs[-1]
+
+        /
+
+        filename
+
+    )
 
 
-# =============================================================================
+# ============================================================
 # Main
-# =============================================================================
+# ============================================================
 
 def main():
 
@@ -82,18 +117,27 @@ def main():
     print()
 
     stationary_scan = latest_json(
+
         STATIONARY_SCAN,
+
         "stationary_scan.json",
+
     )
 
     classifier = latest_json(
+
         CLASSIFIER,
+
         "classifier.json",
+
     )
 
     classifier_audit = latest_json(
+
         CLASSIFIER_AUDIT,
+
         "classifier_audit.json",
+
     )
 
     regime = DynamicRegimeBuilder.build(
@@ -106,170 +150,202 @@ def main():
 
     )
 
-    certificate = generate_certificate(
+    certificate_text = generate_certificate(
+
         regime
+
     )
 
-    manager = ResultManager(
-        experiment="S29_E7_1"
+    certificate_json = dynamic_regime_to_dict(
+
+        regime
+
     )
 
-    output = manager.get_output_directory()
+    storage = ExperimentStorage(
 
-    certificate_file = (
-        output /
-        "dynamic_regime_certificate.json"
+        experiment="S29_E7_1",
+
+        folders=[
+
+            "certificate",
+
+            "json",
+
+        ],
+
+    )
+
+    certificate_txt = storage.file(
+
+        "certificate",
+
+        "dynamic_regime_certificate.txt",
+
+    )
+
+    certificate_json_file = storage.file(
+
+        "json",
+
+        "dynamic_regime_certificate.json",
+
     )
 
     with open(
-        certificate_file,
+
+        certificate_txt,
+
         "w",
-        encoding="utf8",
+
+        encoding="utf-8",
+
+    ) as f:
+
+        f.write(
+
+            certificate_text
+
+        )
+
+    with open(
+
+        certificate_json_file,
+
+        "w",
+
+        encoding="utf-8",
+
     ) as f:
 
         json.dump(
-            certificate,
+
+            certificate_json,
+
             f,
+
             indent=4,
+
             ensure_ascii=False,
+
         )
-
-    report = output / "certificate_report.txt"
-
-    with open(
-        report,
-        "w",
-        encoding="utf8",
-    ) as f:
-
-        f.write(
-            "GER\n"
-        )
-
-        f.write(
-            "DynamicRegime Structural Certificate\n\n"
-        )
-
-        f.write(
-            "Configuration\n"
-        )
-
-        f.write(
-            "-" * 40 + "\n"
-        )
-
-        for k, v in certificate[
-            "configuration"
-        ].items():
-
-            f.write(
-                f"{k:20} {v}\n"
-            )
-
-        f.write("\n")
-
-        f.write(
-            "Signature\n"
-        )
-
-        f.write(
-            "-" * 40 + "\n"
-        )
-
-        for k, v in certificate[
-            "signature"
-        ].items():
-
-            f.write(
-                f"{k:20} {v}\n"
-            )
-
-        f.write("\n")
-
-        f.write(
-            "Classification\n"
-        )
-
-        f.write(
-            "-" * 40 + "\n"
-        )
-
-        for k, v in certificate[
-            "classification"
-        ].items():
-
-            f.write(
-                f"{k:20} {v}\n"
-            )
-
-        f.write("\n")
-
-        f.write(
-            "Integrity\n"
-        )
-
-        f.write(
-            "-" * 40 + "\n"
-        )
-
-        for k, v in certificate[
-            "integrity"
-        ]["checks"].items():
-
-            status = (
-                "PASS"
-                if v
-                else "FAIL"
-            )
-
-            f.write(
-                f"{k:30} {status}\n"
-            )
-
-        f.write("\n")
-
-        f.write(
-            "Certificate Status\n"
-        )
-
-        f.write(
-            "-" * 40 + "\n"
-        )
-
-        if certificate[
-            "integrity"
-        ]["passed"]:
-
-            f.write("VALID\n")
-
-        else:
-
-            f.write("INVALID\n")
 
     print()
 
     print("=" * 80)
     print("RESULT")
     print("=" * 80)
+    print()
+
+    print(
+
+        f"Certificate : {certificate_txt}"
+
+    )
+
+    print(
+
+        f"JSON        : {certificate_json_file}"
+
+    )
 
     print()
 
     print(
-        f"Certificate : {certificate_file}"
+
+        "DynamicRegime successfully reconstructed."
+
     )
 
     print(
-        f"Report      : {report}"
-    )
 
-    print()
-
-    print(
         "Structural certificate successfully generated."
+
     )
 
+    print()
 
-# =============================================================================
+    print("=" * 80)
+
+    print("SUMMARY")
+
+    print("=" * 80)
+
+    print()
+
+    print(
+
+        f"Regime              : "
+
+        f"{regime.classification.regime}"
+
+    )
+
+    print(
+
+        f"Persistence Score   : "
+
+        f"{regime.classification.persistence_score:.6f}"
+
+    )
+
+    print(
+
+        f"Persistence Var.    : "
+
+        f"{regime.classification.persistence_variance:.6e}"
+
+    )
+
+    print()
+
+    print("Signature")
+
+    print("-" * 80)
+
+    print(
+
+        f"Diameter            : "
+
+        f"{regime.signature.diameter}"
+
+    )
+
+    print(
+
+        f"Convergence         : "
+
+        f"{regime.signature.convergence}"
+
+    )
+
+    print(
+
+        f"Recurrence          : "
+
+        f"{regime.signature.recurrence}"
+
+    )
+
+    print(
+
+        f"Drift               : "
+
+        f"{regime.signature.drift}"
+
+    )
+
+    print()
+
+    print("=" * 80)
+
+    print("Finished.")
+
+    print("=" * 80)
+
+
+# ============================================================
 
 if __name__ == "__main__":
+
     main()
