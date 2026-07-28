@@ -12,10 +12,6 @@ Central configuration file.
 
 from __future__ import annotations
 
-from .config import (
-    EXPERIMENT_NAME,
-    AVAILABLE_OBSERVABLES,
-)
 
 # ============================================================
 # Experiment
