@@ -132,6 +132,16 @@ def ensure_directory(path: str | Path) -> Path:
 
     return path
 
+# ============================================================
+# Standard API
+# ============================================================
+
+def prepare_output_directory(path: str | Path) -> Path:
+    """
+    Standard output directory creator used by the pipeline.
+    """
+
+    return ensure_directory(path)
 
 # ============================================================
 # CSV
