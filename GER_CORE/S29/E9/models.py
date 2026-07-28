@@ -97,6 +97,33 @@ def exp_saturation(x, L, A, k):
 
 
 # ============================================================
+# Michaelis-Menten
+# ============================================================
+
+def michaelis_menten(x, a, b):
+    """
+    y = (a*x)/(b+x)
+    """
+    return (a * x) / (b + x)
+
+
+# ============================================================
+# Logistic
+# ============================================================
+
+def logistic(x, L, k, x0):
+    """
+    y = L / (1 + exp(-k*(x-x0)))
+    """
+    return L / (
+        1.0 +
+        np.exp(
+            -k * (x - x0)
+        )
+    )
+
+
+# ============================================================
 # Registry
 # ============================================================
 
@@ -116,28 +143,102 @@ MODEL_REGISTRY = {
 
     "exp_saturation": exp_saturation,
 
+    "michaelis_menten": michaelis_menten,
+
+    "logistic": logistic,
+
 }
 
 
 # ============================================================
-# Initial Guess
+# Initial Parameters
 # ============================================================
 
 INITIAL_PARAMETERS = {
 
-    "linear": (1.0, 1.0),
+    "linear": (
+        1.0,
+        1.0,
+    ),
 
-    "quadratic": (1.0, 1.0, 0.0),
+    "quadratic": (
+        1.0,
+        1.0,
+        0.0,
+    ),
 
-    "exponential": (1.0, -1.0),
+    "exponential": (
+        1.0,
+        -1.0,
+    ),
 
-    "power": (1.0, -1.0),
+    "power": (
+        1.0,
+        -1.0,
+    ),
 
-    "logarithmic": (1.0, 1.0),
+    "logarithmic": (
+        1.0,
+        1.0,
+    ),
 
-    "inverse": (1.0, 1.0),
+    "inverse": (
+        1.0,
+        1.0,
+    ),
 
-    "exp_saturation": (0.0, 1.0, 1.0),
+    "exp_saturation": (
+        0.0,
+        1.0,
+        1.0,
+    ),
+
+    "michaelis_menten": (
+        1.0,
+        1.0,
+    ),
+
+    "logistic": (
+        1.0,
+        1.0,
+        0.5,
+    ),
+
+}
+
+
+# ============================================================
+# Model Information
+# ============================================================
+
+MODEL_DESCRIPTIONS = {
+
+    "linear":
+        "Linear",
+
+    "quadratic":
+        "Quadratic Polynomial",
+
+    "exponential":
+        "Exponential",
+
+    "power":
+        "Power Law",
+
+    "logarithmic":
+        "Logarithmic",
+
+    "inverse":
+        "Inverse",
+
+    "exp_saturation":
+        "Exponential Saturation",
+
+    "michaelis_menten":
+        "Michaelis-Menten Saturation",
+
+    "logistic":
+        "Logistic Sigmoid",
 
 }
 
@@ -152,7 +253,9 @@ def get_model(name: str):
     """
 
     if name not in MODEL_REGISTRY:
-        raise ValueError(f"Unknown model: {name}")
+        raise ValueError(
+            f"Unknown model: {name}"
+        )
 
     return MODEL_REGISTRY[name]
 
@@ -163,9 +266,24 @@ def get_initial_parameters(name: str):
     """
 
     if name not in INITIAL_PARAMETERS:
-        raise ValueError(f"Unknown model: {name}")
+        raise ValueError(
+            f"Unknown model: {name}"
+        )
 
     return INITIAL_PARAMETERS[name]
+
+
+def get_description(name: str):
+    """
+    Return human-readable model description.
+    """
+
+    if name not in MODEL_DESCRIPTIONS:
+        raise ValueError(
+            f"Unknown model: {name}"
+        )
+
+    return MODEL_DESCRIPTIONS[name]
 
 
 def available_models() -> list[str]:
@@ -174,3 +292,13 @@ def available_models() -> list[str]:
     """
 
     return list(MODEL_REGISTRY.keys())
+
+
+def number_of_parameters(name: str) -> int:
+    """
+    Return number of free parameters.
+    """
+
+    return len(
+        get_initial_parameters(name)
+    )
