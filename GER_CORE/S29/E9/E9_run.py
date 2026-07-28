@@ -166,6 +166,92 @@ def run_experiment(
     """
 
     # --------------------------------------------------------
+    # Load trajectory
+    # --------------------------------------------------------
+
+    data = load_experiment(
+
+        input_file
+
+    )
+
+    x = data["sigma"]
+
+    experiment_results = {}
+
+    # --------------------------------------------------------
+    # Analyze every observable
+    # --------------------------------------------------------
+
+    for observable in AVAILABLE_OBSERVABLES:
+
+        print(
+
+            f"Processing {observable}..."
+
+        )
+
+        y = data[observable]
+
+        # ----------------------------------------------
+        # Fit
+        # ----------------------------------------------
+
+        fit_results = execute_fitting(
+
+            x,
+
+            y,
+
+        )
+
+        # ----------------------------------------------
+        # Statistics
+        # ----------------------------------------------
+
+        statistics = execute_statistics(
+
+            fit_results
+
+        )
+
+        # ----------------------------------------------
+        # Selection
+        # ----------------------------------------------
+
+        best_model, summary = execute_selection(
+
+            fit_results
+
+        )
+
+        # ----------------------------------------------
+        # Dashboard / Report
+        # ----------------------------------------------
+
+        dashboard, report = build_outputs(
+
+            fit_results
+
+        )
+
+        experiment_results[observable] = {
+
+            "best_model": best_model,
+
+            "summary": summary,
+
+            "statistics": statistics,
+
+            "dashboard": dashboard,
+
+            "report": report,
+
+        }
+
+    return experiment_results
+
+    # --------------------------------------------------------
     # Load data
     # --------------------------------------------------------
 
