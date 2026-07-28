@@ -3,45 +3,33 @@
 S29_E9/config.py
 =============================================================
 
-Configuration
-
 Trajectory Relaxation Analysis
 
-Every configurable parameter used by E9 is centralized here.
+Central configuration file.
 
 =============================================================
 """
 
 from __future__ import annotations
 
-
 # ============================================================
-# Experiment Information
+# Experiment
 # ============================================================
 
 EXPERIMENT_NAME = "S29_E9"
 
-EXPERIMENT_TITLE = (
-    "Trajectory Relaxation Analysis"
-)
+EXPERIMENT_TITLE = "Trajectory Relaxation Analysis"
 
 VERSION = "1.1"
 
-
-# ============================================================
-# Input
-# ============================================================
-
-INPUT_FILENAME = "trajectory.csv"
-
-SIGMA_COLUMN = "sigma"
+STATUS = "Prototype"
 
 
 # ============================================================
 # Observables
 # ============================================================
 
-OBSERVABLES = [
+AVAILABLE_OBSERVABLES = [
 
     "delta_sigma",
 
@@ -59,10 +47,10 @@ OBSERVABLES = [
 
 
 # ============================================================
-# Candidate Models
+# Mathematical Models
 # ============================================================
 
-MODELS = [
+ENABLED_MODELS = [
 
     "linear",
 
@@ -86,47 +74,19 @@ MODELS = [
 
 
 # ============================================================
-# Statistical Metrics
+# Fitting
 # ============================================================
 
-METRICS = [
+MAX_FIT_ITERATIONS = 10000
 
-    "r2",
+FIT_TOLERANCE = 1e-10
 
-    "rmse",
-
-    "mae",
-
-    "aic",
-
-    "bic",
-
-]
+ALLOW_NEGATIVE_PARAMETERS = True
 
 
 # ============================================================
-# Numerical Parameters
+# Model Selection
 # ============================================================
-
-EPSILON = 1e-12
-
-MAX_ITERATIONS = 10000
-
-MIN_REQUIRED_POINTS = 20
-
-
-# ============================================================
-# Model Selection Policy
-# ============================================================
-
-#
-# Available policies
-#
-#   "balanced"
-#   "aic"
-#   "bic"
-#   "r2"
-#
 
 MODEL_SELECTION_POLICY = "balanced"
 
@@ -136,121 +96,248 @@ SECONDARY_SELECTION_METRIC = "bic"
 
 TERTIARY_SELECTION_METRIC = "r2"
 
-USE_BIC_AS_TIEBREAKER = True
 
-MIN_R2_ACCEPTABLE = 0.95
+# ============================================================
+# Balanced Policy
+# ============================================================
+
+#
+# Future configurable score:
+#
+# score =
+#     w1*AIC_norm +
+#     w2*BIC_norm -
+#     w3*R2_norm
+#
+
+BALANCED_SCORE_ENABLED = False
+
+BALANCED_AIC_WEIGHT = 1.0
+
+BALANCED_BIC_WEIGHT = 1.0
+
+BALANCED_R2_WEIGHT = 1.0
 
 
 # ============================================================
-# Residual Analysis
+# Acceptance Thresholds
 # ============================================================
 
-ENABLE_RESIDUAL_ANALYSIS = True
+MIN_R2_ACCEPTABLE = 0.80
 
-ENABLE_RESIDUAL_NORMALITY = True
+MAX_RMSE_ACCEPTABLE = None
 
-ENABLE_RESIDUAL_AUTOCORRELATION = True
-
-
-# ============================================================
-# Confidence Classification
-# ============================================================
-
-HIGH_CONFIDENCE_R2 = 0.995
-
-MEDIUM_CONFIDENCE_R2 = 0.980
-
-LOW_CONFIDENCE_R2 = 0.950
+MAX_MAE_ACCEPTABLE = None
 
 
 # ============================================================
-# Output Files
+# Residual Statistics
 # ============================================================
 
-FIT_SUMMARY_CSV = "E9_fit_summary.csv"
+RESIDUAL_DDOF = 1
 
-BEST_MODELS_CSV = "E9_best_models.csv"
+RESIDUAL_NORMALITY_TEST = True
 
-MODEL_PARAMETERS_CSV = "E9_model_parameters.csv"
+RESIDUAL_AUTOCORRELATION = True
 
-STATISTICS_JSON = "E9_statistics.json"
 
-REPORT_TXT = "E9_report.txt"
+# ============================================================
+# Confidence Levels
+# ============================================================
+
+HIGH_CONFIDENCE_R2 = 0.98
+
+MEDIUM_CONFIDENCE_R2 = 0.95
+
+LOW_CONFIDENCE_R2 = 0.90
+
+# ============================================================
+# Report
+# ============================================================
+
+REPORT_WIDTH = 80
+
+REPORT_DECIMAL_PRECISION = 6
+
+REPORT_SEPARATOR = "="
+
+REPORT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+REPORT_INCLUDE_PARAMETERS = True
+
+REPORT_INCLUDE_RESIDUALS = True
+
+REPORT_INCLUDE_RANKING = True
+
+REPORT_INCLUDE_CERTIFICATE = True
 
 
 # ============================================================
 # Dashboard
 # ============================================================
 
-GENERATE_DASHBOARD = True
+DASHBOARD_INCLUDE_METADATA = True
 
-EXPORT_ALL_MODEL_RESULTS = True
+DASHBOARD_INCLUDE_SELECTION = True
 
+DASHBOARD_INCLUDE_PARAMETERS = True
 
-# ============================================================
-# Report
-# ============================================================
+DASHBOARD_INCLUDE_RESIDUALS = True
 
-REPORT_PRECISION = 6
+DASHBOARD_INCLUDE_RANKING = True
 
-REPORT_WIDTH = 80
-
-INCLUDE_MODEL_RANKING = True
-
-INCLUDE_PARAMETERS = True
-
-INCLUDE_RESIDUAL_ANALYSIS = True
-
-INCLUDE_CERTIFICATE = True
+DASHBOARD_INCLUDE_CERTIFICATE = True
 
 
 # ============================================================
-# Certificate
+# Output Files
 # ============================================================
 
-GENERATE_FIT_CERTIFICATE = True
+OUTPUT_REPORT_FILENAME = "report.txt"
+
+OUTPUT_DASHBOARD_FILENAME = "dashboard.json"
+
+OUTPUT_SUMMARY_FILENAME = "summary.json"
+
+OUTPUT_STATISTICS_FILENAME = "statistics.json"
+
+OUTPUT_CERTIFICATE_FILENAME = "certificate.json"
+
+
+# ============================================================
+# Output Options
+# ============================================================
+
+EXPORT_JSON = True
+
+EXPORT_TEXT = True
+
+EXPORT_CSV = False
 
 
 # ============================================================
 # Public API
 # ============================================================
 
-def available_observables() -> list[str]:
+def available_models():
     """
-    Return observable names.
-    """
-    return list(OBSERVABLES)
-
-
-def available_models() -> list[str]:
-    """
-    Return candidate models.
-    """
-    return list(MODELS)
-
-
-def available_metrics() -> list[str]:
-    """
-    Return statistical metrics.
-    """
-    return list(METRICS)
-
-
-def get_output_files() -> list[str]:
-    """
-    Return every output file generated by E9.
+    Return enabled models.
     """
 
-    return [
+    return list(
 
-        FIT_SUMMARY_CSV,
+        ENABLED_MODELS
 
-        BEST_MODELS_CSV,
+    )
 
-        MODEL_PARAMETERS_CSV,
 
-        STATISTICS_JSON,
+def available_observables():
+    """
+    Return available observables.
+    """
 
-        REPORT_TXT,
+    return list(
 
-    ]
+        AVAILABLE_OBSERVABLES
+
+    )
+
+
+def output_files():
+    """
+    Return output file names.
+    """
+
+    return {
+
+        "report":
+
+            OUTPUT_REPORT_FILENAME,
+
+        "dashboard":
+
+            OUTPUT_DASHBOARD_FILENAME,
+
+        "summary":
+
+            OUTPUT_SUMMARY_FILENAME,
+
+        "statistics":
+
+            OUTPUT_STATISTICS_FILENAME,
+
+        "certificate":
+
+            OUTPUT_CERTIFICATE_FILENAME,
+
+    }
+
+
+__all__ = [
+
+    "EXPERIMENT_NAME",
+    "EXPERIMENT_TITLE",
+    "VERSION",
+    "STATUS",
+
+    "AVAILABLE_OBSERVABLES",
+
+    "ENABLED_MODELS",
+
+    "MAX_FIT_ITERATIONS",
+    "FIT_TOLERANCE",
+    "ALLOW_NEGATIVE_PARAMETERS",
+
+    "MODEL_SELECTION_POLICY",
+    "PRIMARY_SELECTION_METRIC",
+    "SECONDARY_SELECTION_METRIC",
+    "TERTIARY_SELECTION_METRIC",
+
+    "BALANCED_SCORE_ENABLED",
+    "BALANCED_AIC_WEIGHT",
+    "BALANCED_BIC_WEIGHT",
+    "BALANCED_R2_WEIGHT",
+
+    "MIN_R2_ACCEPTABLE",
+    "MAX_RMSE_ACCEPTABLE",
+    "MAX_MAE_ACCEPTABLE",
+
+    "RESIDUAL_DDOF",
+    "RESIDUAL_NORMALITY_TEST",
+    "RESIDUAL_AUTOCORRELATION",
+
+    "HIGH_CONFIDENCE_R2",
+    "MEDIUM_CONFIDENCE_R2",
+    "LOW_CONFIDENCE_R2",
+
+    "REPORT_WIDTH",
+    "REPORT_DECIMAL_PRECISION",
+    "REPORT_SEPARATOR",
+    "REPORT_TIMESTAMP_FORMAT",
+    "REPORT_INCLUDE_PARAMETERS",
+    "REPORT_INCLUDE_RESIDUALS",
+    "REPORT_INCLUDE_RANKING",
+    "REPORT_INCLUDE_CERTIFICATE",
+
+    "DASHBOARD_INCLUDE_METADATA",
+    "DASHBOARD_INCLUDE_SELECTION",
+    "DASHBOARD_INCLUDE_PARAMETERS",
+    "DASHBOARD_INCLUDE_RESIDUALS",
+    "DASHBOARD_INCLUDE_RANKING",
+    "DASHBOARD_INCLUDE_CERTIFICATE",
+
+    "OUTPUT_REPORT_FILENAME",
+    "OUTPUT_DASHBOARD_FILENAME",
+    "OUTPUT_SUMMARY_FILENAME",
+    "OUTPUT_STATISTICS_FILENAME",
+    "OUTPUT_CERTIFICATE_FILENAME",
+
+    "EXPORT_JSON",
+    "EXPORT_TEXT",
+    "EXPORT_CSV",
+
+    "available_models",
+    "available_observables",
+    "output_files",
+
+]
