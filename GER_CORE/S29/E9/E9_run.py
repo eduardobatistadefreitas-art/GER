@@ -348,13 +348,7 @@ if __name__ == "__main__":
 
     print()
 
-    print(
-
-        "Import this module and call run() "
-
-        "from your experiment."
-
-    )
+    run()
 
 
 # ============================================================
