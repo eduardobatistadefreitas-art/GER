@@ -314,7 +314,7 @@ def run_experiment(
 
         )
 
-                second_difference = 0.0
+        second_difference = 0.0
 
         if len(trajectory_vectors) >= 3:
 
