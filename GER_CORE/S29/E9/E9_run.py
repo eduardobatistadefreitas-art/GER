@@ -74,15 +74,14 @@ def execute_fitting(
     x,
     y,
 ):
-    """
-    Fit all registered models.
-    """
 
     return fit_all_models(
 
         x,
 
         y,
+
+        ENABLED_MODELS,
 
     )
 
