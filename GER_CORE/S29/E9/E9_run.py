@@ -16,6 +16,7 @@ from pathlib import Path
 
 from .config import (
     EXPERIMENT_NAME,
+    AVAILABLE_OBSERVABLES,
 )
 
 from .io import (
