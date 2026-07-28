@@ -1,280 +1,239 @@
 """
-=============================================================
-S28_FULL_AUDIT.py
-=============================================================
+============================================================
+GER
 
-Auditoria estrutural completa da série S28.
+RUN ALL S27
 
-Produz:
+Executa todos os módulos executáveis da Série S27.
 
-GER_RESULTS/
-    S28_AUDIT/
-        S28_inventory.csv
-        S28_inventory.json
-        S28_inventory.txt
-
-=============================================================
+============================================================
 """
 
-from __future__ import annotations
-
-import ast
-import csv
 import json
+import subprocess
+import sys
+import time
 from pathlib import Path
+from datetime import datetime
 
+import pandas as pd
 
-# ==========================================================
-# CONFIGURAÇÃO
-# ==========================================================
 
-ROOT = Path("GER_CORE/S28")
+# ============================================================
+# CONFIG
+# ============================================================
 
-OUTPUT = Path("GER_RESULTS/S28_AUDIT")
-OUTPUT.mkdir(parents=True, exist_ok=True)
+INVENTORY = Path(
+    "/content/drive/MyDrive/GER_RESULTS/S27_AUDIT/S27_inventory.csv"
+)
 
+TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-# ==========================================================
-# HELPERS
-# ==========================================================
+OUTPUT = Path(
+    f"/content/drive/MyDrive/GER_RESULTS/S27_RUN_ALL/{TIMESTAMP}"
+)
 
-def has_main_function(tree):
+OUTPUT.mkdir(
+    parents=True,
+    exist_ok=True,
+)
 
-    for node in tree.body:
 
-        if isinstance(node, ast.FunctionDef):
+# ============================================================
+# LOAD INVENTORY
+# ============================================================
 
-            if node.name == "main":
+df = pd.read_csv(INVENTORY)
 
-                return True
+df = df[
+    (df["main()"] == True) |
+    (df["__main__"] == True)
+]
 
-    return False
+modules = []
 
+for filename in df["file"]:
 
-def has_main_guard(tree):
+    if filename == "__init__.py":
+        continue
 
-    for node in tree.body:
+    module = filename.replace(".py", "")
 
-        if not isinstance(node, ast.If):
-            continue
+    modules.append(module)
 
-        test = node.test
 
-        if not isinstance(test, ast.Compare):
-            continue
+print("=" * 60)
+print("GER")
+print("RUN ALL S27")
+print("=" * 60)
+print()
 
-        if not isinstance(test.left, ast.Name):
-            continue
+print("Modules detected :", len(modules))
+print()
 
-        if test.left.id != "__name__":
-            continue
 
-        if len(test.comparators) != 1:
-            continue
+# ============================================================
+# EXECUTION
+# ============================================================
 
-        value = test.comparators[0]
+summary = []
 
-        if isinstance(value, ast.Constant):
+pass_count = 0
+fail_count = 0
 
-            if value.value == "__main__":
-                return True
+global_start = time.perf_counter()
 
-    return False
+for module in modules:
 
+    print(f"Running {module}")
 
-def classify(tree):
+    module_folder = OUTPUT / module
 
-    names = {
-        n.name.lower()
-        for n in tree.body
-        if isinstance(
-            n,
-            (
-                ast.FunctionDef,
-                ast.AsyncFunctionDef,
-                ast.ClassDef,
-            ),
-        )
-    }
-
-    if "main" in names:
-        return "Experiment"
-
-    if any(
-        x.startswith("audit")
-        or x.startswith("validate")
-        or x.startswith("check")
-        for x in names
-    ):
-        return "Audit"
-
-    if len(tree.body) <= 2:
-        return "Stub"
-
-    return "Utility"
-
-
-# ==========================================================
-# AUDITORIA
-# ==========================================================
-
-rows = []
-
-syntax_ok = 0
-syntax_error = 0
-
-for file in sorted(ROOT.rglob("*.py")):
-
-    relative = file.relative_to(ROOT)
-
-    try:
-
-        source = file.read_text(encoding="utf-8")
-
-        tree = ast.parse(source)
-
-        syntax = "OK"
-
-        syntax_ok += 1
-
-        rows.append({
-
-            "module": relative.with_suffix("").as_posix().replace("/", "."),
-
-            "file": str(relative),
-
-            "lines": len(source.splitlines()),
-
-            "main": has_main_function(tree),
-
-            "__main__": has_main_guard(tree),
-
-            "classification": classify(tree),
-
-            "syntax": syntax,
-
-        })
-
-    except Exception as exc:
-
-        syntax_error += 1
-
-        rows.append({
-
-            "module": relative.with_suffix("").as_posix().replace("/", "."),
-
-            "file": str(relative),
-
-            "lines": 0,
-
-            "main": False,
-
-            "__main__": False,
-
-            "classification": "ERROR",
-
-            "syntax": str(exc),
-
-        })
-
-
-# ==========================================================
-# CSV
-# ==========================================================
-
-csv_file = OUTPUT / "S28_inventory.csv"
-
-with csv_file.open(
-    "w",
-    newline="",
-    encoding="utf-8",
-) as f:
-
-    writer = csv.DictWriter(
-        f,
-        fieldnames=rows[0].keys(),
+    module_folder.mkdir(
+        exist_ok=True
     )
 
-    writer.writeheader()
+    start = time.perf_counter()
 
-    writer.writerows(rows)
+    process = subprocess.run(
 
+        [
 
-# ==========================================================
-# JSON
-# ==========================================================
+            sys.executable,
 
-json.dump(
+            "-m",
 
-    rows,
+            f"GER_CORE.S27.{module}"
 
-    open(
-        OUTPUT / "S28_inventory.json",
+        ],
+
+        capture_output=True,
+
+        text=True,
+
+    )
+
+    elapsed = time.perf_counter() - start
+
+    stdout = process.stdout
+
+    stderr = process.stderr
+
+    (module_folder / "stdout.txt").write_text(
+        stdout,
+        encoding="utf-8",
+    )
+
+    (module_folder / "stderr.txt").write_text(
+        stderr,
+        encoding="utf-8",
+    )
+
+    metadata = {
+
+        "module": module,
+
+        "status":
+            "PASS"
+            if process.returncode == 0
+            else "FAIL",
+
+        "return_code": process.returncode,
+
+        "execution_time": elapsed,
+
+        "stdout_lines":
+            len(stdout.splitlines()),
+
+        "stderr_lines":
+            len(stderr.splitlines()),
+
+    }
+
+    with open(
+        module_folder / "metadata.json",
         "w",
         encoding="utf-8",
-    ),
+    ) as f:
+
+        json.dump(
+            metadata,
+            f,
+            indent=4,
+            ensure_ascii=False,
+        )
+
+    summary.append(metadata)
+
+    if process.returncode == 0:
+
+        pass_count += 1
+
+        print("PASS")
+
+    else:
+
+        fail_count += 1
+
+        print("FAIL")
+
+
+# ============================================================
+# SAVE SUMMARY
+# ============================================================
+
+summary_df = pd.DataFrame(summary)
+
+summary_df.to_csv(
+
+    OUTPUT / "summary.csv",
+
+    index=False,
+
+)
+
+summary_df.to_json(
+
+    OUTPUT / "summary.json",
+
+    orient="records",
 
     indent=4,
 
 )
 
+total_time = time.perf_counter() - global_start
 
-# ==========================================================
-# TXT
-# ==========================================================
+with open(
 
-txt = OUTPUT / "S28_inventory.txt"
+    OUTPUT / "summary.txt",
 
-with txt.open("w", encoding="utf-8") as f:
+    "w",
 
-    f.write("=" * 70 + "\n")
-    f.write("S28 STRUCTURAL AUDIT\n")
-    f.write("=" * 70 + "\n\n")
+    encoding="utf-8",
 
-    f.write(f"Files               : {len(rows)}\n")
-    f.write(f"Syntax OK           : {syntax_ok}\n")
-    f.write(f"Syntax Errors       : {syntax_error}\n")
-    f.write(f"main()              : {sum(r['main'] for r in rows)}\n")
-    f.write(f"__main__            : {sum(r['__main__'] for r in rows)}\n")
+) as f:
 
-    f.write("\n")
+    f.write("=" * 60 + "\n")
+    f.write("GER\n")
+    f.write("RUN ALL S27\n")
+    f.write("=" * 60 + "\n\n")
 
-    classes = {}
-
-    for r in rows:
-        classes[r["classification"]] = (
-            classes.get(r["classification"], 0) + 1
-        )
-
-    for k in sorted(classes):
-        f.write(f"{k:<15}: {classes[k]}\n")
+    f.write(f"Modules : {len(modules)}\n")
+    f.write(f"PASS    : {pass_count}\n")
+    f.write(f"FAIL    : {fail_count}\n")
+    f.write(f"Time(s) : {total_time:.2f}\n")
 
 
-# ==========================================================
-# CONSOLE
-# ==========================================================
+print()
+print("=" * 60)
+print("FINISHED")
+print("=" * 60)
+print()
 
-print("=" * 70)
-print("S28 STRUCTURAL AUDIT")
-print("=" * 70)
-
-print(f"Files          : {len(rows)}")
-print(f"Syntax OK      : {syntax_ok}")
-print(f"Syntax Errors  : {syntax_error}")
-print(f"main()         : {sum(r['main'] for r in rows)}")
-print(f"__main__       : {sum(r['__main__'] for r in rows)}")
-
-print("\nClassification")
-
-classes = {}
-
-for r in rows:
-    classes[r["classification"]] = (
-        classes.get(r["classification"], 0) + 1
-    )
-
-for k in sorted(classes):
-    print(f"{k:<15}: {classes[k]}")
-
-print("\nResults saved to:")
+print("Modules :", len(modules))
+print("PASS    :", pass_count)
+print("FAIL    :", fail_count)
+print()
+print("Results saved to:")
 print(OUTPUT)
