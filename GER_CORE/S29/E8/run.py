@@ -314,6 +314,32 @@ def run_experiment(
 
         )
 
+                second_difference = 0.0
+
+        if len(trajectory_vectors) >= 3:
+
+            p1 = trajectory_vectors[-3]
+            p2 = trajectory_vectors[-2]
+            p3 = trajectory_vectors[-1]
+
+            second_difference = math.sqrt(
+
+                sum(
+
+                    (c - 2 * b + a) ** 2
+
+                    for a, b, c in zip(
+
+                        p1,
+                        p2,
+                        p3,
+
+                    )
+
+                )
+
+            )
+
         # ==================================================
         # Local geometric dynamics
         # ==================================================
@@ -510,6 +536,8 @@ def run_experiment(
 
             "acceleration": acceleration,
 
+            "second_difference": second_difference,
+
             "turning_angle": turning_angle,
 
             "curvature": curvature,
@@ -574,6 +602,12 @@ def run_experiment(
 
             f"Curvature      : {curvature:.8f}"
 
+        )
+
+        print(
+            
+            f"Second Diff    : {second_difference:.8e}"
+            
         )
 
         print(
