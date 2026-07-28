@@ -22,7 +22,13 @@ from .config import (
     EXPERIMENT_TITLE,
     VERSION,
     REPORT_WIDTH,
-    REPORT_PRECISION,
+    REPORT_DECIMAL_PRECISION,
+    REPORT_TIMESTAMP_FORMAT,
+    REPORT_SEPARATOR,
+    REPORT_INCLUDE_PARAMETERS,
+    REPORT_INCLUDE_RESIDUALS,
+    REPORT_INCLUDE_RANKING,
+    REPORT_INCLUDE_CERTIFICATE,
 )
 
 from .selection import (
@@ -43,7 +49,7 @@ from .fitting import (
 # ============================================================
 
 def line(
-    char: str = "=",
+    char=REPORT_SEPARATOR,
 ):
     """
     Horizontal separator.
@@ -79,7 +85,7 @@ def format_float(
 
         return (
 
-            f"{value:.{REPORT_PRECISION}f}"
+            f"{value:.{REPORT_DECIMAL_PRECISION}f}"
 
         )
 
@@ -145,7 +151,7 @@ def report_header():
 
         + f"Version   : {VERSION}\n"
 
-        + f"Generated : {now.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        + f"Generated : {now.strftime(REPORT_TIMESTAMP_FORMAT)}\n"
 
     )
 
@@ -604,29 +610,37 @@ def build_report(
 
     )
 
-    report += parameter_section(
+    if REPORT_INCLUDE_PARAMETERS:
 
-        best
+        report += parameter_section(
 
-    )
+            best
 
-    report += residual_section(
+        )
 
-        best
+    if REPORT_INCLUDE_RESIDUALS:
 
-    )
+        report += residual_section(
 
-    report += certificate_section(
+            best
 
-        summary
+        )
 
-    )
+    if REPORT_INCLUDE_CERTIFICATE:
 
-    report += ranking_section(
+        report += certificate_section(
 
-        results
+            summary
 
-    )
+        )
+
+    if REPORT_INCLUDE_RANKING:
+
+        report += ranking_section(
+
+            results
+
+        )
 
     return report
 
@@ -634,7 +648,6 @@ def build_report(
 # ============================================================
 # Save
 # ============================================================
-
 def save_report(
     report: str,
     filename,
