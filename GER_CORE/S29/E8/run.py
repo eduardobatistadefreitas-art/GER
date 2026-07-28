@@ -315,6 +315,8 @@ def run_experiment(
         )
 
         second_difference = 0.0
+        
+        second_difference_rate = 0.0
 
         if len(trajectory_vectors) >= 3:
 
@@ -339,6 +341,18 @@ def run_experiment(
                 )
 
             )
+            
+        if len(trajectory) > 0:
+            
+            second_difference_rate = (
+                
+                second_difference
+
+                -
+
+                trajectory[-1]["second_difference"]
+
+            )    
 
         # ==================================================
         # Local geometric dynamics
@@ -445,16 +459,6 @@ def run_experiment(
                     norm1 * norm2
 
                 )
-
-                print()
-                print("========== CURVATURE AUDIT ==========")
-                print("v1 =", v1)
-                print("v2 =", v2)
-                print("norm1 =", norm1)
-                print("norm2 =", norm2)
-                print("dot =", dot)
-                print("cosine =", cosine)
-                print()
                 
                 cosine = max(
 
@@ -537,6 +541,8 @@ def run_experiment(
             "acceleration": acceleration,
 
             "second_difference": second_difference,
+            
+            "second_difference_rate": second_difference_rate,
 
             "turning_angle": turning_angle,
 
@@ -607,6 +613,12 @@ def run_experiment(
         print(
             
             f"Second Diff    : {second_difference:.8e}"
+            
+        )
+        
+        print(
+            
+            f"Second DiffRate: {second_difference_rate:.8e}"
             
         )
 
