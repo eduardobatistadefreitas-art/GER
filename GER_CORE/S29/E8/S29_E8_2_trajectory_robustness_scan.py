@@ -54,21 +54,41 @@ import pandas as pd
 # CONFIGURATION
 # =============================================================================
 
-INPUT_DIR = Path(
+INPUT_ROOT = Path(
     "/content/drive/MyDrive/GER_RESULTS/S29/S29_E8"
 )
+
+RUNS = sorted(
+    [d for d in INPUT_ROOT.iterdir() if d.is_dir()]
+)
+
+if not RUNS:
+    raise RuntimeError(
+        "No S29_E8 execution found."
+    )
+
+INPUT_DIR = RUNS[-1]
+
+print(f"Using E8 execution: {INPUT_DIR.name}")
 
 OUTPUT_DIR = Path(
     "/content/drive/MyDrive/GER_RESULTS/S29/"
     "S29_E8_2_TRAJECTORY_ROBUSTNESS_SCAN"
 )
 
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
+OUTPUT_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
 
 TRAJECTORY_FILE = INPUT_DIR / "trajectory.csv"
-VECTORS_FILE = INPUT_DIR / "trajectory_vectors.json"
-SUMMARY_FILE = INPUT_DIR / "summary.json"
+VECTORS_FILE    = INPUT_DIR / "trajectory_vectors.json"
+SUMMARY_FILE    = INPUT_DIR / "summary.json"
+
+WINDOW_SIZE = 101
+WINDOW_STEP = 10
+
+EPS = 1e-12
 
 
 # -----------------------------------------------------------------------------
