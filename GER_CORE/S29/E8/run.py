@@ -760,27 +760,30 @@ def run_experiment(
         writer = csv.writer(f)
 
         writer.writerow(
-
+            
             [
-
                 "index",
-
+                
                 "sigma",
-
+                
                 "delta_sigma",
-
+                
                 "path_length",
-
+                
                 "velocity",
-
+                
                 "acceleration",
-
+                
+                "second_difference",
+                
+                "second_difference_rate",
+                
                 "turning_angle",
-
+                
                 "curvature",
-
+                
                 "stability",
-
+            
             ]
 
         )
@@ -789,27 +792,30 @@ def run_experiment(
         for record in trajectory:
 
             writer.writerow(
-
+                
                 [
-
+                    
                     record["index"],
-
+        
                     record["sigma"],
-
+                    
                     record["delta_sigma"],
-
+                    
                     record["path_length"],
-
+                    
                     record["velocity"],
-
+        
                     record["acceleration"],
-
+            
+                    record["second_difference"],
+                    
+                    record["second_difference_rate"],
+                    
                     record["turning_angle"],
-
+                    
                     record["curvature"],
-
+                    
                     record["stability"],
-
                 ]
 
             )
