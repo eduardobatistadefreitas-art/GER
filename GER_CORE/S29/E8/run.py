@@ -342,17 +342,21 @@ def run_experiment(
 
             )
             
-        if len(trajectory) > 0:
-            
+        if len(trajectory) < 2:
+
+            second_difference_rate = 0.0
+
+        else:
+
             second_difference_rate = (
-                
+
                 second_difference
 
                 -
 
                 trajectory[-1]["second_difference"]
 
-            )    
+            )
 
         # ==================================================
         # Local geometric dynamics
