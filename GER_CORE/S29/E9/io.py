@@ -62,6 +62,16 @@ def load_trajectory(path: str | Path) -> pd.DataFrame:
 
     return df
 
+# ============================================================
+# Standard API
+# ============================================================
+
+def load_dataset(path: str | Path):
+    """
+    Standard loader used by the experiment pipeline.
+    """
+
+    return load_trajectory(path)
 
 # ============================================================
 # Validation
