@@ -1,987 +1,928 @@
 """
-============================================================
-
+=============================================================
 GER
-S29-E8
+S29_E8
 
-Trajectory Observatory
+Signature Trajectory Experiment
 
-run.py
-
-PARTE 1
-
-============================================================
+Version : 1.0
+=============================================================
 """
 
 from __future__ import annotations
 
 import json
-import traceback
+import math
+from datetime import datetime
 from pathlib import Path
 
-from config import *
+from GER.CORE.bootstrap import initialize
+from GER.CORE.experiment_pipeline import run_signature_pipeline
+from GER.CORE.ger_engine import run_engine
 
-from storage import ExperimentStorage
-from checkpoint import CheckpointManager
-from timer import ExperimentTimer
-
-# (serão implementados nas próximas partes)
-
-from trajectory import Trajectory
-from metrics import TrajectoryMetrics
-from certificate import ExperimentCertificate
-from report import ExperimentReport
+from GER_CORE.S26.S26_B35_persistence_metrics import (
+    run_persistence_observatory,
+)
 
 
 # ==========================================================
-# Banner
+# Experiment
 # ==========================================================
 
-def banner():
+EXPERIMENT = "S29_E8"
+
+RESULTS_ROOT = Path(
+    "/content/drive/MyDrive/GER_RESULTS/S29"
+)
+
+OUTPUT_DIR = (
+    RESULTS_ROOT
+    / EXPERIMENT
+    / datetime.now().strftime("%Y%m%d_%H%M%S")
+)
+
+OUTPUT_DIR.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+print("=" * 60)
+print("GER")
+print("S29 E8")
+print("Signature Trajectory Experiment")
+print("=" * 60)
+print()
+print("Output")
+print(OUTPUT_DIR)
+print()
+
+
+# ==========================================================
+# Scan configuration
+# ==========================================================
+
+SIGMA_START = 0.1000
+SIGMA_STOP = 0.2000
+SIGMA_STEP = 0.0001
+
+N = 384
+
+TIMESTEPS = 2000
+
+DT = 0.00025
+
+BETA = 1.0
+
+POTENTIAL = "A"
+
+SNAPSHOT_STRIDE = 50
+
+
+# ==========================================================
+# Trajectory
+# ==========================================================
+
+trajectory = []
+
+trajectory_vectors = []
+
+
+# ==========================================================
+# Utilities
+# ==========================================================
+
+def euclidean_distance(a, b):
+
+    return math.sqrt(
+
+        sum(
+
+            (x - y) ** 2
+
+            for x, y in zip(a, b)
+
+        )
+
+    )
+
+
+def save_json(name, obj):
+
+    path = OUTPUT_DIR / name
+
+    with open(
+
+        path,
+
+        "w",
+
+        encoding="utf-8",
+
+    ) as f:
+
+        json.dump(
+
+            obj,
+
+            f,
+
+            indent=4,
+
+            ensure_ascii=False,
+
+            default=str,
+
+        )
+
+
+# ==========================================================
+# Initialization
+# ==========================================================
+
+initialize()
+
+
+# ==========================================================
+# Main Loop
+# ==========================================================
+
+sigma = SIGMA_START
+
+experiment_index = 0
+
+while sigma <= SIGMA_STOP + 1e-12:
 
     print()
-    print("=" * 60)
-    print("GER")
-    print(EXPERIMENT_NAME)
-    print(EXPERIMENT_TITLE)
-    print("=" * 60)
+
+    print("-" * 60)
+
+    print(
+
+        f"Experiment {experiment_index}"
+
+    )
+
+    print(
+
+        f"Sigma = {sigma:.6f}"
+
+    )
+
+
+    simulation = run_engine(
+
+        n=N,
+
+        timesteps=TIMESTEPS,
+
+        dt=DT,
+
+        beta=BETA,
+
+        potential=POTENTIAL,
+
+        snapshot_stride=SNAPSHOT_STRIDE,
+
+        sigma=sigma,
+
+    )
+
+
+    snapshots = simulation["snapshots"]
+
+    configuration = simulation["configuration"]
+
+
+    observables = run_persistence_observatory(
+
+        snapshots,
+
+        configuration["dt"],
+
+    )
+
+
+    pipeline = run_signature_pipeline(
+
+        observables,
+
+        configuration["dt"],
+
+    )
+
+
+    signature = pipeline["signature"]
+
+    certificate = pipeline["certificate"]
+
+    # ======================================================
+    # Signature extraction
+    # ======================================================
+
+    signature_metadata = {}
+
+    try:
+
+        from GER.CORE.ger_geometric_signature import (
+            extract_signature,
+            extract_signature_metadata,
+        )
+
+        extracted = extract_signature(signature)
+
+        try:
+
+            signature_metadata = extract_signature_metadata(
+                signature
+            )
+
+        except Exception:
+
+            signature_metadata = {}
+
+    except Exception:
+
+        extracted = signature
+
+
+    # ------------------------------------------------------
+    # Normalize to dictionary
+    # ------------------------------------------------------
+
+    if isinstance(extracted, dict):
+
+        signature_dict = extracted
+
+    elif hasattr(extracted, "to_dict"):
+
+        signature_dict = extracted.to_dict()
+
+    elif hasattr(extracted, "__dict__"):
+
+        signature_dict = dict(extracted.__dict__)
+
+    else:
+
+        signature_dict = {
+            "value": extracted,
+        }
+
+
+    # ------------------------------------------------------
+    # Numeric vector
+    # ------------------------------------------------------
+
+    signature_vector = []
+
+    for key in sorted(signature_dict.keys()):
+
+        value = signature_dict[key]
+
+        if isinstance(value, (int, float)):
+
+            signature_vector.append(
+                float(value)
+            )
+
+    # ======================================================
+    # Trajectory vector
+    # ======================================================
+
+    #
+    # Mantemos sempre a mesma ordem.
+    #
+
+    signature_vector = [
+
+        float(v)
+
+        for _, v in sorted(
+
+            signature_dict.items()
+
+        )
+
+        if isinstance(
+
+            v,
+
+            (
+
+                int,
+
+                float,
+
+            ),
+
+        )
+
+    ]
+
+
+    # ======================================================
+    # Geometric trajectory
+    # ======================================================
+
+    if len(
+
+        trajectory_vectors
+
+    ) == 0:
+
+        delta_sigma = 0.0
+
+        path_length = 0.0
+
+    else:
+
+        delta_sigma = euclidean_distance(
+
+            trajectory_vectors[-1],
+
+            signature_vector,
+
+        )
+
+        path_length = (
+
+            trajectory[-1]["path_length"]
+
+            +
+
+            delta_sigma
+
+        )
+
+
+    trajectory_vectors.append(
+
+        signature_vector
+
+    )
+
+
+    # ======================================================
+    # Record
+    # ======================================================
+
+    record = {
+
+        "index":
+
+            experiment_index,
+
+        "sigma":
+
+            sigma,
+
+        "signature":
+
+            signature_dict,
+
+        "metadata":
+
+            signature_metadata,
+
+        "certificate":
+
+            certificate,
+
+        "delta_sigma":
+
+            delta_sigma,
+
+        "path_length":
+
+            path_length,
+
+        "vector":
+
+            signature_vector,
+
+    }
+
+    trajectory.append(
+
+        record
+
+    )
+
+
+    # ======================================================
+    # Progress
+    # ======================================================
+
+    print(
+
+        "Signature dimension :",
+
+        len(
+
+            signature_vector
+
+        )
+
+    )
+
+    print(
+
+        "Delta Sigma         :",
+
+        f"{delta_sigma:.8f}",
+
+    )
+
+    print(
+
+        "Path Length         :",
+
+        f"{path_length:.8f}",
+
+    )
+
+
+    # ======================================================
+    # Incremental save
+    # ======================================================
+
+    save_json(
+
+        "trajectory.json",
+
+        trajectory,
+
+    )
+
+    save_json(
+
+        "trajectory_vectors.json",
+
+        trajectory_vectors,
+
+    )
+
+    save_json(
+
+        "last_signature.json",
+
+        signature_dict,
+
+    )
+
+    save_json(
+
+        "last_certificate.json",
+
+        certificate,
+
+    )
+
+
+    # ======================================================
+    # Next experiment
+    # ======================================================
+
+    experiment_index += 1
+
+    sigma += SIGMA_STEP
+
+    # ======================================================
+    # Console
+    # ======================================================
+
     print()
 
+    print(
+        "Certificate :",
+        certificate,
+    )
+
+    print(
+        "Trajectory Points :",
+        len(trajectory),
+    )
+
+    print(
+        "Current Length :",
+        f"{path_length:.8f}",
+    )
+
+    print()
+
+    # ======================================================
+    # Next sigma
+    # ======================================================
+
+    experiment_index += 1
+
+    sigma += SIGMA_STEP
+
 
 # ==========================================================
-# Inicialização
+# End of scan
 # ==========================================================
 
-banner()
+print()
 
-storage = ExperimentStorage()
+print("=" * 60)
+print("Trajectory completed.")
+print("=" * 60)
+print()
 
-storage.initialize()
+total_points = len(trajectory)
 
-checkpoint = CheckpointManager(storage)
+total_length = 0.0
 
-timer = ExperimentTimer()
+if total_points > 0:
 
-trajectory = Trajectory(storage)
-
-metrics = TrajectoryMetrics(storage)
-
-certificate = ExperimentCertificate(storage)
-
-report = ExperimentReport(storage)
+    total_length = trajectory[-1]["path_length"]
 
 
-# ==========================================================
-# Arquivo de configuração
-# ==========================================================
+summary = {
 
-configuration = {
+    "experiment": EXPERIMENT,
 
-    "experiment": EXPERIMENT_NAME,
+    "points": total_points,
 
-    "title": EXPERIMENT_TITLE,
+    "sigma_start": SIGMA_START,
 
-    "version": VERSION,
+    "sigma_stop": SIGMA_STOP,
 
-    "parameter_name": PARAMETER_NAME,
+    "sigma_step": SIGMA_STEP,
 
-    "parameter_start": PARAMETER_START,
+    "path_length": total_length,
 
-    "parameter_stop": PARAMETER_STOP,
+    "dimension": (
 
-    "parameter_step": PARAMETER_STEP,
+        len(trajectory_vectors[0])
 
-    "max_states": MAX_STATES,
+        if trajectory_vectors
 
-    "save_every": SAVE_EVERY,
+        else 0
 
-    "checkpoint_every": CHECKPOINT_EVERY,
+    ),
 
-    "auto_resume": AUTO_RESUME,
-
-    "random_seed": RANDOM_SEED,
+    "output_directory": str(
+        OUTPUT_DIR
+    ),
 
 }
 
-storage.save_json(
+save_json(
 
-    storage.root / "config.json",
+    "summary.json",
 
-    configuration,
+    summary,
 
 )
 
 
 # ==========================================================
-# Resume
-# ==========================================================
-
-start_state = 0
-
-parameter = PARAMETER_START
-
-elapsed = 0.0
-
-if checkpoint.exists():
-
-    if AUTO_RESUME:
-
-        print()
-
-        print("Checkpoint encontrado.")
-
-        data = checkpoint.load()
-
-        start_state = data["state"] + 1
-
-        parameter = data["parameter"] + PARAMETER_STEP
-
-        elapsed = data["elapsed_seconds"]
-
-        print(
-
-            f"Retomando do estado {start_state}"
-
-        )
-
-        print()
-
-else:
-
-    print()
-
-    print("Nova execução.")
-
-    print()
-
-
-# ==========================================================
-# Timer
-# ==========================================================
-
-timer.start()
-
-timer.states_completed = start_state
-
-
-# ==========================================================
-# Informações iniciais
-# ==========================================================
-
-print("-" * 60)
-
-print("Execution ID :", storage.execution_id)
-
-print("Estados      :", MAX_STATES)
-
-print("Parâmetro    :", PARAMETER_NAME)
-
-print("Inicial      :", parameter)
-
-print("Final        :", PARAMETER_STOP)
-
-print("-" * 60)
-
-print()
-
-
-# ==========================================================
-# Loop principal
-# ==========================================================
-
-try:
-
-    for state in range(
-
-        start_state,
-
-        MAX_STATES,
-
-    ):
-
-        if parameter > PARAMETER_STOP:
-
-            break
-
-        # --------------------------------------------
-        # O processamento científico será inserido
-        # na Parte 2.
-        # --------------------------------------------
-
-        # Placeholder temporário
-
-        record = {
-
-            "state": state,
-
-            "parameter": parameter,
-
-        }
-
-        trajectory.append(record)
-
-        timer.update()
-
-          # ==================================================
-        # Construção da trajetória
-        # ==================================================
-
-        trajectory.append(record)
-
-        # ==================================================
-        # Métricas locais
-        # ==================================================
-
-        metrics.update(record)
-
-        # ==================================================
-        # Salvamento incremental
-        # ==================================================
-
-        if (
-
-            state == 0
-
-            or
-
-            state % SAVE_EVERY == 0
-
-        ):
-
-            trajectory.save()
-
-            metrics.save()
-
-        # ==================================================
-        # Checkpoint
-        # ==================================================
-
-        if (
-
-            state == 0
-
-            or
-
-            state % CHECKPOINT_EVERY == 0
-
-        ):
-
-            checkpoint.save(
-
-                state=state,
-
-                parameter=parameter,
-
-                elapsed=timer.elapsed,
-
-                statistics=timer.benchmark(),
-
-            )
-
-        # ==================================================
-        # Dashboard
-        # ==================================================
-
-        if SHOW_PROGRESS:
-
-            eta = timer.eta(MAX_STATES)
-
-            print(
-
-                f"\r"
-
-                f"State: {state:8d} | "
-
-                f"{PARAMETER_NAME}: {parameter:.6f} | "
-
-                f"Elapsed: {timer.elapsed:8.1f}s | "
-
-                f"ETA: {eta:8.1f}s | "
-
-                f"States/s: {timer.states_per_second:6.2f}",
-
-                end="",
-
-                flush=True,
-
-            )
-
-        # ==================================================
-        # Próximo parâmetro
-        # ==================================================
-
-        parameter += PARAMETER_STEP
-
-    print()
-
-    print()
-
-    print("=" * 60)
-
-    print("Execução concluída.")
-
-    print("=" * 60)
-
-except KeyboardInterrupt:
-
-    print()
-
-    print()
-
-    print("Execução interrompida pelo usuário.")
-
-except Exception:
-
-    print()
-
-    print()
-
-    traceback.print_exc()
-
-finally:
-
-    # ======================================================
-    # Salvamento final
-    # ======================================================
-
-    trajectory.save()
-
-    metrics.save()
-
-    # ======================================================
-    # Benchmark
-    # ======================================================
-
-    benchmark = timer.benchmark()
-
-    projections = timer.projections()
-
-    storage.save_json(
-
-        storage.file(
-
-            "statistics",
-
-            "benchmark.json",
-
-        ),
-
-        benchmark,
-
-    )
-
-    storage.save_json(
-
-        storage.file(
-
-            "statistics",
-
-            "projection.json",
-
-        ),
-
-        projections,
-
-    )
-
-    # ======================================================
-    # Certificado
-    # ======================================================
-
-    certificate.generate(
-
-        benchmark=benchmark,
-
-        projections=projections,
-
-        trajectory=trajectory,
-
-        metrics=metrics,
-
-    )
-
-    # ======================================================
-    # Relatório
-    # ======================================================
-
-    report.generate(
-
-        benchmark=benchmark,
-
-        projections=projections,
-
-        trajectory=trajectory,
-
-        metrics=metrics,
-
-    )
-
-    print()
-
-    print("Resultados salvos em:")
-
-    print(storage.root)
-
-    print()
-
-    print("=" * 60)
-
-    print("S29-E8 finalizado.")
-
-    print("=" * 60)
-
-        # ==================================================
-        # GER PIPELINE
-        # ==================================================
-
-        #
-        # A partir daqui o E8 deixa de ser apenas uma
-        # infraestrutura e passa a utilizar o GER.
-        #
-        # A implementação abaixo pressupõe a existência
-        # das APIs oficiais do projeto.
-        #
-
-        # ----------------------------------------------
-        # 1) Gerar estado do sistema
-        # ----------------------------------------------
-
-        simulation = run_engine(
-
-            sigma=parameter,
-
-        )
-
-        # ----------------------------------------------
-        # 2) Observatório
-        # ----------------------------------------------
-
-        observables = run_persistence_observatory(
-
-            simulation,
-
-        )
-
-        # ----------------------------------------------
-        # 3) Assinatura Geométrica
-        # ----------------------------------------------
-
-        signature = compute_geometric_signature(
-
-            observables,
-
-            dt=simulation["configuration"]["dt"],
-
-        )
-
-        # ----------------------------------------------
-        # 4) Registro científico
-        # ----------------------------------------------
-
-        record = {
-
-            "state":
-                state,
-
-            "parameter":
-                parameter,
-
-            "elapsed":
-                timer.elapsed,
-
-            "diameter":
-                signature.diameter,
-
-            "convergence":
-                signature.convergence,
-
-            "recurrence":
-                signature.recurrence,
-
-            "drift":
-                signature.drift,
-
-            "signature":
-                signature,
-
-            "observables":
-                observables,
-
-            "simulation":
-                simulation,
-
-        }
-
-        # ----------------------------------------------
-        # 5) Trajetória
-        # ----------------------------------------------
-
-        trajectory.append(
-
-            record,
-
-        )
-
-        # ----------------------------------------------
-        # 6) Métricas locais
-        # ----------------------------------------------
-
-        metrics.update(
-
-            trajectory,
-
-        )
-
-        # ----------------------------------------------
-        # 7) Salvamento incremental
-        # ----------------------------------------------
-
-        if (
-
-            state == 0
-
-            or
-
-            state % SAVE_EVERY == 0
-
-        ):
-
-            trajectory.save()
-
-            metrics.save()
-
-        # ----------------------------------------------
-        # 8) Checkpoint
-        # ----------------------------------------------
-
-        if (
-
-            state == 0
-
-            or
-
-            state % CHECKPOINT_EVERY == 0
-
-        ):
-
-            checkpoint.save(
-
-                state=state,
-
-                parameter=parameter,
-
-                elapsed=timer.elapsed,
-
-                statistics=timer.benchmark(),
-
-            )
-
-        # ----------------------------------------------
-        # 9) Dashboard
-        # ----------------------------------------------
-
-        if SHOW_PROGRESS:
-
-            print(
-
-                f"\r"
-
-                f"{state:6d}"
-
-                f" | "
-
-                f"{parameter:.6f}"
-
-                f" | "
-
-                f"D={signature.diameter:.6f}"
-
-                f" "
-
-                f"C={signature.convergence:.6f}"
-
-                f" "
-
-                f"R={signature.recurrence:.6f}"
-
-                f" "
-
-                f"Dr={signature.drift:.6f}"
-
-                f" "
-
-                f"{timer.states_per_second:.2f}"
-
-                f" st/s",
-
-                end="",
-
-                flush=True,
-
-            )
-
-        # ----------------------------------------------
-        # 10) Próximo estado
-        # ----------------------------------------------
-
-        parameter += PARAMETER_STEP
-
-# ==========================================================
-# TRAJECTORY
-# (Implementação temporária incorporada ao run.py)
+# CSV export
 # ==========================================================
 
 import csv
-import math
 
+csv_file = OUTPUT_DIR / "trajectory.csv"
 
-class Trajectory:
+with open(
 
-    def __init__(self, storage):
+    csv_file,
 
-        self.storage = storage
+    "w",
 
-        self.records = []
+    newline="",
 
-        self.csv_file = storage.file(
-            "trajectory",
-            "trajectory.csv",
-        )
+    encoding="utf-8",
 
-        self.json_file = storage.file(
-            "trajectory",
-            "trajectory.json",
-        )
+) as f:
 
-        self.initialized = False
+    writer = csv.writer(f)
 
-    # ------------------------------------------------------
+    writer.writerow(
 
-    def append(self, record):
+        [
 
-        self.records.append(record)
+            "index",
 
-    # ------------------------------------------------------
+            "sigma",
 
-    def __len__(self):
+            "delta_sigma",
 
-        return len(self.records)
-
-    # ------------------------------------------------------
-
-    def __getitem__(self, index):
-
-        return self.records[index]
-
-    # ------------------------------------------------------
-
-    def last(self):
-
-        if not self.records:
-
-            return None
-
-        return self.records[-1]
-
-    # ------------------------------------------------------
-
-    def previous(self):
-
-        if len(self.records) < 2:
-
-            return None
-
-        return self.records[-2]
-
-    # ------------------------------------------------------
-
-    def initialize_csv(self):
-
-        if self.initialized:
-
-            return
-
-        with open(
-
-            self.csv_file,
-
-            "w",
-
-            newline="",
-
-            encoding="utf-8",
-
-        ) as fp:
-
-            writer = csv.writer(fp)
-
-            writer.writerow(
-
-                [
-
-                    "State",
-
-                    "Parameter",
-
-                    "Diameter",
-
-                    "Convergence",
-
-                    "Recurrence",
-
-                    "Drift",
-
-                    "Elapsed",
-
-                ]
-
-            )
-
-        self.initialized = True
-
-    # ------------------------------------------------------
-
-    def append_csv(self, record):
-
-        self.initialize_csv()
-
-        with open(
-
-            self.csv_file,
-
-            "a",
-
-            newline="",
-
-            encoding="utf-8",
-
-        ) as fp:
-
-            writer = csv.writer(fp)
-
-            writer.writerow(
-
-                [
-
-                    record["state"],
-
-                    record["parameter"],
-
-                    record["diameter"],
-
-                    record["convergence"],
-
-                    record["recurrence"],
-
-                    record["drift"],
-
-                    record["elapsed"],
-
-                ]
-
-            )
-
-    # ------------------------------------------------------
-
-    def save(self):
-
-        serializable = []
-
-        for r in self.records:
-
-            serializable.append(
-
-                {
-
-                    "state":
-
-                        r["state"],
-
-                    "parameter":
-
-                        r["parameter"],
-
-                    "diameter":
-
-                        r["diameter"],
-
-                    "convergence":
-
-                        r["convergence"],
-
-                    "recurrence":
-
-                        r["recurrence"],
-
-                    "drift":
-
-                        r["drift"],
-
-                    "elapsed":
-
-                        r["elapsed"],
-
-                }
-
-            )
-
-        self.storage.save_json(
-
-            self.json_file,
-
-            serializable,
-
-        )
-
-    # ------------------------------------------------------
-
-    def export_last(self):
-
-        if not self.records:
-
-            return
-
-        self.append_csv(
-
-            self.records[-1]
-
-        )
-
-    # ------------------------------------------------------
-
-    def signature_vector(self, record):
-
-        return [
-
-            record["diameter"],
-
-            record["convergence"],
-
-            record["recurrence"],
-
-            record["drift"],
+            "path_length",
 
         ]
 
-    # ------------------------------------------------------
+    )
 
-    def displacement(self):
+    for record in trajectory:
 
-        if len(self.records) < 2:
+        writer.writerow(
 
-            return 0.0
+            [
 
-        a = self.signature_vector(
+                record["index"],
 
-            self.records[-2]
+                record["sigma"],
+
+                record["delta_sigma"],
+
+                record["path_length"],
+
+            ]
 
         )
 
-        b = self.signature_vector(
 
-            self.records[-1]
+# ==========================================================
+# TXT report
+# ==========================================================
+
+report = OUTPUT_DIR / "report.txt"
+
+with open(
+
+    report,
+
+    "w",
+
+    encoding="utf-8",
+
+) as f:
+
+    f.write("=" * 60 + "\n")
+
+    f.write("GER\n")
+
+    f.write("S29 E8\n")
+
+    f.write("Signature Trajectory Experiment\n")
+
+    f.write("=" * 60 + "\n\n")
+
+    f.write(
+
+        f"Trajectory points : {total_points}\n"
+
+    )
+
+    f.write(
+
+        f"Sigma start      : {SIGMA_START}\n"
+
+    )
+
+    f.write(
+
+        f"Sigma stop       : {SIGMA_STOP}\n"
+
+    )
+
+    f.write(
+
+        f"Sigma step       : {SIGMA_STEP}\n"
+
+    )
+
+    f.write(
+
+        f"Dimension        : {summary['dimension']}\n"
+
+    )
+
+    f.write(
+
+        f"Path length      : {total_length:.10f}\n"
+
+    )
+
+    f.write("\n")
+
+    f.write("Output directory\n")
+
+    f.write(
+
+        str(OUTPUT_DIR)
+
+    )
+
+    f.write("\n")
+
+
+# ==========================================================
+# Final console
+# ==========================================================
+
+print()
+
+print("=" * 60)
+
+print("Experiment finished.")
+
+print("=" * 60)
+
+print()
+
+print(
+
+    "Trajectory points :",
+
+    total_points,
+
+)
+
+print(
+
+    "Trajectory length :",
+
+    f"{total_length:.8f}",
+
+)
+
+print(
+
+    "Results saved to:",
+
+    OUTPUT_DIR,
+
+)
+
+print()
+
+    # ======================================================
+    # Geometric trajectory analysis
+    # ======================================================
+
+    velocity = delta_sigma
+
+    acceleration = 0.0
+
+    curvature = 0.0
+
+    turning_angle = 0.0
+
+    if len(trajectory) >= 1:
+
+        previous_velocity = trajectory[-1].get(
+            "velocity",
+            0.0,
+        )
+
+        acceleration = (
+
+            velocity
+
+            -
+
+            previous_velocity
 
         )
 
-        return math.sqrt(
+
+    if len(trajectory_vectors) >= 3:
+
+        p1 = trajectory_vectors[-3]
+
+        p2 = trajectory_vectors[-2]
+
+        p3 = trajectory_vectors[-1]
+
+
+        v1 = [
+
+            b - a
+
+            for a, b in zip(
+                p1,
+                p2,
+            )
+
+        ]
+
+
+        v2 = [
+
+            c - b
+
+            for b, c in zip(
+                p2,
+                p3,
+            )
+
+        ]
+
+
+        norm1 = math.sqrt(
 
             sum(
 
-                (
+                x * x
 
-                    x - y
-
-                ) ** 2
-
-                for x, y in zip(
-
-                    a,
-
-                    b,
-
-                )
+                for x in v1
 
             )
 
         )
 
-    # ------------------------------------------------------
 
-    def path_length(self):
+        norm2 = math.sqrt(
 
-        if len(self.records) < 2:
+            sum(
 
-            return 0.0
+                x * x
 
-        total = 0.0
+                for x in v2
 
-        previous = self.records[0]
+            )
 
-        for current in self.records[1:]:
+        )
 
-            pa = self.signature_vector(previous)
 
-            pb = self.signature_vector(current)
+        if (
 
-            total += math.sqrt(
+            norm1 > 0.0
 
-                sum(
+            and
 
-                    (
+            norm2 > 0.0
 
-                        x - y
+        ):
 
-                    ) ** 2
+            dot = sum(
 
-                    for x, y in zip(
+                a * b
 
-                        pa,
+                for a, b in zip(
+                    v1,
+                    v2,
+                )
 
-                        pb,
+            )
 
-                    )
+
+            cosine = dot / (
+
+                norm1 * norm2
+
+            )
+
+
+            cosine = max(
+
+                -1.0,
+
+                min(
+
+                    1.0,
+
+                    cosine,
+
+                ),
+
+            )
+
+
+            turning_angle = math.acos(
+                cosine
+            )
+
+
+            curvature = (
+
+                turning_angle
+
+                /
+
+                max(
+
+                    norm2,
+
+                    1e-12,
 
                 )
 
             )
 
-            previous = current
 
-        return total
+    if len(trajectory) == 0:
 
-    # ------------------------------------------------------
+        stability = "origin"
 
-    def summary(self):
+    elif velocity < 1e-8:
 
-        return {
+        stability = "stationary"
 
-            "states":
+    elif curvature < 1e-3:
 
-                len(self.records),
+        stability = "smooth"
 
-            "path_length":
+    elif curvature < 1e-1:
 
-                self.path_length(),
+        stability = "transition"
 
-            "last_step":
+    else:
 
-                self.displacement(),
+        stability = "bifurcation"
 
-        }
-
-
-# ==========================================================
-# Pequena alteração no loop principal
-#
-# Logo após:
-#
-# trajectory.append(record)
-#
-# adicionar:
-#
-# trajectory.export_last()
-#
-# Assim o CSV é atualizado continuamente e,
-# mesmo que o Colab caia, praticamente nada
-# é perdido.
-# ==========================================================
+if __name__ == "__main__":
+    run_experiment()
