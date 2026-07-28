@@ -348,9 +348,23 @@ if __name__ == "__main__":
 
     print()
 
-    run()
+    INPUT_FILE = (
+        "/content/drive/MyDrive/GER_RESULTS/"
+        "S29/S29_E8/20260728_170754/trajectory.csv"
+    )
 
+    OUTPUT_DIRECTORY = (
+        "/content/drive/MyDrive/GER_RESULTS/S29/S29_E9"
+    )
 
+    run(
+
+        INPUT_FILE,
+
+        OUTPUT_DIRECTORY,
+
+    )
+    
 # ============================================================
 # Public API
 # ============================================================
