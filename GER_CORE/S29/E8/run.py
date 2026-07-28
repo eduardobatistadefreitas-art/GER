@@ -139,7 +139,7 @@ def run_experiment(
 
     sigma_start=0.1000,
 
-    sigma_stop=0.2000,
+    sigma_stop=0.1010,
 
     sigma_step=0.0001,
 
@@ -420,6 +420,16 @@ def run_experiment(
 
                 )
 
+                print()
+                print("========== CURVATURE AUDIT ==========")
+                print("v1 =", v1)
+                print("v2 =", v2)
+                print("norm1 =", norm1)
+                print("norm2 =", norm2)
+                print("dot =", dot)
+                print("cosine =", cosine)
+                print()
+                
                 cosine = max(
 
                     -1.0,
