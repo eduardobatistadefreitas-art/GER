@@ -30,10 +30,8 @@ from pathlib import Path
 import pandas as pd
 
 from .config import (
-    INPUT_FILENAME,
-    OBSERVABLES,
+    AVAILABLE_OBSERVABLES,
 )
-
 
 # ============================================================
 # Input
@@ -78,7 +76,7 @@ def validate_dataframe(df: pd.DataFrame) -> None:
 
         "sigma",
 
-        *OBSERVABLES,
+        *AVAILABLE_OBSERVABLES,
 
     ]
 
