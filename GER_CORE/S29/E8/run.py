@@ -139,7 +139,7 @@ def run_experiment(
 
     sigma_start=0.1000,
 
-    sigma_stop=0.1010,
+    sigma_stop=0.2000,
 
     sigma_step=0.0001,
 
