@@ -9,12 +9,10 @@ Experiment:
 Objective
 ---------
 Verify whether the geometric properties observed in S29_E8_1 remain invariant
-when the observation window is translated along the control parameter σ.
+as the observation window grows cumulatively from the initial condition.
 
-The experiment performs a sliding-window scan over the trajectory and computes
-the same geometric descriptors used in E8.1 for each window.
-
-Input
+The experiment progressively enlarges the observation interval while preserving
+the initial point fixed.
 -----
 /content/drive/MyDrive/GER_RESULTS/S29/S29_E8
 
@@ -565,10 +563,14 @@ def export_json(df):
 
 def build_summary(df):
 
+    project_summary = load_summary()
+
+    total_points = int(project_summary["points"])
+
     summary = {
 
         "experiment":
-            "S29_E8_2_TRAJECTORY_ROBUSTNESS_SCAN",
+            "S29_E8_2_1_CUMULATIVE_WINDOW_ROBUSTNESS",
 
         "windows":
             int(len(df)),
@@ -578,6 +580,28 @@ def build_summary(df):
 
         "window_step":
             WINDOW_STEP,
+
+        "initial_window_size":
+            WINDOW_SIZE,
+
+        "minimum_window_size":
+            int(df["samples"].min()),
+
+        "final_window_size":
+            int(df["samples"].max()),
+
+        "trajectory_points":
+            total_points,
+
+        "minimum_coverage":
+            float(
+                df["samples"].min() / total_points
+            ),
+
+        "maximum_coverage":
+            float(
+                df["samples"].max() / total_points
+            ),
 
         "sigma_min":
             float(df["sigma_start"].min()),
@@ -647,7 +671,7 @@ def export_report(summary):
 
     lines.append("=" * 80)
     lines.append("S29 E8.2")
-    lines.append("TRAJECTORY ROBUSTNESS SCAN")
+    lines.append("CUMULATIVE WINDOW ROBUSTNESS")
     lines.append("=" * 80)
     lines.append("")
 
@@ -678,7 +702,7 @@ def print_summary(summary):
     print()
     print("=" * 80)
     print("S29 E8.2")
-    print("Trajectory Robustness Scan")
+    print("cumulative window robustness")
     print("=" * 80)
 
     for k, v in summary.items():
@@ -710,7 +734,7 @@ def main():
     print(f"Vector dimension  : {vectors.shape[1]}")
     print()
 
-    print("Running sliding-window robustness scan...")
+    print("Running cumulative-window robustness scan...")
 
     results = robustness_scan(
 
