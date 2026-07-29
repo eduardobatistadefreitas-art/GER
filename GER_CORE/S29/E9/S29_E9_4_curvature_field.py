@@ -59,8 +59,6 @@ INPUT_MANIFOLD = (
     / "chosen_manifold.parquet"
 )
 
-)
-
 INPUT_EIGENVECTORS = (
     BASE
     / "S29"
