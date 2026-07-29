@@ -323,6 +323,251 @@ def validate_certificates(certificates):
     print("All consistency checks passed.")
 
 # =============================================================================
+# ROBUSTNESS SUMMARY
+# =============================================================================
+
+def build_robustness_summary(certificates):
+
+    print()
+    print("=" * 80)
+    print("ROBUSTNESS SUMMARY")
+    print("=" * 80)
+
+    e91 = certificates["E91"]
+    e92 = certificates["E92"]
+    e93 = certificates["E93"]
+    e94 = certificates["E94"]
+    e95 = certificates["E95"]
+
+    summary = [
+
+        {
+
+            "component": "MANIFOLD",
+
+            "experiment": "E9.1",
+
+            "metric": "Embedding Score",
+
+            "value": e91["score"]
+
+        },
+
+        {
+
+            "component": "MANIFOLD",
+
+            "experiment": "E9.1",
+
+            "metric": "Distance Correlation",
+
+            "value": e91["distance_correlation"]
+
+        },
+
+        {
+
+            "component": "MANIFOLD",
+
+            "experiment": "E9.1",
+
+            "metric": "Neighbor Preservation",
+
+            "value": e91["neighbor_preservation"]
+
+        },
+
+        {
+
+            "component": "LOCAL_GEOMETRY",
+
+            "experiment": "E9.2",
+
+            "metric": "Mean Local Dimension",
+
+            "value": e92["mean_local_dimension"]
+
+        },
+
+        {
+
+            "component": "LOCAL_GEOMETRY",
+
+            "experiment": "E9.2",
+
+            "metric": "Mean Anisotropy",
+
+            "value": e92["mean_anisotropy"]
+
+        },
+
+        {
+
+            "component": "LOCAL_GEOMETRY",
+
+            "experiment": "E9.2",
+
+            "metric": "Mean Density",
+
+            "value": e92["mean_density"]
+
+        },
+
+        {
+
+            "component": "MULTISCALE",
+
+            "experiment": "E9.3",
+
+            "metric": "Mean Dimension",
+
+            "value": e93["mean_dimension"]
+
+        },
+
+        {
+
+            "component": "MULTISCALE",
+
+            "experiment": "E9.3",
+
+            "metric": "Mean Stability",
+
+            "value": e93["mean_stability"]
+
+        },
+
+        {
+
+            "component": "MULTISCALE",
+
+            "experiment": "E9.3",
+
+            "metric": "Orientation Change",
+
+            "value": e93["mean_orientation_change_deg"]
+
+        },
+
+        {
+
+            "component": "CURVATURE",
+
+            "experiment": "E9.4",
+
+            "metric": "Mean Curvature",
+
+            "value": e94["mean_curvature"]
+
+        },
+
+        {
+
+            "component": "CURVATURE",
+
+            "experiment": "E9.4",
+
+            "metric": "Singularity Fraction",
+
+            "value": e94["singularity_fraction"]
+
+        },
+
+        {
+
+            "component": "CURVATURE",
+
+            "experiment": "E9.4",
+
+            "metric": "Mean Gradient",
+
+            "value": e94["mean_gradient"]
+
+        },
+
+        {
+
+            "component": "CONNECTION",
+
+            "experiment": "E9.5",
+
+            "metric": "Mean Strength",
+
+            "value": e95["statistics"]["mean_strength"]
+
+        },
+
+        {
+
+            "component": "CONNECTION",
+
+            "experiment": "E9.5",
+
+            "metric": "Singularity Fraction",
+
+            "value": e95["structure"]["singularity_fraction"]
+
+        },
+
+        {
+
+            "component": "CONNECTION",
+
+            "experiment": "E9.5",
+
+            "metric": "Mean Gradient",
+
+            "value": e95["consistency"]["mean_gradient"]
+
+        }
+
+    ]
+
+    summary = pd.DataFrame(summary)
+
+    print(summary)
+
+    return summary
+
+
+# =============================================================================
+# COMPONENT OVERVIEW
+# =============================================================================
+
+def build_component_overview(summary):
+
+    print()
+    print("=" * 80)
+    print("COMPONENT OVERVIEW")
+    print("=" * 80)
+
+    overview = (
+
+        summary
+
+        .groupby(
+
+            "component"
+
+        )
+
+        .size()
+
+        .reset_index(
+
+            name="metrics"
+
+        )
+
+    )
+
+    print()
+
+    print(overview)
+
+    return overview
+
+# =============================================================================
 # ROBUSTNESS SCORES
 # =============================================================================
 
