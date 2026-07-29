@@ -416,8 +416,8 @@ def update_graph(graph, force):
 
     # Mantém a topologia anterior caso a atualização
     # desconecte a rede.
-
-    return graph.copy()
+        
+        return graph.copy()
 
 
 # ============================================================
