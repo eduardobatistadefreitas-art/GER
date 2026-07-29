@@ -215,7 +215,7 @@ def load_certificates():
 
 
 # =============================================================================
-# CONSISTÊNCIA BÁSICA
+# CERTIFICATE VALIDATION
 # =============================================================================
 
 def validate_certificates(certificates):
@@ -225,96 +225,93 @@ def validate_certificates(certificates):
     print("CERTIFICATE VALIDATION")
     print("=" * 80)
 
-    validation = []
-
     e91 = certificates["E91"]
     e92 = certificates["E92"]
     e93 = certificates["E93"]
     e94 = certificates["E94"]
 
-    validation.append({
+    checks = [
 
-        "check":
+        {
 
-            "E9.1 vs E9.2 samples",
+            "check": "E9.1 vs E9.2 samples",
 
-        "left":
+            "left": e91["trajectory_samples"],
 
-            e91["trajectory_samples"],
+            "right": e92["points"],
 
-        "right":
+            "passed": (
 
-            e92["points"],
+                e91["trajectory_samples"]
 
-        "passed":
+                ==
 
-            e91["trajectory_samples"]
+                e92["points"]
 
-            ==
+            )
 
-            e92["points"]
+        },
 
-    })
+        {
 
-    validation.append({
+            "check": "E9.2 vs E9.4 points",
 
-        "check":
+            "left": e92["points"],
 
-            "E9.2 vs E9.3 samples",
+            "right": e94["points"],
 
-        "left":
+            "passed": (
 
-            e92["points"],
+                e92["points"]
 
-        "right":
+                ==
 
-            e93["samples"],
+                e94["points"]
 
-        "passed":
+            )
 
-            e92["points"]
+        },
 
-            ==
+        {
 
-            e93["samples"]
+            "check": "E9.3 multiscale",
 
-    })
+            "left": e93["samples"],
 
-    validation.append({
+            "right": (
 
-        "check":
+                e93["scales"]
 
-            "E9.3 vs E9.4 samples",
+                *
 
-        "left":
+                e92["points"]
 
-            e93["samples"],
+            ),
 
-        "right":
+            "passed": (
 
-            e94["points"],
+                e93["samples"]
 
-        "passed":
+                ==
 
-            e93["samples"]
+                e93["scales"]
 
-            ==
+                *
 
-            e94["points"]
+                e92["points"]
 
-    })
+            )
 
-    validation = pd.DataFrame(
+        }
 
-        validation
+    ]
 
-    )
+    checks = pd.DataFrame(checks)
 
     print()
+    print(checks)
 
-    print(validation)
-
-    if not validation["passed"].all():
+    if not checks["passed"].all():
 
         raise RuntimeError(
 
@@ -323,10 +320,7 @@ def validate_certificates(certificates):
         )
 
     print()
-
     print("All consistency checks passed.")
-
-    return validation
 
 # =============================================================================
 # ROBUSTNESS SCORES
