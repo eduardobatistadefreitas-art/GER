@@ -414,16 +414,10 @@ def update_graph(graph, force):
 
     if not nx.is_connected(new_graph):
 
-        largest = max(
-            nx.connected_components(new_graph),
-            key=len
-        )
+    # Mantém a topologia anterior caso a atualização
+    # desconecte a rede.
 
-        new_graph = new_graph.subgraph(
-            largest
-        ).copy()
-
-    return new_graph
+    return graph.copy()
 
 
 # ============================================================
