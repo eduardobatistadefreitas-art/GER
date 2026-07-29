@@ -62,11 +62,10 @@ INPUT_MANIFOLD = (
 )
 
 INPUT_EIGENVECTORS = (
-
     BASE
-    /"S29"
-    /"S29_E9_3_MULTI_SCALE_METRIC_RECONSTRUCTION"
-    /"eigenvectors.csv"
+    / "S29"
+    / "S29_E9_3_MULTI_SCALE_METRIC_RECONSTRUCTION"
+    / "eigenvectors.csv"
 )
 
 OUTPUT = (
