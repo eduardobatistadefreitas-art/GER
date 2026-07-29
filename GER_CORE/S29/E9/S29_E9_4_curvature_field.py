@@ -56,6 +56,8 @@ INPUT_MANIFOLD = (
 
     BASE
     /
+    S29
+    /
     "S29_E9_1_MANIFOLD_RECONSTRUCTION"
     /
     "chosen_manifold.parquet"
@@ -65,6 +67,8 @@ INPUT_MANIFOLD = (
 INPUT_EIGENVECTORS = (
 
     BASE
+    /
+    S29
     /
     "S29_E9_3_MULTI_SCALE_METRIC_RECONSTRUCTION"
     /
