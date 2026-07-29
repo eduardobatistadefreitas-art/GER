@@ -63,22 +63,6 @@ except ModuleNotFoundError:
         "GER_RESULTS"
     )
 
-BASE_RESULTS.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-RESULT_DIR = (
-    BASE_RESULTS
-    / "S23"
-    / "S23_dynamic_audit"
-)
-
-RESULT_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
 # ============================================================
 # UTILITÁRIOS
 # ============================================================
