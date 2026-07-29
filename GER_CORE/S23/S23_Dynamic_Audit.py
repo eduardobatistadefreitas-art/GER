@@ -44,24 +44,33 @@ from sklearn.metrics import (
 # DIRETÓRIO DE RESULTADOS
 # ============================================================
 
-try:
+DRIVE_RESULTS = Path(
+    "/content/drive/MyDrive/GER_RESULTS"
+)
 
-    from google.colab import drive
+if DRIVE_RESULTS.exists():
 
-    drive.mount(
-        "/content/drive",
-        force_remount=False,
-    )
+    BASE_RESULTS = DRIVE_RESULTS
 
-    BASE_RESULTS = Path(
-        "/content/drive/MyDrive/GER_RESULTS"
-    )
+else:
 
-except ModuleNotFoundError:
+    BASE_RESULTS = Path("GER_RESULTS")
 
-    BASE_RESULTS = Path(
-        "GER_RESULTS"
-    )
+BASE_RESULTS.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+RESULT_DIR = (
+    BASE_RESULTS
+    / "S23"
+    / "S23_dynamic_audit"
+)
+
+RESULT_DIR.mkdir(
+    parents=True,
+    exist_ok=True,
+)
 
 # ============================================================
 # UTILITÁRIOS
