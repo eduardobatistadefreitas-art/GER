@@ -65,7 +65,7 @@ ROOT = Path(
 
 E82_DIR = (
     ROOT /
-    "S29_E8_2_trajectory_robustness"
+    "S29_E8_2_TRAJECTORY_ROBUSTNESS_SCAN"
 )
 
 E821_DIR = (
