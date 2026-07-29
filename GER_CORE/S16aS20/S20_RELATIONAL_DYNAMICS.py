@@ -459,6 +459,12 @@ print()
 
 current_graph = graph
 
+# Campo efetivo inicial
+current_kappa = compute_kappa(current_graph)
+
+# Acoplamento entre κ efetivo e κ estrutural
+RELAXATION = 0.15
+
 for step in range(STEPS):
 
     previous_graph = current_graph.copy()
@@ -467,10 +473,10 @@ for step in range(STEPS):
     # Operadores fundamentais
     # --------------------------------------------------------
 
-    K = compute_kappa(current_graph)
-
+    K = current_kappa
+    
     D = delta_rel(current_graph, K)
-
+    
     G2 = gamma2_proxy(current_graph, K)
 
     # --------------------------------------------------------
@@ -489,15 +495,24 @@ for step in range(STEPS):
     # Evolução local
     # --------------------------------------------------------
 
-    K_new, force = update_kappa(
-        K,
+    current_kappa, force = update_kappa(
+        current_kappa,
         G2,
         D
     )
-
+    
     current_graph = update_graph(
         current_graph,
         force
+    )
+    
+    # κ estrutural da nova rede
+    kappa_graph = compute_kappa(current_graph)
+
+    # Relaxação para manter coerência com a estrutura
+    current_kappa = (
+        (1.0 - RELAXATION) * current_kappa
+        + RELAXATION * kappa_graph
     )
 
     # --------------------------------------------------------
