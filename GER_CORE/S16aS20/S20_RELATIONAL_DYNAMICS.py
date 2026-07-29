@@ -419,6 +419,8 @@ def update_graph(graph, force):
         
         return graph.copy()
 
+    return new_graph
+
 
 # ============================================================
 # CLASSIFICAÇÃO LOCAL
