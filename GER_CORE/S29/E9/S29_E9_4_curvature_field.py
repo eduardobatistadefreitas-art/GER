@@ -53,27 +53,20 @@ from sklearn.neighbors import NearestNeighbors
 BASE = Path("/content/drive/MyDrive/GER_RESULTS")
 
 INPUT_MANIFOLD = (
-
     BASE
-    /
-    S29
-    /
-    "S29_E9_1_MANIFOLD_RECONSTRUCTION"
-    /
-    "chosen_manifold.parquet"
+    / "S29"
+    / "S29_E9_1_MANIFOLD_RECONSTRUCTION"
+    / "chosen_manifold.parquet"
+)
 
 )
 
 INPUT_EIGENVECTORS = (
 
     BASE
-    /
-    S29
-    /
-    "S29_E9_3_MULTI_SCALE_METRIC_RECONSTRUCTION"
-    /
-    "eigenvectors.csv"
-
+    /"S29"
+    /"S29_E9_3_MULTI_SCALE_METRIC_RECONSTRUCTION"
+    /"eigenvectors.csv"
 )
 
 OUTPUT = (
