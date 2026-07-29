@@ -614,7 +614,7 @@ def export_certificate(
     lines.append("")
     lines.append("Final Assessment")
     lines.append("----------------")
-      lines.append(
+    lines.append(
         "The geometric trajectory remains structurally invariant "
         "under all sampling protocols evaluated in the E8.2 "
         "robustness series."
