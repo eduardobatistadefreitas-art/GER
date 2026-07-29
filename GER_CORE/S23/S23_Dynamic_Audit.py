@@ -44,7 +44,6 @@ from sklearn.metrics import (
 # DIRETÓRIO DE RESULTADOS
 # ============================================================
 
-from pathlib import Path
 
 try:
 
