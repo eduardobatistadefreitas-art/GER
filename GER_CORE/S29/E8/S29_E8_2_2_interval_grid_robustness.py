@@ -582,21 +582,28 @@ def build_summary(df):
         "windows":
             int(len(df)),
 
+
         "window_size":
             WINDOW_SIZE,
-
+        
         "window_step":
             WINDOW_STEP,
-
+        
         "initial_window_size":
             WINDOW_SIZE,
-
+        
         "minimum_window_size":
             int(df["samples"].min()),
-
+        
+        "maximum_interval_size":
+            int(df["samples"].max()),
+        
+        "minimum_interval_size":
+            int(df["samples"].min()),
+        
         "final_window_size":
             int(df["samples"].max()),
-
+        
         "trajectory_points":
             total_points,
 
