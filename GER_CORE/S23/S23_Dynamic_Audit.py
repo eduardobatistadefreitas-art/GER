@@ -47,6 +47,8 @@ from sklearn.metrics import (
 
 try:
 
+    print("BASE_RESULTS =", BASE_RESULTS)
+
     from google.colab import drive
 
     drive.mount("/content/drive", force_remount=False)
