@@ -45,29 +45,25 @@ from sklearn.metrics import (
 # ============================================================
 
 
+from pathlib import Path
+
 try:
-
-    print("BASE_RESULTS =", BASE_RESULTS)
-
     from google.colab import drive
 
     drive.mount("/content/drive", force_remount=False)
 
-    BASE_RESULTS = (
-        Path("/content/drive/MyDrive")
-        / "GER_RESULTS"
-    )
+    BASE_RESULTS = Path("/content/drive/MyDrive/GER_RESULTS")
 
-except Exception:
+except ModuleNotFoundError:
 
     BASE_RESULTS = Path("GER_RESULTS")
 
-
-RESULT_DIR = (
-    BASE_RESULTS
-    / "S23"
-    / "S23_dynamic_audit"
+BASE_RESULTS.mkdir(
+    parents=True,
+    exist_ok=True,
 )
+
+RESULT_DIR = BASE_RESULTS / "S23" / "S23_dynamic_audit"
 
 RESULT_DIR.mkdir(
     parents=True,
