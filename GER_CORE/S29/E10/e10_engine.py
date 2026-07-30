@@ -31,14 +31,13 @@ def run_e10_engine(n_vertices: int = 128):
     A2 — Geometry construction.
     """
 
-    L, A, degree = build_ring_graph(n_vertices)
+    A, L, theta = build_ring_graph(n_vertices)
 
-    theta, eigenvalues, eigenvectors = spectral_basis(L)
+    eigenvalues, eigenvectors = spectral_basis(L)
 
     return {
-        "L": L,
         "A": A,
-        "degree": degree,
+        "L": L,
         "theta": theta,
         "eigenvalues": eigenvalues,
         "eigenvectors": eigenvectors,
