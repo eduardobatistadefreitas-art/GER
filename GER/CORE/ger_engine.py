@@ -126,6 +126,7 @@ def run_engine(
     potential="A",
     snapshot_stride=50,
     sigma=0.10,
+    initial_state=None,
 ):
     """
     Executa uma simulação completa da Geometria
@@ -149,11 +150,18 @@ def run_engine(
     # Condição inicial
     # -----------------------------------------------------
 
-    gamma = gaussian_packet(
-        theta,
-        center=np.pi,
-        sigma=sigma,
-    )
+    if initial_state is None:
+        
+        gamma = gaussian_packet(
+            theta,
+            center=np.pi,
+            sigma=sigma,
+        )
+    else:
+        
+        gamma = initial_state(
+            theta=theta,
+        )
 
     gamma_old = initialize_verlet(
         gamma=gamma,
