@@ -1,22 +1,69 @@
+"""
+=============================================================
+E10 ENGINE
+=============================================================
+
+Adapter layer for the E10 experimental series.
+
+This module contains no scientific logic.
+It only orchestrates calls to the GER CORE.
+"""
+
 from __future__ import annotations
 
-from GER.CORE.ger_graph import build_ring_graph
+from GER.CORE.ger_graph import (
+    build_ring_graph,
+    spectral_basis,
+)
+
+from .omega import build_initial_state
 
 
-def run_e10_engine(n_vertices: int = 128):
+def run_e10_engine(
+    n_vertices: int = 128,
+):
+    """
+    Build the geometric objects required by E10.
 
-    print("INÍCIO")
+    Returns
+    -------
+    dict
+        Dictionary containing the graph geometry,
+        spectral basis and initial state.
+    """
 
-    result = build_ring_graph(n_vertices)
+    # ---------------------------------------------------------
+    # Geometry
+    # ---------------------------------------------------------
 
-    print("RESULT =", type(result), len(result))
+    A, L, theta = build_ring_graph(n_vertices)
 
-    A, L, theta = result
+    # ---------------------------------------------------------
+    # Spectral basis
+    # ---------------------------------------------------------
 
-    print("A", A.shape)
-    print("L", L.shape)
-    print("theta", theta.shape)
+    eigenvalues, eigenvectors = spectral_basis(L)
 
-    print("FIM")
+    # ---------------------------------------------------------
+    # Initial state
+    # ---------------------------------------------------------
 
-    return {}
+    gamma = build_initial_state(theta=theta)
+
+    # ---------------------------------------------------------
+    # Return
+    # ---------------------------------------------------------
+
+    return {
+        "A": A,
+        "L": L,
+        "theta": theta,
+        "eigenvalues": eigenvalues,
+        "eigenvectors": eigenvectors,
+        "gamma": gamma,
+    }
+
+
+__all__ = [
+    "run_e10_engine",
+]
