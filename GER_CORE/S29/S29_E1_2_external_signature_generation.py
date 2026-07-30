@@ -52,7 +52,7 @@ from GER_CORE.S26.S26_B35_persistence_metrics import (
     run_persistence_observatory,
 )
 
-from GER_CORE.S29.S29.ger_external_modal_embedding import (
+from GER_CORE.S29.ger_external_modal_embedding import (
     build_external_gamma,
 )
 
