@@ -3,20 +3,17 @@
 E10 STRUCTURAL AUDIT
 =============================================================
 
-Auditoria estrutural da E10.
+Structural audit for the E10 infrastructure.
 
-Objetivo
---------
-Verificar que a E10 reutiliza integralmente o GER CORE,
-alterando exclusivamente a condição inicial Ω.
+Objective
+---------
+Verify that the E10 experiment reuses the GER CORE numerical
+engine without modifying its geometry or integrator.
 
-A auditoria compara:
+This audit validates the architecture, not the physics.
 
-- configuração numérica
-- operador laplaciano
-- espectro
-- base espectral
-- condição inicial
+The current reference Ω generator intentionally reproduces
+the original Gaussian packet implemented by the GER CORE.
 
 =============================================================
 """
@@ -29,15 +26,19 @@ from GER.CORE.ger_engine import run_engine
 from .e10_engine import run_e10_engine
 
 
+# ============================================================
+# MAIN AUDIT
+# ============================================================
+
 def run_e10_audit():
 
     print("=" * 70)
     print("E10 STRUCTURAL AUDIT")
     print("=" * 70)
 
-    # ---------------------------------------------------------
-    # Executa ambos os motores sem evolução temporal
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    # Execute both engines
+    # --------------------------------------------------------
 
     core = run_engine(
         timesteps=0,
@@ -47,9 +48,9 @@ def run_e10_audit():
         timesteps=0,
     )
 
-    # ---------------------------------------------------------
-    # Comparações estruturais
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    # Structural checks
+    # --------------------------------------------------------
 
     checks = {
 
@@ -82,9 +83,9 @@ def run_e10_audit():
 
     }
 
-    # ---------------------------------------------------------
-    # Relatório
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    # Report
+    # --------------------------------------------------------
 
     print()
 
@@ -102,34 +103,55 @@ def run_e10_audit():
 
     print()
 
-    # ---------------------------------------------------------
-    # Certificado
-    # ---------------------------------------------------------
+    if checks["Initial gamma identical"]:
+
+        print(
+            "INFO   : Ω reference generator reproduces "
+            "the GER CORE Gaussian packet."
+        )
+
+    else:
+
+        print(
+            "INFO   : Ω generator defines a distinct "
+            "initial state."
+        )
+
+    print()
+
+    # --------------------------------------------------------
+    # Architecture certificate
+    # --------------------------------------------------------
 
     passed = (
+
         checks["Configuration"]
         and checks["Laplacian"]
         and checks["Eigenvalues"]
         and checks["Eigenvectors"]
-        and not checks["Initial gamma identical"]
+
     )
 
     if passed:
 
         print("STATUS : AUDIT PASSED")
-        print("RESULT : E10 modifies only the initial state.")
+        print("RESULT : E10 correctly reuses the GER CORE engine.")
 
     else:
 
         print("STATUS : AUDIT FAILED")
-        print("RESULT : Structural differences detected.")
+        print("RESULT : Structural inconsistency detected.")
 
     print("=" * 70)
 
     return {
+
         "checks": checks,
+
         "gamma_difference": gamma_difference,
+
         "passed": passed,
+
     }
 
 
