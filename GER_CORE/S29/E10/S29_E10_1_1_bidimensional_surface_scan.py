@@ -278,116 +278,112 @@ def save_grid(grid):
 
         )
 
-# =============================================================================
-# EXECUÇÃO DE UM PONTO
-# =============================================================================
+# ============================================================
+# Execução de um ponto da malha
+# ============================================================
 
 def run_grid_point(
-    point: GridPoint,
-) -> ExecutionResult:
-    """
-    Executa um único ponto da superfície.
-    """
+    gamma: float,
+    omega: float,
+) -> dict:
 
-    t0 = time.perf_counter()
+    print(
+        f"γ={gamma:.6f}   ω={omega:.6f}"
+    )
 
-    try:
+    # --------------------------------------------------------
+    # Motor E10
+    # --------------------------------------------------------
 
-        # ---------------------------------------------------------
-        # E10 Engine
-        # ---------------------------------------------------------
+    engine_result = run_e10_engine(
 
-        engine_result = run_e10_engine(
+        n=N,
+        timesteps=TIMESTEPS,
+        dt=DT,
+        beta=BETA,
+        potential=POTENTIAL,
 
-            gamma=point.gamma,
+        gamma=gamma,
+        omega=omega,
 
-            omega=point.omega,
+        snapshot_stride=SNAPSHOT_STRIDE,
+    )
 
-            timesteps=TIMESTEPS,
+    # --------------------------------------------------------
+    # Observatório de Persistência (S26-B35)
+    # --------------------------------------------------------
 
-            dt=DT,
+    observables = run_persistence_observatory(
 
-            potential=POTENTIAL,
+        snapshots=engine_result["snapshots"],
+        dt=DT,
+    )
 
-        )
+    # --------------------------------------------------------
+    # Assinatura Geométrica
+    # --------------------------------------------------------
 
-        # ---------------------------------------------------------
-        # Persistence Observatory
-        # ---------------------------------------------------------
+    pipeline = run_signature_pipeline(
 
-        observables = run_persistence_observatory(
+        observables,
+        DT,
+    )
 
-            engine_result["snapshots"],
+    signature = pipeline["signature"]
+    certificate = pipeline["certificate"]
 
-            DT,
+    # --------------------------------------------------------
+    # Resultado
+    # --------------------------------------------------------
 
-        )
+    return {
 
-        # ---------------------------------------------------------
-        # Official Signature Pipeline
-        # ---------------------------------------------------------
+        "gamma": gamma,
+        "omega": omega,
 
-        pipeline = run_signature_pipeline(
+        "signature": signature,
+        "certificate": certificate,
 
-            observables,
+        "engine": engine_result,
+        "observables": observables,
+    }
 
-            DT,
 
-        )
+# ============================================================
+# Conversão da assinatura para dicionário
+# ============================================================
 
-        signature = pipeline["signature"]
+def signature_to_dict(signature):
 
-        certificate = pipeline["certificate"]
+    if hasattr(signature, "to_dict"):
+        return signature.to_dict()
 
-        elapsed = time.perf_counter() - t0
+    if isinstance(signature, dict):
+        return signature
 
-        return ExecutionResult(
+    return {
 
-            i=point.i,
+        "diameter": signature.diameter,
+        "convergence": signature.convergence,
+        "recurrence": signature.recurrence,
+        "drift": signature.drift,
+    }
 
-            j=point.j,
 
-            gamma=point.gamma,
+# ============================================================
+# Conversão do certificado
+# ============================================================
 
-            omega=point.omega,
+def certificate_to_dict(certificate):
 
-            success=True,
+    if isinstance(certificate, dict):
+        return certificate
 
-            elapsed_seconds=elapsed,
+    if hasattr(certificate, "to_dict"):
+        return certificate.to_dict()
 
-            signature=signature,
-
-            certificate=certificate,
-
-            error=None,
-
-        )
-
-    except Exception as exc:
-
-        elapsed = time.perf_counter() - t0
-
-        return ExecutionResult(
-
-            i=point.i,
-
-            j=point.j,
-
-            gamma=point.gamma,
-
-            omega=point.omega,
-
-            success=False,
-
-            elapsed_seconds=elapsed,
-
-            signature=None,
-
-            certificate=None,
-
-            error=str(exc),
-
-        )
+    return dict(certificate)
+        
 
 # =============================================================================
 # EXECUÇÃO DA SUPERFÍCIE
