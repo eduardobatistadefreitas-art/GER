@@ -131,7 +131,7 @@ import pandas as pd
 
 # Motor Numérico
 
-from GER.CORE.ger_engine import run_simulation
+from GER.CORE.ger_engine import run_engine
 
 # Pipeline Observacional
 
