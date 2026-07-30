@@ -75,38 +75,37 @@ np.set_printoptions(
 RNG = np.random.default_rng(42)
 
 # ============================================================
-# GOOGLE COLAB
+# GOOGLE DRIVE / DIRETÓRIOS
 # ============================================================
 
 IN_COLAB = False
 
 try:
-
     import google.colab
-
     from google.colab import drive
-
-    drive.mount("/content/drive")
 
     IN_COLAB = True
 
-except Exception:
+    # Monta apenas se necessário
+    if not Path("/content/drive/MyDrive").exists():
+        drive.mount("/content/drive", force_remount=False)
 
+except ImportError:
     pass
 
-# ============================================================
-# DIRETÓRIOS
-# ============================================================
+# ------------------------------------------------------------
+# Diretório de saída
+# ------------------------------------------------------------
 
-if IN_COLAB:
+if Path("/content/drive/MyDrive").exists():
 
-    ROOT = Path(
-        "/content/drive/MyDrive/GER_RESULTS"
-    )
+    ROOT = Path("/content/drive/MyDrive/GER_RESULTS")
 
 else:
 
     ROOT = Path("GER_RESULTS")
+
+print(f"[GER] Salvando resultados em: {ROOT}")
 
 RESULTS = ROOT / EXPERIMENT
 
@@ -130,6 +129,8 @@ for folder in [
         parents=True,
         exist_ok=True
     )
+    print(f"[GER] Pasta do experimento : {RESULTS}")
+
 
 # ============================================================
 # LOGGER
