@@ -35,6 +35,13 @@ def run_e10_engine(*args, **kwargs):
     will progressively incorporate the CORE workflow.
     """
 
-    raise NotImplementedError(
-        "run_e10_engine() is under construction."
-    )
+    graph = build_ring_graph(n_vertices)
+    
+    theta, eigenvalues, eigenvectors = spectral_basis(graph)
+    
+    return {
+        "graph": graph,
+        "theta": theta,
+        "eigenvalues": eigenvalues,
+        "eigenvectors": eigenvectors,
+    }
