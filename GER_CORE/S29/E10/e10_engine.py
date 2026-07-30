@@ -27,18 +27,11 @@ from .omega import build_initial_state
 
 
 def run_e10_engine(n_vertices: int = 128):
-    """
-    A2 — Geometry construction.
-    """
 
     A, L, theta = build_ring_graph(n_vertices)
 
-    eigenvalues, eigenvectors = spectral_basis(L)
+    print("A:", type(A), getattr(A, "shape", None))
+    print("L:", type(L), getattr(L, "shape", None))
+    print("theta:", type(theta), getattr(theta, "shape", None))
 
-    return {
-        "A": A,
-        "L": L,
-        "theta": theta,
-        "eigenvalues": eigenvalues,
-        "eigenvectors": eigenvectors,
-    }
+    return {}
