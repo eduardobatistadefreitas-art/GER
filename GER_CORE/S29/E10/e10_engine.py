@@ -1,69 +1,54 @@
 """
-=============================================================
-E10 ENGINE
-=============================================================
-
-Adapter layer for the E10 experimental series.
-
-This module contains no scientific logic.
-It only orchestrates calls to the GER CORE.
+E10 diagnostic
 """
 
 from __future__ import annotations
+
+import inspect
 
 from GER.CORE.ger_graph import (
     build_ring_graph,
     spectral_basis,
 )
 
-from .omega import build_initial_state
 
+def run_e10_engine(n_vertices: int = 128):
 
-def run_e10_engine(
-    n_vertices: int = 128,
-):
-    """
-    Build the geometric objects required by E10.
+    print("=" * 60)
+    print("build_ring_graph :", build_ring_graph)
+    print("spectral_basis   :", spectral_basis)
+    print("=" * 60)
 
-    Returns
-    -------
-    dict
-        Dictionary containing the graph geometry,
-        spectral basis and initial state.
-    """
+    print(inspect.getsource(build_ring_graph))
+    print(inspect.getsource(spectral_basis))
 
-    # ---------------------------------------------------------
-    # Geometry
-    # ---------------------------------------------------------
+    print("=" * 60)
 
-    A, L, theta = build_ring_graph(n_vertices)
+    result = build_ring_graph(n_vertices)
 
-    # ---------------------------------------------------------
-    # Spectral basis
-    # ---------------------------------------------------------
+    print("type(result) =", type(result))
+    print("len(result)  =", len(result))
 
-    eigenvalues, eigenvectors = spectral_basis(L)
+    A, L, theta = result
 
-    # ---------------------------------------------------------
-    # Initial state
-    # ---------------------------------------------------------
+    print("A.shape =", A.shape)
+    print("L.shape =", L.shape)
+    print("theta.shape =", theta.shape)
 
-    gamma = build_initial_state(theta=theta)
+    print("type(L) =", type(L))
+    print("dtype(L) =", L.dtype)
 
-    # ---------------------------------------------------------
-    # Return
-    # ---------------------------------------------------------
+    print("=" * 60)
+    print("Chamando spectral_basis...")
+
+    eigvals, eigvecs = spectral_basis(L)
+
+    print("OK")
 
     return {
         "A": A,
         "L": L,
         "theta": theta,
-        "eigenvalues": eigenvalues,
-        "eigenvectors": eigenvectors,
-        "gamma": gamma,
+        "eigenvalues": eigvals,
+        "eigenvectors": eigvecs,
     }
-
-
-__all__ = [
-    "run_e10_engine",
-]
