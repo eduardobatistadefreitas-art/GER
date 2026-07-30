@@ -28,17 +28,17 @@ from .omega import build_initial_state
 
 def run_e10_engine(n_vertices: int = 128):
     """
-    Entry point for the E10 engine.
-
     A2 — Geometry construction.
     """
 
-    graph = build_ring_graph(n_vertices)
+    L, A, degree = build_ring_graph(n_vertices)
 
-    theta, eigenvalues, eigenvectors = spectral_basis(graph)
+    theta, eigenvalues, eigenvectors = spectral_basis(L)
 
     return {
-        "graph": graph,
+        "L": L,
+        "A": A,
+        "degree": degree,
         "theta": theta,
         "eigenvalues": eigenvalues,
         "eigenvectors": eigenvectors,
