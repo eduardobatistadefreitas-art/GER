@@ -56,6 +56,9 @@ from GER_CORE.S29.E10.e10_engine import run_e10_engine
 
 from GER.CORE.experiment_pipeline import run_signature_pipeline
 
+from GER_CORE.S29.S29_E1_2_external_signature_generation import (
+    initialize_signature_provider,
+)
 
 # =============================================================================
 # CONFIGURAÇÃO
@@ -895,6 +898,12 @@ def main():
     print("EXPERIMENT FINISHED")
     print("=" * 80)
     print()
+    
+    prepare_output_directory()
+    
+    initialize_signature_provider()
+    
+    save_metadata()
 
 
 # =============================================================================
