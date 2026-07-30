@@ -11,14 +11,10 @@ initial conditions before the CORE engine is executed.
 
 from .omega_definition import OmegaGenerator
 from .omega_registry import OmegaRegistry
-from .omega_generators import (
-    NullGenerator,
-    GaussianPacketGenerator,
-)
+from .omega_generators import GaussianPacketGenerator
 
 __all__ = [
     "OmegaGenerator",
     "OmegaRegistry",
-    "NullGenerator",
     "GaussianPacketGenerator",
 ]
