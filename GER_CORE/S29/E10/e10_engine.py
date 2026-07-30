@@ -26,19 +26,17 @@ from GER.CORE.ger_engine import (
 from .omega import build_initial_state
 
 
-def run_e10_engine(*args, **kwargs):
+def run_e10_engine(n_vertices: int = 128):
     """
     Entry point for the E10 engine.
 
-    This function is intentionally minimal during the
-    infrastructure stage. Subsequent implementation steps
-    will progressively incorporate the CORE workflow.
+    A2 — Geometry construction.
     """
 
     graph = build_ring_graph(n_vertices)
-    
+
     theta, eigenvalues, eigenvectors = spectral_basis(graph)
-    
+
     return {
         "graph": graph,
         "theta": theta,
