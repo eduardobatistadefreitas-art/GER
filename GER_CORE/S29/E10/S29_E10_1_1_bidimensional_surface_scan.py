@@ -16,14 +16,8 @@ OBJETIVO
 Construir uma malha bidimensional (γ, ω) para exploração do
 espaço de parâmetros do módulo Ω.
 
-Nesta primeira implementação o arquivo contém apenas:
-
-    • Configuração do experimento
-    • Construção da malha
-    • Estruturas de dados
-    • Preparação da persistência
-
-A execução será implementada nas próximas partes.
+Esta implementação utiliza exclusivamente a infraestrutura oficial
+do GER CORE.
 
 ===============================================================================
 """
@@ -31,6 +25,7 @@ A execução será implementada nas próximas partes.
 from __future__ import annotations
 
 import json
+import time
 
 from dataclasses import dataclass
 from dataclasses import asdict
@@ -49,16 +44,19 @@ import pandas as pd
 
 
 # =============================================================================
-# GER
+# GER CORE
 # =============================================================================
 
-from GER_CORE.S29.E10.e10_engine import run_e10_engine
+from GER.CORE.bootstrap import initialize
 
-from GER.CORE.experiment_pipeline import run_signature_pipeline
-
-from GER_CORE.S29.S29_E1_2_external_signature_generation import (
-    initialize_signature_provider,
+from GER.CORE.experiment_pipeline import (
+    run_signature_pipeline,
 )
+
+from GER_CORE.S29.E10.e10_engine import (
+    run_e10_engine,
+)
+
 
 # =============================================================================
 # CONFIGURAÇÃO
@@ -66,11 +64,11 @@ from GER_CORE.S29.S29_E1_2_external_signature_generation import (
 
 GRID_SIZE = 21
 
-GAMMA_MIN = 0.00
-GAMMA_MAX = 2.00
+GAMMA_MIN = 0.0
+GAMMA_MAX = 2.0
 
-OMEGA_MIN = 0.50
-OMEGA_MAX = 2.50
+OMEGA_MIN = 0.5
+OMEGA_MAX = 2.5
 
 DT = 2.5e-4
 
@@ -93,9 +91,9 @@ SIGNATURE_FILE = RESULT_ROOT / "signature_surface.parquet"
 
 CERTIFICATE_FILE = RESULT_ROOT / "certificate_surface.parquet"
 
-METADATA_FILE = RESULT_ROOT / "surface_metadata.json"
-
 SUMMARY_FILE = RESULT_ROOT / "summary.txt"
+
+METADATA_FILE = RESULT_ROOT / "metadata.json"
 
 
 # =============================================================================
@@ -137,10 +135,21 @@ class ExecutionResult:
 
 
 # =============================================================================
+# COLETORES
+# =============================================================================
+
+signature_records: List[Dict[str, Any]] = []
+
+certificate_records: List[Dict[str, Any]] = []
+
+execution_log: List[ExecutionResult] = []
+
+
+# =============================================================================
 # METADATA
 # =============================================================================
 
-def build_metadata() -> Dict[str, Any]:
+def build_metadata():
 
     return {
 
@@ -162,9 +171,9 @@ def build_metadata() -> Dict[str, Any]:
 
         "omega_max": OMEGA_MAX,
 
-        "dt": DT,
-
         "timesteps": TIMESTEPS,
+
+        "dt": DT,
 
         "potential": POTENTIAL,
 
@@ -175,31 +184,20 @@ def build_metadata() -> Dict[str, Any]:
     }
 
 
-# =============================================================================
-# DIRETÓRIOS
-# =============================================================================
-
 def prepare_output_directory():
 
     RESULT_ROOT.mkdir(
-
         parents=True,
-
         exist_ok=True,
-
     )
 
 
 def save_metadata():
 
     with open(
-
         METADATA_FILE,
-
         "w",
-
         encoding="utf8",
-
     ) as fp:
 
         json.dump(
@@ -219,29 +217,21 @@ def save_metadata():
 # GRID
 # =============================================================================
 
-def build_parameter_grid() -> List[GridPoint]:
+def build_parameter_grid():
 
     gammas = np.linspace(
-
         GAMMA_MIN,
-
         GAMMA_MAX,
-
         GRID_SIZE,
-
     )
 
     omegas = np.linspace(
-
         OMEGA_MIN,
-
         OMEGA_MAX,
-
         GRID_SIZE,
-
     )
 
-    grid: List[GridPoint] = []
+    grid = []
 
     for i, gamma in enumerate(gammas):
 
@@ -266,11 +256,7 @@ def build_parameter_grid() -> List[GridPoint]:
     return grid
 
 
-def save_grid(
-
-    grid: List[GridPoint],
-
-):
+def save_grid(grid):
 
     df = pd.DataFrame(
 
@@ -290,31 +276,17 @@ def save_grid(
 
         index=False,
 
-    )
-
-
-# =============================================================================
-# COLETORES
-# =============================================================================
-
-signature_records: List[Dict[str, Any]] = []
-
-certificate_records: List[Dict[str, Any]] = []
-
-execution_log: List[ExecutionResult] = []
+        )
 
 # =============================================================================
 # EXECUÇÃO DE UM PONTO
 # =============================================================================
 
-import time
-
-
 def run_grid_point(
     point: GridPoint,
 ) -> ExecutionResult:
     """
-    Executa um único ponto da superfície (γ, ω).
+    Executa um único ponto da superfície.
     """
 
     t0 = time.perf_counter()
@@ -322,10 +294,14 @@ def run_grid_point(
     try:
 
         # ---------------------------------------------------------
-        # MOTOR E10
+        # E10 Engine
         # ---------------------------------------------------------
 
-        result = run_e10_engine(
+        engine_result = run_e10_engine(
+
+            gamma=point.gamma,
+
+            omega=point.omega,
 
             timesteps=TIMESTEPS,
 
@@ -336,14 +312,32 @@ def run_grid_point(
         )
 
         # ---------------------------------------------------------
-        # PIPELINE OBSERVACIONAL
+        # Persistence Observatory
         # ---------------------------------------------------------
 
-        signature, certificate = run_signature_pipeline(
+        observables = run_persistence_observatory(
 
-            result,
+            engine_result["snapshots"],
+
+            DT,
 
         )
+
+        # ---------------------------------------------------------
+        # Official Signature Pipeline
+        # ---------------------------------------------------------
+
+        pipeline = run_signature_pipeline(
+
+            observables,
+
+            DT,
+
+        )
+
+        signature = pipeline["signature"]
+
+        certificate = pipeline["certificate"]
 
         elapsed = time.perf_counter() - t0
 
@@ -394,148 +388,6 @@ def run_grid_point(
             error=str(exc),
 
         )
-
-
-# =============================================================================
-# SERIALIZAÇÃO
-# =============================================================================
-
-def signature_to_record(
-    result: ExecutionResult,
-) -> Dict[str, Any]:
-
-    record = {
-
-        "i": result.i,
-
-        "j": result.j,
-
-        "gamma": result.gamma,
-
-        "omega": result.omega,
-
-        "elapsed_seconds": result.elapsed_seconds,
-
-    }
-
-    signature = result.signature
-
-    if signature is None:
-
-        return record
-
-    if isinstance(signature, dict):
-
-        record.update(signature)
-
-        return record
-
-    if hasattr(signature, "__dict__"):
-
-        for key, value in signature.__dict__.items():
-
-            if key.startswith("_"):
-
-                continue
-
-            record[key] = value
-
-        return record
-
-    record["signature"] = str(signature)
-
-    return record
-
-
-def certificate_to_record(
-    result: ExecutionResult,
-) -> Dict[str, Any]:
-
-    record = {
-
-        "i": result.i,
-
-        "j": result.j,
-
-        "gamma": result.gamma,
-
-        "omega": result.omega,
-
-        "elapsed_seconds": result.elapsed_seconds,
-
-        "success": result.success,
-
-    }
-
-    certificate = result.certificate
-
-    if certificate is None:
-
-        return record
-
-    if isinstance(certificate, dict):
-
-        record.update(certificate)
-
-        return record
-
-    if hasattr(certificate, "__dict__"):
-
-        for key, value in certificate.__dict__.items():
-
-            if key.startswith("_"):
-
-                continue
-
-            record[key] = value
-
-        return record
-
-    record["certificate"] = str(certificate)
-
-    return record
-
-
-# =============================================================================
-# PERSISTÊNCIA INCREMENTAL
-# =============================================================================
-
-def flush_signatures():
-
-    if not signature_records:
-
-        return
-
-    pd.DataFrame(
-
-        signature_records
-
-    ).to_parquet(
-
-        SIGNATURE_FILE,
-
-        index=False,
-
-    )
-
-
-def flush_certificates():
-
-    if not certificate_records:
-
-        return
-
-    pd.DataFrame(
-
-        certificate_records
-
-    ).to_parquet(
-
-        CERTIFICATE_FILE,
-
-        index=False,
-
-    )
 
 # =============================================================================
 # EXECUÇÃO DA SUPERFÍCIE
@@ -679,7 +531,9 @@ def audit_surface():
 # SUMMARY
 # =============================================================================
 
-def write_summary(audit):
+def write_summary(
+    audit,
+):
 
     with open(
 
@@ -691,7 +545,7 @@ def write_summary(audit):
 
     ) as fp:
 
-        fp.write("=" * 78 + "\n")
+        fp.write("=" * 80 + "\n")
 
         fp.write("GER\n")
 
@@ -699,7 +553,7 @@ def write_summary(audit):
 
         fp.write("Bidimensional Surface Scan\n")
 
-        fp.write("=" * 78 + "\n\n")
+        fp.write("=" * 80 + "\n\n")
 
         fp.write(
 
@@ -770,16 +624,15 @@ def write_summary(audit):
 # RELATÓRIO
 # =============================================================================
 
-def print_final_report(audit):
+def print_final_report(
+    audit,
+):
 
     print()
 
     print("=" * 80)
-
     print("FINAL REPORT")
-
     print("=" * 80)
-
     print()
 
     print(
@@ -787,6 +640,14 @@ def print_final_report(audit):
         f"Expected ........... "
 
         f"{audit['expected_points']}"
+
+    )
+
+    print(
+
+        f"Processed .......... "
+
+        f"{audit['processed_points']}"
 
     )
 
@@ -816,6 +677,24 @@ def print_final_report(audit):
 
     print()
 
+    print(
+
+        f"Elapsed ............ "
+
+        f"{audit['elapsed_seconds']:.2f} s"
+
+    )
+
+    print(
+
+        f"Average ............ "
+
+        f"{audit['average_seconds']:.3f} s"
+
+    )
+
+    print()
+
     print("Generated Files")
 
     print(f"  {GRID_FILE}")
@@ -831,9 +710,7 @@ def print_final_report(audit):
     print()
 
     print("=" * 80)
-
     print("E10.1.1 COMPLETED")
-
     print("=" * 80)
 
 # =============================================================================
@@ -850,9 +727,15 @@ def main():
     print("=" * 80)
     print()
 
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Inicialização do GER CORE
+    # -------------------------------------------------------------------------
+
+    initialize()
+
+    # -------------------------------------------------------------------------
     # Preparação
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     prepare_output_directory()
 
@@ -868,27 +751,27 @@ def main():
 
     print()
 
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Execução
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     run_surface_scan(grid)
 
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Auditoria
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     audit = audit_surface()
 
-    # ---------------------------------------------------------
-    # Persistência final
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Persistência
+    # -------------------------------------------------------------------------
 
     write_summary(audit)
 
-    # ---------------------------------------------------------
-    # Relatório
-    # ---------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Relatório final
+    # -------------------------------------------------------------------------
 
     print_final_report(audit)
 
@@ -898,12 +781,6 @@ def main():
     print("EXPERIMENT FINISHED")
     print("=" * 80)
     print()
-    
-    prepare_output_directory()
-    
-    initialize_signature_provider()
-    
-    save_metadata()
 
 
 # =============================================================================
