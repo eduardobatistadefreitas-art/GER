@@ -139,9 +139,7 @@ from GER.CORE.experiment_pipeline import run_signature_pipeline
 
 # Persistência Oficial
 
-from GER.CORE.geometry.region_io import (
-    save_signature_space,
-)
+from GER.CORE.geometry.region_io import RegionIO
 
 # =============================================================================
 # CONFIGURAÇÃO
@@ -768,12 +766,12 @@ def run_surface_scan(
 
         try:
 
-            save_signature_space(
-
+            RegionIO.save_signature_space(
+                
                 result.signature,
-
-                RESULT_ROOT,
-
+                
+                RESULT_ROOT/ f"certificate_{point.i}_{point.j}.json",
+            
             )
 
         except Exception:
