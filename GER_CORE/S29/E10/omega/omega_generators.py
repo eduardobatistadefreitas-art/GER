@@ -6,19 +6,32 @@ OMEGA GENERATORS
 
 from __future__ import annotations
 
+import numpy as np
+
+from GER.CORE.ger_graph import gaussian_packet
+
 from .omega_definition import OmegaGenerator
 
 
-class NullGenerator(OmegaGenerator):
+class GaussianPacketGenerator(OmegaGenerator):
     """
-    Minimal generator used to validate the Ω infrastructure.
+    Reference Gaussian packet generator.
+
+    This generator reproduces the current initial condition
+    implemented by the GER CORE.
     """
 
-    name = "null"
+    name = "gaussian"
 
-    def generate(self, **kwargs):
+    def generate(
+        self,
+        theta,
+        sigma=0.1,
+        center=np.pi,
+    ):
 
-        return {
-            "q0": None,
-            "p0": None,
-        }
+        return gaussian_packet(
+            theta=theta,
+            center=center,
+            sigma=sigma,
+        )
