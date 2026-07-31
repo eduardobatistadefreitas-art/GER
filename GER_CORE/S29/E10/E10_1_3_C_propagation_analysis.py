@@ -361,7 +361,6 @@ print("=" * 72)
 
 ensure_output_structure()
 
-response_summary = load_summary()
 
 print(f"[OK] Input          : {INPUT_DIR}")
 print(f"[OK] Output         : {OUTPUT_DIR}")
@@ -771,6 +770,10 @@ def write_summary(summary):
 # ============================================================
 
 def main():
+
+    global response_summary
+    
+    response_summary = load_summary()
 
     propagation_df, graph_df = analyze_propagation()
 
