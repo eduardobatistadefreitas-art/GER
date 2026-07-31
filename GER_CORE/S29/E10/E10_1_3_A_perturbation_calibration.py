@@ -556,13 +556,32 @@ def compute_response_metrics(
     somente o adaptador deverá ser alterado.
     """
 
+    reference_observables = run_persistence_observatory(
+        snapshots=reference_state["snapshots"],
+        dt=DT,
+    )
+    
+    reference_pipeline = run_signature_pipeline(
+        reference_observables,
+        DT,
+    )
+    
     reference_signature = np.asarray(
-        reference_state["signature"],
+        reference_pipeline["signature"],
         dtype=float,
     )
-
+    
+    perturbed_observables = run_persistence_observatory(
+        snapshots=perturbed_state["snapshots"],
+        dt=DT,
+    )
+    
+    perturbed_pipeline = run_signature_pipeline(
+        perturbed_observables,
+        DT,
+    )
     perturbed_signature = np.asarray(
-        perturbed_state["signature"],
+        perturbed_pipeline["signature"],
         dtype=float,
     )
 
