@@ -156,7 +156,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from GER.CORE.e10_engine import run_e10_engine
+from GER_CORE.S29.E10.e10_engine import run_e10_engine
 
 
 # ============================================================
