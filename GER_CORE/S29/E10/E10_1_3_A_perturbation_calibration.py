@@ -688,7 +688,7 @@ def run_calibration_campaign(
 
             reference,
             perturbed,
-            DT,
+            engine_kwargs["dt"],
 
         )
 
@@ -811,7 +811,9 @@ def main():
         GRID_SIZE,
     )
 
-    engine_kwargs = {}
+    engine_kwargs = {
+        "dt": 2.5e-4,
+    }
 
     df = run_calibration_campaign(
 
