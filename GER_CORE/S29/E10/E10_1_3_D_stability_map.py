@@ -364,7 +364,6 @@ print("=" * 72)
 
 ensure_output_structure()
 
-summary = load_summary()
 
 print(f"[OK] Input            : {INPUT_DIR}")
 print(f"[OK] Output           : {OUTPUT_DIR}")
