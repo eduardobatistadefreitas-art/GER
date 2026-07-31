@@ -551,6 +551,8 @@ print("Omega tables:", len(omega_tables))
 section("Surface extraction")
 
 reserved = {
+    "i",
+    "j",
     "gamma",
     "omega",
 }
@@ -603,6 +605,8 @@ corr_columns = [
     c
 
     for c in numeric_columns(signature)
+
+    if signature[c].nunique() > 1
 
 ]
 
@@ -713,7 +717,15 @@ section("Distinct certificates")
 
 certificate_unique = (
 
-    certificate
+    certificate[
+        [
+            "signature",
+            "relations",
+            "deductions",
+            "consistency",
+            "summary",
+        ]
+    ]
 
     .drop_duplicates()
 
@@ -942,7 +954,13 @@ if duplicate_certificate == 0:
 if len(constant):
 
     diagnosis.append(
-        f"{len(constant)} signature components are constant."
+    f"{len(constant)} signature components are constant."
+)
+
+for comp in constant["observable"]:
+
+    diagnosis.append(
+        f"  - {comp}"
     )
 
 else:
@@ -960,7 +978,7 @@ if len(certificate_unique) == 1:
 else:
 
     diagnosis.append(
-        f"{len(certificate_unique)} different certificates detected."
+        f"{len(certificate_unique)} distinct structural certificates detected."
     )
 
 report.append("AUTOMATIC DIAGNOSIS")
