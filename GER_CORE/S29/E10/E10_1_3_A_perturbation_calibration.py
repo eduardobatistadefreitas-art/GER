@@ -172,7 +172,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from GER.CORE.ger_engine import run_engine
 
 
 # ============================================================
@@ -359,6 +358,14 @@ print(f"[OK] Total Executions: {len(generate_sampling_indices()) * len(DEFAULT_M
 # ============================================================
 # CONSTRUÇÃO DA CAMPANHA EXPERIMENTAL
 # ============================================================
+
+from GER.CORE.experiment_pipeline import (
+    run_signature_pipeline,
+)
+
+from GER_CORE.S26.S26_B35_persistence_metrics import (
+    run_persistence_observatory,
+)
 
 from GER_CORE.S29.E10.e10_engine import run_e10_engine
 
