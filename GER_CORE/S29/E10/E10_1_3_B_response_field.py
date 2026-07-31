@@ -374,14 +374,12 @@ print("=" * 72)
 
 ensure_output_structure()
 
-DELTA = load_recommended_delta()
-
 print(f"[OK] Root            : {ROOT}")
 print(f"[OK] Calibration     : {CALIBRATION_DIR}")
 print(f"[OK] Output          : {OUTPUT_DIR}")
 print(f"[OK] Grid            : {GRID_SIZE} x {GRID_SIZE}")
 print(f"[OK] Total Points    : {GRID_SIZE * GRID_SIZE}")
-print(f"[OK] Delta           : {DELTA:.6e}")
+print("[OK] Delta           : carregado durante a execução")
 
 # ============================================================
 # PERTURBAÇÃO
@@ -806,6 +804,12 @@ def write_summary(summary):
 # ============================================================
 
 def main():
+
+    global DELTA
+    
+    DELTA = load_recommended_delta()
+    
+    print(f"[OK] Delta           : {DELTA:.6e}")
 
     engine_kwargs = {}
 
