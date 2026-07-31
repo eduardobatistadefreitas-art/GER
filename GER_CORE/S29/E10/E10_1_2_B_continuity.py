@@ -119,6 +119,7 @@ print("\nSuperfície carregada com sucesso.")
 # ============================================================
 
 RESERVED_COLUMNS = {
+    "id",
     "i",
     "j",
     "gamma",
