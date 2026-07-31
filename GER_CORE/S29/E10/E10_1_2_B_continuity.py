@@ -1,743 +1,570 @@
 """
-====================================================================
-GER
-S29 — E10.1.3.B
-Response Field
-====================================================================
+=============================================================
+E10_1_2_B_continuity.py
+=============================================================
+
+GER — Geometria da Superfície Relacional
+E10.1.2.B — Surface Continuity
 
 Objetivo
 --------
-Construir o campo global de resposta da superfície relacional a uma
-perturbação calibrada.
+Analisar a continuidade local e global da superfície
+relacional construída na E10.1.1.
 
-Este módulo constitui a Fase II da E10.1.3.
+Esta etapa NÃO executa novas simulações.
 
-A magnitude da perturbação é obtida automaticamente pela
-E10.1.3.A através do arquivo
+Ela apenas verifica se componentes vizinhas da superfície
+apresentam variações compatíveis com uma superfície contínua.
 
-    recommended_perturbation.json
+Entradas
+---------
+signature_surface.parquet
+grid.parquet
 
-Para cada ponto da malha oficial Γ–Ω, o módulo executa o estado
-de referência e o estado perturbado, reconstrói a assinatura pelo
-pipeline oficial da E10.1.1 e calcula a resposta local.
+Saídas
+------
+continuity_surface.parquet
+continuity_summary.json
+continuity_summary.txt
+continuity_maps.png
 
-Não realiza qualquer interpretação espacial; produz apenas o
-campo completo de resposta utilizado pelos módulos seguintes.
-
-====================================================================
+=============================================================
 """
 
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-# ============================================================
-# GER CORE
-# ============================================================
+import matplotlib.pyplot as plt
 
-from GER.CORE.bootstrap import initialize
-
-from GER.CORE.experiment_pipeline import (
-    run_signature_pipeline,
-)
-
-from GER_CORE.S26.S26_B35_persistence_metrics import (
-    run_persistence_observatory,
-)
-
-from GER_CORE.S29.E10.e10_engine import (
-    run_e10_engine,
-)
 
 # ============================================================
 # CONFIGURAÇÃO
-# ============================================================
-
-EXPERIMENT_NAME = "S29_E10_1_3_B"
-
-GRID_SIZE = 21
-DEFAULT_DT = 2.5e-4
-
-# ============================================================
-# DIRETÓRIOS
 # ============================================================
 
 ROOT = (
     Path("/content/drive/MyDrive/GER_RESULTS")
     / "S29"
     / "E10"
+    / "E10_1_1"
 )
 
-CALIBRATION_DIR = (
-    ROOT
-    / "E10_1_3_A_PerturbationCalibration"
+OUTPUT = (
+    Path("/content/drive/MyDrive/GER_RESULTS")
+    / "S29"
+    / "E10"
+    / "E10_1_2_B_Continuity"
 )
 
-OUTPUT_DIR = (
-    ROOT
-    / "E10_1_3_B_ResponseField"
-)
+FIGURES = OUTPUT / "FIGURES"
 
-FIGURES_DIR = (
-    OUTPUT_DIR
-    / "FIGURES"
-)
-
-OUTPUT_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-FIGURES_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
+OUTPUT.mkdir(parents=True, exist_ok=True)
+FIGURES.mkdir(parents=True, exist_ok=True)
 
 
 # ============================================================
 # ARQUIVOS
 # ============================================================
 
-RECOMMENDED_DELTA_FILE = (
-    CALIBRATION_DIR
-    / "recommended_perturbation.json"
-)
+SIGNATURE_FILE = ROOT / "signature_surface.parquet"
+GRID_FILE = ROOT / "grid.parquet"
 
-RESPONSE_FIELD_FILE = (
-    OUTPUT_DIR
-    / "response_field.parquet"
-)
+CONTINUITY_FILE = OUTPUT / "continuity_surface.parquet"
 
-SUMMARY_JSON = (
-    OUTPUT_DIR
-    / "response_field_summary.json"
-)
-
-SUMMARY_TXT = (
-    OUTPUT_DIR
-    / "response_field_summary.txt"
-)
+SUMMARY_JSON = OUTPUT / "continuity_summary.json"
+SUMMARY_TXT = OUTPUT / "continuity_summary.txt"
 
 
 # ============================================================
-# ESTRUTURAS
+# PARÂMETROS
 # ============================================================
 
-@dataclass(slots=True)
-class ResponsePoint:
-
-    row: int
-    col: int
-
-    gamma: float
-    omega: float
-
-
-@dataclass(slots=True)
-class ResponseRecord:
-
-    row: int
-    col: int
-
-    gamma: float
-    omega: float
-
-    delta: float
-
-    response_norm: float
-    relative_response: float
-
-    stable: bool
+# Tolerância para considerar continuidade local.
+# Mantida explícita para facilitar auditorias futuras.
+CONTINUITY_TOLERANCE = 1e-12
 
 
 # ============================================================
-# UTILIDADES
+# LEITURA DOS DADOS
 # ============================================================
 
-def ensure_output_structure():
-
-    OUTPUT_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    FIGURES_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-
-def load_recommended_delta():
-
-    with open(
-        RECOMMENDED_DELTA_FILE,
-        "r",
-        encoding="utf-8",
-    ) as fp:
-
-        data = json.load(fp)
-
-    return float(
-        data["recommended_delta"]
-    )
-
-
-def save_json(
-    data,
-    filepath,
-):
-
-    with open(
-        filepath,
-        "w",
-        encoding="utf-8",
-    ) as fp:
-
-        json.dump(
-            data,
-            fp,
-            indent=4,
-            ensure_ascii=False,
-        )
-
-
-def save_dataframe(df):
-
-    df.to_parquet(
-        RESPONSE_FIELD_FILE,
-        index=False,
-    )
-
-
-# ============================================================
-# MALHA
-# ============================================================
-
-def build_full_grid():
-
-    gamma_values = np.linspace(
-        0.0,
-        1.0,
-        GRID_SIZE,
-    )
-
-    omega_values = np.linspace(
-        0.0,
-        1.0,
-        GRID_SIZE,
-    )
-
-    grid = []
-
-    for row, gamma in enumerate(gamma_values):
-
-        for col, omega in enumerate(omega_values):
-
-            grid.append(
-
-                ResponsePoint(
-
-                    row=row,
-                    col=col,
-
-                    gamma=float(gamma),
-                    omega=float(omega),
-
-                )
-
-            )
-
-    return grid
-
-
-# ============================================================
-# INICIALIZAÇÃO
-# ============================================================
-
-print("=" * 72)
+print("=" * 60)
 print("GER")
-print("S29 - E10.1.3.B")
-print("Response Field")
-print("=" * 72)
+print("E10.1.2.B")
+print("Surface Continuity")
+print("=" * 60)
 
-ensure_output_structure()
+print("\nCarregando superfície...")
 
-print(f"[OK] Root            : {ROOT}")
-print(f"[OK] Calibration     : {CALIBRATION_DIR}")
-print(f"[OK] Output          : {OUTPUT_DIR}")
-print(f"[OK] Grid            : {GRID_SIZE} x {GRID_SIZE}")
-print(f"[OK] Total Points    : {GRID_SIZE * GRID_SIZE}")
-print("[OK] Delta           : carregado durante a execução")
+signature = pd.read_parquet(SIGNATURE_FILE)
+grid = pd.read_parquet(GRID_FILE)
 
-# ============================================================
-# PERTURBAÇÃO
-# ============================================================
+print(f"Assinaturas      : {len(signature):,}")
+print(f"Pontos da malha  : {len(grid):,}")
 
-DELTA_GAMMA_FACTOR = 1.0
-DELTA_OMEGA_FACTOR = 1.0
-
-
-def apply_perturbation(
-    gamma,
-    omega,
-    delta,
-):
-    """
-    Aplica a perturbação calibrada aos
-    parâmetros Γ–Ω.
-    """
-
-    gamma_p = (
-        gamma
-        + DELTA_GAMMA_FACTOR * delta
+if len(signature) != len(grid):
+    raise RuntimeError(
+        "Número de assinaturas diferente da grade."
     )
 
-    omega_p = (
-        omega
-        + DELTA_OMEGA_FACTOR * delta
-    )
-
-    return gamma_p, omega_p
+print("\nSuperfície carregada com sucesso.")
 
 
 # ============================================================
-# EXECUÇÃO
+# COMPONENTES DA ASSINATURA
 # ============================================================
 
-def run_reference_state(
-    point,
-    engine_kwargs,
-):
-    """
-    Executa o estado de referência.
-    """
+RESERVED_COLUMNS = {
+    "i",
+    "j",
+    "gamma",
+    "omega",
+}
 
-    return run_e10_engine(
+SIGNATURE_COLUMNS = [
 
-        gamma=point.gamma,
-        omega=point.omega,
+    column
 
-        **engine_kwargs,
+    for column in signature.columns
 
-    )
+    if column not in RESERVED_COLUMNS
 
+]
 
-def run_perturbed_state(
-    point,
-    delta,
-    engine_kwargs,
-):
-    """
-    Executa o estado perturbado.
-    """
+print("\nComponentes analisadas:")
 
-    gamma_p, omega_p = apply_perturbation(
+for component in SIGNATURE_COLUMNS:
+    print(f"   • {component}")
 
-        point.gamma,
-        point.omega,
-        delta,
-
-    )
-
-    return run_e10_engine(
-
-        gamma=gamma_p,
-        omega=omega_p,
-
-        **engine_kwargs,
-
-    )
-
+print("\nPreparação concluída.")
+print("=" * 60)
 
 # ============================================================
-# MÉTRICAS
+# RECONSTRUÇÃO DA SUPERFÍCIE
 # ============================================================
 
-def compute_response_metrics(
-    reference_state,
-    perturbed_state,
-    dt,
-):
-    """
-    Calcula as métricas locais de resposta.
+print("\nReconstruindo superfície relacional...")
 
-    A assinatura é reconstruída pelo
-    pipeline oficial da E10.1.1.
-    """
+gamma_values = np.sort(signature["gamma"].unique())
+omega_values = np.sort(signature["omega"].unique())
 
-    # ---------------------------------------------------------
-    # Estado de referência
-    # ---------------------------------------------------------
+NG = len(gamma_values)
+NO = len(omega_values)
 
-    reference_observables = run_persistence_observatory(
+print(f"Pontos em γ : {NG}")
+print(f"Pontos em ω : {NO}")
 
-        snapshots=reference_state["snapshots"],
-        dt=dt,
+continuity_frames = []
 
-    )
+summary = {
 
-    reference_pipeline = run_signature_pipeline(
+    "gamma_points": int(NG),
+    "omega_points": int(NO),
+    "tolerance": float(CONTINUITY_TOLERANCE),
+    "components": {},
 
-        reference_observables,
-        dt,
+}
 
-    )
+# ============================================================
+# ANÁLISE DE CONTINUIDADE
+# ============================================================
 
-    reference = reference_pipeline["signature"]
+for component in SIGNATURE_COLUMNS:
 
-    reference_signature = np.array(
+    print(f"\nProcessando: {component}")
 
-        [
-            reference.diameter,
-            reference.convergence,
-            reference.recurrence,
-            reference.drift,
-        ],
-
-        dtype=float,
-
-    )
-
-    # ---------------------------------------------------------
-    # Estado perturbado
-    # ---------------------------------------------------------
-
-    perturbed_observables = run_persistence_observatory(
-
-        snapshots=perturbed_state["snapshots"],
-        dt=dt,
-
-    )
-
-    perturbed_pipeline = run_signature_pipeline(
-
-        perturbed_observables,
-        dt,
-
-    )
-
-    perturbed = perturbed_pipeline["signature"]
-
-    perturbed_signature = np.array(
-
-        [
-            perturbed.diameter,
-            perturbed.convergence,
-            perturbed.recurrence,
-            perturbed.drift,
-        ],
-
-        dtype=float,
-
-    )
-
-    # ---------------------------------------------------------
-    # Métricas
-    # ---------------------------------------------------------
-
-    delta_signature = (
-
-        perturbed_signature
-        - reference_signature
-
-    )
-
-    response_norm = float(
-
-        np.linalg.norm(
-            delta_signature
+    pivot = (
+        signature
+        .pivot(
+            index="gamma",
+            columns="omega",
+            values=component,
         )
-
+        .sort_index()
+        .sort_index(axis=1)
     )
 
-    reference_norm = float(
+    surface = pivot.to_numpy(dtype=float)
 
-        np.linalg.norm(
-            reference_signature
-        )
+    # --------------------------------------------------------
+    # Diferenças locais
+    # --------------------------------------------------------
 
+    delta_gamma = np.zeros_like(surface)
+    delta_omega = np.zeros_like(surface)
+
+    delta_gamma[:-1, :] = np.abs(
+        surface[1:, :] - surface[:-1, :]
     )
 
-    if reference_norm > 0.0:
+    delta_omega[:, :-1] = np.abs(
+        surface[:, 1:] - surface[:, :-1]
+    )
 
-        relative_response = (
+    max_delta = np.maximum(
+        delta_gamma,
+        delta_omega,
+    )
 
-            response_norm
-            / reference_norm
+    continuity_mask = (
+        max_delta <= CONTINUITY_TOLERANCE
+    )
 
+    # --------------------------------------------------------
+    # Reconstrução tabular
+    # --------------------------------------------------------
+
+    df = (
+        pivot
+        .stack()
+        .reset_index(name="value")
+    )
+
+    df["component"] = component
+
+    df["delta_gamma"] = delta_gamma.ravel()
+    df["delta_omega"] = delta_omega.ravel()
+
+    df["max_delta"] = max_delta.ravel()
+
+    df["continuous"] = continuity_mask.ravel()
+
+    continuity_frames.append(df)
+
+    # --------------------------------------------------------
+    # Estatísticas
+    # --------------------------------------------------------
+
+    summary["components"][component] = {
+
+        "min_delta":
+            float(np.min(max_delta)),
+
+        "max_delta":
+            float(np.max(max_delta)),
+
+        "mean_delta":
+            float(np.mean(max_delta)),
+
+        "std_delta":
+            float(np.std(max_delta)),
+
+        "continuous_fraction":
+            float(
+                np.mean(
+                    continuity_mask
+                )
+            ),
+
+        "discontinuous_fraction":
+            float(
+                1.0 -
+                np.mean(
+                    continuity_mask
+                )
+            ),
+
+    }
+
+print("\nContinuidade analisada.")
+
+# ============================================================
+# DATAFRAME FINAL
+# ============================================================
+
+continuity_surface = pd.concat(
+
+    continuity_frames,
+
+    ignore_index=True,
+
+)
+
+print(
+    f"Linhas produzidas : "
+    f"{len(continuity_surface):,}"
+)
+
+print("=" * 60)
+# ============================================================
+# PERSISTÊNCIA DOS RESULTADOS
+# ============================================================
+
+print("\nGravando produtos...")
+
+continuity_surface.to_parquet(
+    CONTINUITY_FILE,
+    index=False,
+)
+
+with open(
+    SUMMARY_JSON,
+    "w",
+    encoding="utf-8",
+) as fp:
+
+    json.dump(
+        summary,
+        fp,
+        indent=4,
+        ensure_ascii=False,
+    )
+
+print("Produtos gravados.")
+
+# ============================================================
+# RELATÓRIO TEXTO
+# ============================================================
+
+with open(
+    SUMMARY_TXT,
+    "w",
+    encoding="utf-8",
+) as fp:
+
+    fp.write("=" * 60 + "\n")
+    fp.write("GER\n")
+    fp.write("E10.1.2.B\n")
+    fp.write("Surface Continuity\n")
+    fp.write("=" * 60 + "\n\n")
+
+    fp.write(f"Pontos γ : {NG}\n")
+    fp.write(f"Pontos ω : {NO}\n")
+    fp.write(f"Tolerância : {CONTINUITY_TOLERANCE:.2e}\n")
+    fp.write(f"Componentes : {len(SIGNATURE_COLUMNS)}\n\n")
+
+    for component in SIGNATURE_COLUMNS:
+
+        s = summary["components"][component]
+
+        fp.write("-" * 50 + "\n")
+        fp.write(f"{component}\n")
+        fp.write("-" * 50 + "\n")
+
+        fp.write(f"Δ mínimo            : {s['min_delta']:.6e}\n")
+        fp.write(f"Δ máximo            : {s['max_delta']:.6e}\n")
+        fp.write(f"Δ médio             : {s['mean_delta']:.6e}\n")
+        fp.write(f"Desvio padrão       : {s['std_delta']:.6e}\n")
+        fp.write(f"Continuidade        : {100*s['continuous_fraction']:.2f}%\n")
+        fp.write(f"Descontinuidade     : {100*s['discontinuous_fraction']:.2f}%\n\n")
+
+print("Resumo salvo.")
+
+# ============================================================
+# MAPAS DE CONTINUIDADE
+# ============================================================
+
+print("\nGerando mapas...")
+
+for component in SIGNATURE_COLUMNS:
+
+    subset = continuity_surface[
+        continuity_surface["component"] == component
+    ]
+
+    surface = (
+        subset
+        .pivot(
+            index="gamma",
+            columns="omega",
+            values="continuous",
         )
+        .sort_index()
+        .sort_index(axis=1)
+    )
+
+    plt.figure(figsize=(7, 6))
+
+    plt.imshow(
+        surface.to_numpy(dtype=float),
+        origin="lower",
+        aspect="auto",
+        interpolation="nearest",
+    )
+
+    plt.colorbar(label="Continuidade")
+
+    plt.title(
+        f"Continuity Map\n{component}"
+    )
+
+    plt.xlabel("ω")
+    plt.ylabel("γ")
+
+    plt.tight_layout()
+
+    plt.savefig(
+        FIGURES / f"{component}_continuity.png",
+        dpi=200,
+    )
+
+    plt.close()
+
+print("Mapas concluídos.")
+
+# ============================================================
+# RESUMO OPERACIONAL
+# ============================================================
+
+print("\n" + "=" * 60)
+print("E10.1.2.B FINALIZADO")
+print("=" * 60)
+
+print(f"Componentes analisadas : {len(SIGNATURE_COLUMNS)}")
+print(f"Arquivo principal      : {CONTINUITY_FILE.name}")
+print(f"Resumo JSON            : {SUMMARY_JSON.name}")
+print(f"Resumo TXT             : {SUMMARY_TXT.name}")
+print(f"Figuras                : {FIGURES}")
+
+print("=" * 60)
+# ============================================================
+# AUDITORIA OPERACIONAL
+# ============================================================
+
+print("\nExecutando auditoria...")
+
+audit = {}
+
+audit["signature_rows"] = int(len(signature))
+audit["continuity_rows"] = int(len(continuity_surface))
+
+audit["gamma_points"] = int(NG)
+audit["omega_points"] = int(NO)
+
+audit["components"] = list(SIGNATURE_COLUMNS)
+
+audit["expected_rows"] = int(
+    len(signature) * len(SIGNATURE_COLUMNS)
+)
+
+audit["missing_values"] = int(
+    continuity_surface.isna().sum().sum()
+)
+
+audit["duplicate_rows"] = int(
+    continuity_surface.duplicated().sum()
+)
+
+audit["infinite_values"] = int(
+    np.isinf(
+        continuity_surface.select_dtypes(
+            include=[np.number]
+        )
+    ).sum().sum()
+)
+
+audit["status"] = "PASS"
+
+if audit["continuity_rows"] != audit["expected_rows"]:
+    audit["status"] = "FAIL"
+
+if audit["missing_values"] > 0:
+    audit["status"] = "FAIL"
+
+if audit["duplicate_rows"] > 0:
+    audit["status"] = "FAIL"
+
+if audit["infinite_values"] > 0:
+    audit["status"] = "FAIL"
+
+AUDIT_JSON = OUTPUT / "continuity_audit.json"
+
+with open(
+    AUDIT_JSON,
+    "w",
+    encoding="utf-8",
+) as fp:
+
+    json.dump(
+        audit,
+        fp,
+        indent=4,
+        ensure_ascii=False,
+    )
+
+print("Auditoria concluída.")
+
+# ============================================================
+# DIAGNÓSTICO CIENTÍFICO
+# ============================================================
+
+print("\nDiagnóstico:")
+
+fully_continuous = []
+partially_discontinuous = []
+
+for component in SIGNATURE_COLUMNS:
+
+    s = summary["components"][component]
+
+    if np.isclose(
+        s["continuous_fraction"],
+        1.0,
+        atol=1e-12,
+    ):
+
+        fully_continuous.append(component)
 
     else:
 
-        relative_response = 0.0
+        partially_discontinuous.append(component)
 
-    stable = bool(
-        np.isfinite(response_norm)
-    )
+print(
+    f"Componentes totalmente contínuas : "
+    f"{len(fully_continuous)}"
+)
 
-    return {
+print(
+    f"Componentes com descontinuidades : "
+    f"{len(partially_discontinuous)}"
+)
 
-        "response_norm": response_norm,
+if fully_continuous:
 
-        "relative_response": relative_response,
+    print("\nContínuas:")
 
-        "stable": stable,
+    for component in fully_continuous:
+        print(f"   • {component}")
 
-    }
+if partially_discontinuous:
 
+    print("\nCom descontinuidades:")
 
-# ============================================================
-# CAMPO DE RESPOSTA
-# ============================================================
-
-def build_response_field(
-    engine_kwargs,
-):
-    """
-    Executa os 441 pontos da malha
-    e constrói o campo de resposta.
-    """
-
-    grid = build_full_grid()
-
-    records = []
-
-    total = len(grid)
-
-    print()
-    print("=" * 72)
-    print("BUILDING RESPONSE FIELD")
-    print("=" * 72)
-
-    for index, point in enumerate(
-        grid,
-        start=1,
-    ):
-
-        print(
-
-            f"[{index:03d}/{total}] "
-            f"γ={point.gamma:.6f} "
-            f"ω={point.omega:.6f}"
-
-        )
-
-        reference_state = run_reference_state(
-
-            point,
-            engine_kwargs,
-
-        )
-
-        perturbed_state = run_perturbed_state(
-
-            point,
-            DELTA,
-            engine_kwargs,
-
-        )
-
-        metrics = compute_response_metrics(
-
-            reference_state,
-            perturbed_state,
-            engine_kwargs["dt"],
-
-        )
-
-        records.append(
-
-            ResponseRecord(
-
-                row=point.row,
-                col=point.col,
-
-                gamma=point.gamma,
-                omega=point.omega,
-
-                delta=DELTA,
-
-                response_norm=metrics[
-                    "response_norm"
-                ],
-
-                relative_response=metrics[
-                    "relative_response"
-                ],
-
-                stable=metrics[
-                    "stable"
-                ],
-
-            )
-
-        )
-
-    return pd.DataFrame(records)
+    for component in partially_discontinuous:
+        print(f"   • {component}")
 
 # ============================================================
-# RESUMO
+# CONCLUSÃO OPERACIONAL
 # ============================================================
 
-def build_summary(df):
-    """
-    Constrói o resumo estatístico do
-    campo de resposta.
-    """
+print("\n" + "=" * 60)
+print("GER")
+print("E10.1.2.B")
+print("Surface Continuity")
+print("=" * 60)
 
-    summary = {
+print(f"Status da auditoria : {audit['status']}")
+print(f"Linhas esperadas    : {audit['expected_rows']:,}")
+print(f"Linhas produzidas   : {audit['continuity_rows']:,}")
+print(f"Valores ausentes    : {audit['missing_values']}")
+print(f"Duplicatas          : {audit['duplicate_rows']}")
+print(f"Infinitos           : {audit['infinite_values']}")
 
-        "grid_size": GRID_SIZE,
+print("\nProdutos gerados:")
 
-        "number_of_points":
+print(f"  • {CONTINUITY_FILE.name}")
+print(f"  • {SUMMARY_JSON.name}")
+print(f"  • {SUMMARY_TXT.name}")
+print(f"  • {AUDIT_JSON.name}")
+print(f"  • {FIGURES}")
 
-            int(len(df)),
-
-        "delta":
-
-            float(DELTA),
-
-        "response_norm": {
-
-            "minimum":
-
-                float(df["response_norm"].min()),
-
-            "maximum":
-
-                float(df["response_norm"].max()),
-
-            "mean":
-
-                float(df["response_norm"].mean()),
-
-            "std":
-
-                float(df["response_norm"].std()),
-
-        },
-
-        "relative_response": {
-
-            "minimum":
-
-                float(df["relative_response"].min()),
-
-            "maximum":
-
-                float(df["relative_response"].max()),
-
-            "mean":
-
-                float(df["relative_response"].mean()),
-
-            "std":
-
-                float(df["relative_response"].std()),
-
-        },
-
-        "stable_fraction":
-
-            float(df["stable"].mean()),
-
-    }
-
-    return summary
-
-
-# ============================================================
-# RELATÓRIO
-# ============================================================
-
-def write_summary(summary):
-
-    with open(
-        SUMMARY_TXT,
-        "w",
-        encoding="utf-8",
-    ) as fp:
-
-        fp.write(
-            "====================================================\n"
-        )
-
-        fp.write(
-            "GER\n"
-        )
-
-        fp.write(
-            "S29 - E10.1.3.B\n"
-        )
-
-        fp.write(
-            "Response Field\n"
-        )
-
-        fp.write(
-            "====================================================\n\n"
-        )
-
-        fp.write(
-            f"Grid Size          : {summary['grid_size']} x {summary['grid_size']}\n"
-        )
-
-        fp.write(
-            f"Points             : {summary['number_of_points']}\n"
-        )
-
-        fp.write(
-            f"Delta              : {summary['delta']:.6e}\n\n"
-        )
-
-        fp.write(
-            "Response Norm\n"
-        )
-
-        fp.write(
-            f"  Mean             : {summary['response_norm']['mean']:.6e}\n"
-        )
-
-        fp.write(
-            f"  Std              : {summary['response_norm']['std']:.6e}\n"
-        )
-
-        fp.write(
-            f"  Min              : {summary['response_norm']['minimum']:.6e}\n"
-        )
-
-        fp.write(
-            f"  Max              : {summary['response_norm']['maximum']:.6e}\n\n"
-        )
-
-        fp.write(
-            "Relative Response\n"
-        )
-
-        fp.write(
-            f"  Mean             : {summary['relative_response']['mean']:.6e}\n"
-        )
-
-        fp.write(
-            f"  Std              : {summary['relative_response']['std']:.6e}\n"
-        )
-
-        fp.write(
-            f"  Min              : {summary['relative_response']['minimum']:.6e}\n"
-        )
-
-        fp.write(
-            f"  Max              : {summary['relative_response']['maximum']:.6e}\n\n"
-        )
-
-        fp.write(
-            f"Stable Fraction    : {summary['stable_fraction']:.6f}\n"
-        )
+print("=" * 60)
+print("Módulo E10.1.2.B concluído.")
+print("=" * 60)
 
 
 # ============================================================
@@ -745,83 +572,15 @@ def write_summary(summary):
 # ============================================================
 
 def main():
+    """
+    O fluxo completo do módulo é executado sequencialmente
+    durante a importação deste arquivo.
 
-    initialize()
+    Esta função existe para manter a padronização da série
+    E10.1.2 e permitir execução direta do módulo.
+    """
+    pass
 
-    global DELTA
-
-    DELTA = load_recommended_delta()
-
-    print(
-        f"[OK] Delta           : {DELTA:.6e}"
-    )
-
-    engine_kwargs = {
-
-        "dt": DEFAULT_DT,
-
-    }
-
-    response_field = build_response_field(
-
-        engine_kwargs,
-
-    )
-
-    save_dataframe(
-
-        response_field,
-
-    )
-
-    summary = build_summary(
-
-        response_field,
-
-    )
-
-    save_json(
-
-        summary,
-        SUMMARY_JSON,
-
-    )
-
-    write_summary(
-
-        summary,
-
-    )
-
-    print()
-
-    print("=" * 72)
-    print("RESPONSE FIELD COMPLETED")
-    print("=" * 72)
-
-    print(
-        f"Points Processed : {summary['number_of_points']}"
-    )
-
-    print(
-        f"Delta Used       : {summary['delta']:.6e}"
-    )
-
-    print(
-        f"Stable Fraction  : {summary['stable_fraction']:.6f}"
-    )
-
-    print()
-
-    print(
-        f"Results saved to:\n{OUTPUT_DIR}"
-    )
-
-
-# ============================================================
-# EXECUÇÃO
-# ============================================================
 
 if __name__ == "__main__":
-
     main()
