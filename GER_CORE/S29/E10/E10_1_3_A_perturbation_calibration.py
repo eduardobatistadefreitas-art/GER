@@ -880,14 +880,13 @@ def main():
         recommendation,
         "recommended_perturbation.json",
     )
-    
+
     ensure_output_structure()
-    
+
     with open(
-        OUTPUT_DIR / 
-        "perturbation_calibration_summary.txt",
-        ...
-    )
+
+        OUTPUT_DIR
+        / "perturbation_calibration_summary.txt",
 
         "w",
         encoding="utf-8",
@@ -920,15 +919,24 @@ def main():
         )
 
     print()
+
     print("=" * 72)
+
     print("CALIBRATION COMPLETED")
+
     print("=" * 72)
+
     print(
+
         f"Recommended δ : "
         f"{recommendation['recommended_delta']:.6e}"
+
     )
+
     print(
+
         f"Results saved to:\n{OUTPUT_DIR}"
+
     )
 
 
