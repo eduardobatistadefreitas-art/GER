@@ -1,159 +1,67 @@
 """
 ====================================================================
 GER
-S29 — E10.1.3.F
-Propagation Certificate
+S29 — E10.1.3.B
+Response Field
 ====================================================================
 
 Objetivo
 --------
-Emitir o certificado científico da campanha E10.1.3.
+Construir o campo global de resposta da superfície relacional a uma
+perturbação calibrada.
 
-Este módulo constitui a etapa final da investigação da propagação de
-perturbações sobre a superfície relacional.
+Este módulo constitui a Fase II da E10.1.3.
 
-Nenhum novo processamento experimental é realizado.
+A magnitude da perturbação é obtida automaticamente pela
+E10.1.3.A através do arquivo
 
-Nenhuma nova métrica é calculada.
+    recommended_perturbation.json
 
-Todo o conteúdo produzido aqui é derivado exclusivamente dos
-resultados obtidos pelos módulos anteriores.
+Para cada ponto da malha oficial Γ–Ω, o módulo executa o estado
+de referência e o estado perturbado, reconstrói a assinatura pelo
+pipeline oficial da E10.1.1 e calcula a resposta local.
 
---------------------------------------------------------------------
-Entrada
---------------------------------------------------------------------
-
-Este módulo utiliza exclusivamente os produtos consolidados da
-campanha E10.1.3.
-
-Principal arquivo:
-
-    response_atlas.parquet
-
-Também podem ser utilizados os resumos produzidos durante as etapas
-anteriores para compor o relatório final.
-
-Nenhuma chamada ao run_e10_engine() é realizada.
-
---------------------------------------------------------------------
-Objetivos Científicos
---------------------------------------------------------------------
-
-Produzir um documento objetivo contendo:
-
-• identificação da campanha;
-
-• parâmetros experimentais;
-
-• dimensão da malha;
-
-• perturbação utilizada;
-
-• indicadores globais de resposta;
-
-• indicadores globais de propagação;
-
-• indicadores globais de estabilidade;
-
-• estatísticas consolidadas;
-
-• validações estruturais;
-
-• inventário dos produtos gerados.
-
-O certificado representa o encerramento formal da campanha
-experimental.
-
---------------------------------------------------------------------
-Escopo
---------------------------------------------------------------------
-
-Este módulo não interpreta os resultados em termos físicos.
-
-Também não produz conclusões cosmológicas nem formula hipóteses.
-
-Seu papel consiste em registrar, de forma reproduzível, tudo aquilo
-que foi efetivamente observado durante a campanha experimental.
-
-Toda inferência científica permanece responsabilidade dos documentos
-de análise do programa GER.
-
---------------------------------------------------------------------
-Produtos
---------------------------------------------------------------------
-
-Produz:
-
-propagation_certificate.json
-
-propagation_certificate.txt
-
-propagation_certificate.md
-
-experiment_inventory.json
-
-campaign_manifest.json
-
---------------------------------------------------------------------
-Conteúdo do Certificado
---------------------------------------------------------------------
-
-O certificado deverá registrar, entre outras informações:
-
-• identificação da campanha;
-
-• data de execução;
-
-• versão do experimento;
-
-• tamanho da malha;
-
-• número de execuções;
-
-• estatísticas globais;
-
-• integridade estrutural;
-
-• consistência dos arquivos;
-
-• localização dos produtos.
-
-Esses elementos permitem reproduzir e auditar integralmente a
-campanha.
-
---------------------------------------------------------------------
-Encerramento da Campanha
---------------------------------------------------------------------
-
-A emissão deste certificado encerra formalmente a E10.1.3.
-
-Os módulos seguintes da série S29 utilizarão este certificado como
-registro oficial da campanha de propagação de perturbações.
+Não realiza qualquer interpretação espacial; produz apenas o
+campo completo de resposta utilizado pelos módulos seguintes.
 
 ====================================================================
 """
+
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
+# ============================================================
+# GER CORE
+# ============================================================
+
+from GER.CORE.bootstrap import initialize
+
+from GER.CORE.experiment_pipeline import (
+    run_signature_pipeline,
+)
+
+from GER_CORE.S26.S26_B35_persistence_metrics import (
+    run_persistence_observatory,
+)
+
+from GER_CORE.S29.E10.e10_engine import (
+    run_e10_engine,
+)
 
 # ============================================================
 # CONFIGURAÇÃO
 # ============================================================
 
-EXPERIMENT_NAME = "S29_E10_1_3_F"
-
-CAMPAIGN_NAME = "Perturbation Propagation"
-
-CAMPAIGN_VERSION = "1.0"
+EXPERIMENT_NAME = "S29_E10_1_3_B"
 
 GRID_SIZE = 21
-
+DEFAULT_DT = 2.5e-4
 
 # ============================================================
 # DIRETÓRIOS
@@ -165,14 +73,19 @@ ROOT = (
     / "E10"
 )
 
-ATLAS_DIR = (
+CALIBRATION_DIR = (
     ROOT
-    / "E10_1_3_E_ResponseAtlas"
+    / "E10_1_3_A_PerturbationCalibration"
 )
 
 OUTPUT_DIR = (
     ROOT
-    / "E10_1_3_F_PropagationCertificate"
+    / "E10_1_3_B_ResponseField"
+)
+
+FIGURES_DIR = (
+    OUTPUT_DIR
+    / "FIGURES"
 )
 
 OUTPUT_DIR.mkdir(
@@ -180,49 +93,34 @@ OUTPUT_DIR.mkdir(
     exist_ok=True,
 )
 
-
-# ============================================================
-# ARQUIVOS DE ENTRADA
-# ============================================================
-
-ATLAS_FILE = (
-    ATLAS_DIR
-    / "response_atlas.parquet"
-)
-
-ATLAS_SUMMARY = (
-    ATLAS_DIR
-    / "response_atlas_summary.json"
+FIGURES_DIR.mkdir(
+    parents=True,
+    exist_ok=True,
 )
 
 
 # ============================================================
-# PRODUTOS
+# ARQUIVOS
 # ============================================================
 
-CERTIFICATE_JSON = (
-    OUTPUT_DIR
-    / "propagation_certificate.json"
+RECOMMENDED_DELTA_FILE = (
+    CALIBRATION_DIR
+    / "recommended_perturbation.json"
 )
 
-CERTIFICATE_TXT = (
+RESPONSE_FIELD_FILE = (
     OUTPUT_DIR
-    / "propagation_certificate.txt"
+    / "response_field.parquet"
 )
 
-CERTIFICATE_MD = (
+SUMMARY_JSON = (
     OUTPUT_DIR
-    / "propagation_certificate.md"
+    / "response_field_summary.json"
 )
 
-MANIFEST_FILE = (
+SUMMARY_TXT = (
     OUTPUT_DIR
-    / "campaign_manifest.json"
-)
-
-INVENTORY_FILE = (
-    OUTPUT_DIR
-    / "experiment_inventory.json"
+    / "response_field_summary.txt"
 )
 
 
@@ -231,52 +129,62 @@ INVENTORY_FILE = (
 # ============================================================
 
 @dataclass(slots=True)
-class CampaignCertificate:
+class ResponsePoint:
 
-    campaign: str
+    row: int
+    col: int
 
-    version: str
+    gamma: float
+    omega: float
 
-    execution_date: str
 
-    grid_size: int
+@dataclass(slots=True)
+class ResponseRecord:
 
-    number_of_points: int
+    row: int
+    col: int
 
-    number_of_variables: int
+    gamma: float
+    omega: float
 
-    stable_fraction: float
+    delta: float
 
-    response_mean: float
+    response_norm: float
+    relative_response: float
 
-    propagation_mean: float
-
-    stability_mean: float
+    stable: bool
 
 
 # ============================================================
 # UTILIDADES
 # ============================================================
 
-def load_atlas():
+def ensure_output_structure():
 
-    return pd.read_parquet(
-        ATLAS_FILE
+    OUTPUT_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    FIGURES_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
     )
 
 
-def load_summary():
+def load_recommended_delta():
 
     with open(
-
-        ATLAS_SUMMARY,
-
+        RECOMMENDED_DELTA_FILE,
         "r",
         encoding="utf-8",
-
     ) as fp:
 
-        return json.load(fp)
+        data = json.load(fp)
+
+    return float(
+        data["recommended_delta"]
+    )
 
 
 def save_json(
@@ -285,78 +193,66 @@ def save_json(
 ):
 
     with open(
-
         filepath,
-
         "w",
-
         encoding="utf-8",
-
     ) as fp:
 
         json.dump(
-
             data,
-
             fp,
-
             indent=4,
-
             ensure_ascii=False,
-
         )
+
+
+def save_dataframe(df):
+
+    df.to_parquet(
+        RESPONSE_FIELD_FILE,
+        index=False,
+    )
 
 
 # ============================================================
-# VALIDAÇÃO
+# MALHA
 # ============================================================
 
-def validate_campaign(
-    atlas,
-):
-    """
-    Verificações estruturais finais
-    da campanha.
-    """
+def build_full_grid():
 
-    expected = GRID_SIZE * GRID_SIZE
+    gamma_values = np.linspace(
+        0.0,
+        1.0,
+        GRID_SIZE,
+    )
 
-    if len(atlas) != expected:
+    omega_values = np.linspace(
+        0.0,
+        1.0,
+        GRID_SIZE,
+    )
 
-        raise RuntimeError(
+    grid = []
 
-            f"Expected {expected} records."
+    for row, gamma in enumerate(gamma_values):
 
-        )
+        for col, omega in enumerate(omega_values):
 
-    if atlas.isna().sum().sum():
+            grid.append(
 
-        raise RuntimeError(
+                ResponsePoint(
 
-            "Missing values detected."
+                    row=row,
+                    col=col,
 
-        )
+                    gamma=float(gamma),
+                    omega=float(omega),
 
-    duplicated = atlas.duplicated(
+                )
 
-        subset=[
+            )
 
-            "row",
-            "col",
-
-        ]
-
-    ).sum()
-
-    if duplicated:
-
-        raise RuntimeError(
-
-            "Duplicate coordinates detected."
-
-        )
-
-    return True
+    return grid
 
 
 # ============================================================
@@ -365,211 +261,406 @@ def validate_campaign(
 
 print("=" * 72)
 print("GER")
-print("S29 - E10.1.3.F")
-print("Propagation Certificate")
+print("S29 - E10.1.3.B")
+print("Response Field")
 print("=" * 72)
 
-print(f"[OK] Atlas        : {ATLAS_DIR}")
-print(f"[OK] Output       : {OUTPUT_DIR}")
-print(f"[OK] Grid         : {GRID_SIZE} x {GRID_SIZE}")
-print(f"[OK] Campaign     : {CAMPAIGN_NAME}")
-print(f"[OK] Version      : {CAMPAIGN_VERSION}")
+ensure_output_structure()
+
+print(f"[OK] Root            : {ROOT}")
+print(f"[OK] Calibration     : {CALIBRATION_DIR}")
+print(f"[OK] Output          : {OUTPUT_DIR}")
+print(f"[OK] Grid            : {GRID_SIZE} x {GRID_SIZE}")
+print(f"[OK] Total Points    : {GRID_SIZE * GRID_SIZE}")
+print("[OK] Delta           : carregado durante a execução")
 
 # ============================================================
-# CERTIFICADO
+# PERTURBAÇÃO
 # ============================================================
 
-def build_certificate():
+DELTA_GAMMA_FACTOR = 1.0
+DELTA_OMEGA_FACTOR = 1.0
+
+
+def apply_perturbation(
+    gamma,
+    omega,
+    delta,
+):
     """
-    Constrói o certificado científico
-    da campanha E10.1.3.
+    Aplica a perturbação calibrada aos
+    parâmetros Γ–Ω.
     """
 
-    atlas = load_atlas()
+    gamma_p = (
+        gamma
+        + DELTA_GAMMA_FACTOR * delta
+    )
 
-    validate_campaign(atlas)
+    omega_p = (
+        omega
+        + DELTA_OMEGA_FACTOR * delta
+    )
 
-    summary = load_summary()
+    return gamma_p, omega_p
 
-    certificate = CampaignCertificate(
 
-        campaign=CAMPAIGN_NAME,
+# ============================================================
+# EXECUÇÃO
+# ============================================================
 
-        version=CAMPAIGN_VERSION,
+def run_reference_state(
+    point,
+    engine_kwargs,
+):
+    """
+    Executa o estado de referência.
+    """
 
-        execution_date=datetime.now().isoformat(),
+    return run_e10_engine(
 
-        grid_size=GRID_SIZE,
+        gamma=point.gamma,
+        omega=point.omega,
 
-        number_of_points=summary[
-            "number_of_points"
-        ],
-
-        number_of_variables=summary[
-            "number_of_variables"
-        ],
-
-        stable_fraction=summary[
-            "stable_fraction"
-        ],
-
-        response_mean=summary[
-            "response_norm_mean"
-        ],
-
-        propagation_mean=summary[
-            "propagation_index_mean"
-        ],
-
-        stability_mean=summary[
-            "stability_index_mean"
-        ],
+        **engine_kwargs,
 
     )
 
-    return atlas, summary, certificate
+
+def run_perturbed_state(
+    point,
+    delta,
+    engine_kwargs,
+):
+    """
+    Executa o estado perturbado.
+    """
+
+    gamma_p, omega_p = apply_perturbation(
+
+        point.gamma,
+        point.omega,
+        delta,
+
+    )
+
+    return run_e10_engine(
+
+        gamma=gamma_p,
+        omega=omega_p,
+
+        **engine_kwargs,
+
+    )
 
 
 # ============================================================
-# MANIFESTO
+# MÉTRICAS
 # ============================================================
 
-def build_manifest():
+def compute_response_metrics(
+    reference_state,
+    perturbed_state,
+    dt,
+):
+    """
+    Calcula as métricas locais de resposta.
+
+    A assinatura é reconstruída pelo
+    pipeline oficial da E10.1.1.
+    """
+
+    # ---------------------------------------------------------
+    # Estado de referência
+    # ---------------------------------------------------------
+
+    reference_observables = run_persistence_observatory(
+
+        snapshots=reference_state["snapshots"],
+        dt=dt,
+
+    )
+
+    reference_pipeline = run_signature_pipeline(
+
+        reference_observables,
+        dt,
+
+    )
+
+    reference = reference_pipeline["signature"]
+
+    reference_signature = np.array(
+
+        [
+            reference.diameter,
+            reference.convergence,
+            reference.recurrence,
+            reference.drift,
+        ],
+
+        dtype=float,
+
+    )
+
+    # ---------------------------------------------------------
+    # Estado perturbado
+    # ---------------------------------------------------------
+
+    perturbed_observables = run_persistence_observatory(
+
+        snapshots=perturbed_state["snapshots"],
+        dt=dt,
+
+    )
+
+    perturbed_pipeline = run_signature_pipeline(
+
+        perturbed_observables,
+        dt,
+
+    )
+
+    perturbed = perturbed_pipeline["signature"]
+
+    perturbed_signature = np.array(
+
+        [
+            perturbed.diameter,
+            perturbed.convergence,
+            perturbed.recurrence,
+            perturbed.drift,
+        ],
+
+        dtype=float,
+
+    )
+
+    # ---------------------------------------------------------
+    # Métricas
+    # ---------------------------------------------------------
+
+    delta_signature = (
+
+        perturbed_signature
+        - reference_signature
+
+    )
+
+    response_norm = float(
+
+        np.linalg.norm(
+            delta_signature
+        )
+
+    )
+
+    reference_norm = float(
+
+        np.linalg.norm(
+            reference_signature
+        )
+
+    )
+
+    if reference_norm > 0.0:
+
+        relative_response = (
+
+            response_norm
+            / reference_norm
+
+        )
+
+    else:
+
+        relative_response = 0.0
+
+    stable = bool(
+        np.isfinite(response_norm)
+    )
 
     return {
 
-        "campaign": CAMPAIGN_NAME,
+        "response_norm": response_norm,
 
-        "experiment": EXPERIMENT_NAME,
+        "relative_response": relative_response,
 
-        "version": CAMPAIGN_VERSION,
+        "stable": stable,
+
+    }
+
+
+# ============================================================
+# CAMPO DE RESPOSTA
+# ============================================================
+
+def build_response_field(
+    engine_kwargs,
+):
+    """
+    Executa os 441 pontos da malha
+    e constrói o campo de resposta.
+    """
+
+    grid = build_full_grid()
+
+    records = []
+
+    total = len(grid)
+
+    print()
+    print("=" * 72)
+    print("BUILDING RESPONSE FIELD")
+    print("=" * 72)
+
+    for index, point in enumerate(
+        grid,
+        start=1,
+    ):
+
+        print(
+
+            f"[{index:03d}/{total}] "
+            f"γ={point.gamma:.6f} "
+            f"ω={point.omega:.6f}"
+
+        )
+
+        reference_state = run_reference_state(
+
+            point,
+            engine_kwargs,
+
+        )
+
+        perturbed_state = run_perturbed_state(
+
+            point,
+            DELTA,
+            engine_kwargs,
+
+        )
+
+        metrics = compute_response_metrics(
+
+            reference_state,
+            perturbed_state,
+            engine_kwargs["dt"],
+
+        )
+
+        records.append(
+
+            ResponseRecord(
+
+                row=point.row,
+                col=point.col,
+
+                gamma=point.gamma,
+                omega=point.omega,
+
+                delta=DELTA,
+
+                response_norm=metrics[
+                    "response_norm"
+                ],
+
+                relative_response=metrics[
+                    "relative_response"
+                ],
+
+                stable=metrics[
+                    "stable"
+                ],
+
+            )
+
+        )
+
+    return pd.DataFrame(records)
+
+# ============================================================
+# RESUMO
+# ============================================================
+
+def build_summary(df):
+    """
+    Constrói o resumo estatístico do
+    campo de resposta.
+    """
+
+    summary = {
 
         "grid_size": GRID_SIZE,
 
-        "modules": [
-
-            "E10_1_3_A_perturbation_calibration",
-
-            "E10_1_3_B_response_field",
-
-            "E10_1_3_C_propagation_analysis",
-
-            "E10_1_3_D_stability_map",
-
-            "E10_1_3_E_response_atlas",
-
-            "E10_1_3_F_propagation_certificate",
-
-        ],
-
-        "generated_at":
-
-            datetime.now().isoformat(),
-
-    }
-
-
-# ============================================================
-# INVENTÁRIO
-# ============================================================
-
-def build_inventory():
-
-    inventory = {
-
-        "campaign_root":
-
-            str(ROOT),
-
-        "products": [
-
-            "E10_1_3_A_PerturbationCalibration",
-
-            "E10_1_3_B_ResponseField",
-
-            "E10_1_3_C_PropagationAnalysis",
-
-            "E10_1_3_D_StabilityMap",
-
-            "E10_1_3_E_ResponseAtlas",
-
-            "E10_1_3_F_PropagationCertificate",
-
-        ],
-
-    }
-
-    return inventory
-
-
-# ============================================================
-# SERIALIZAÇÃO
-# ============================================================
-
-def certificate_to_dict(
-    certificate,
-):
-
-    return {
-
-        "campaign":
-
-            certificate.campaign,
-
-        "version":
-
-            certificate.version,
-
-        "execution_date":
-
-            certificate.execution_date,
-
-        "grid_size":
-
-            certificate.grid_size,
-
         "number_of_points":
 
-            certificate.number_of_points,
+            int(len(df)),
 
-        "number_of_variables":
+        "delta":
 
-            certificate.number_of_variables,
+            float(DELTA),
+
+        "response_norm": {
+
+            "minimum":
+
+                float(df["response_norm"].min()),
+
+            "maximum":
+
+                float(df["response_norm"].max()),
+
+            "mean":
+
+                float(df["response_norm"].mean()),
+
+            "std":
+
+                float(df["response_norm"].std()),
+
+        },
+
+        "relative_response": {
+
+            "minimum":
+
+                float(df["relative_response"].min()),
+
+            "maximum":
+
+                float(df["relative_response"].max()),
+
+            "mean":
+
+                float(df["relative_response"].mean()),
+
+            "std":
+
+                float(df["relative_response"].std()),
+
+        },
 
         "stable_fraction":
 
-            certificate.stable_fraction,
-
-        "response_mean":
-
-            certificate.response_mean,
-
-        "propagation_mean":
-
-            certificate.propagation_mean,
-
-        "stability_mean":
-
-            certificate.stability_mean,
+            float(df["stable"].mean()),
 
     }
 
+    return summary
+
+
 # ============================================================
-# EXPORTAÇÃO
+# RELATÓRIO
 # ============================================================
 
-def write_text_certificate(
-    certificate,
-):
+def write_summary(summary):
 
     with open(
-
-        CERTIFICATE_TXT,
-
+        SUMMARY_TXT,
         "w",
-
         encoding="utf-8",
-
     ) as fp:
 
         fp.write(
@@ -581,11 +672,11 @@ def write_text_certificate(
         )
 
         fp.write(
-            "S29 - E10.1.3\n"
+            "S29 - E10.1.3.B\n"
         )
 
         fp.write(
-            "Propagation Certificate\n"
+            "Response Field\n"
         )
 
         fp.write(
@@ -593,104 +684,59 @@ def write_text_certificate(
         )
 
         fp.write(
-            f"Campaign              : {certificate.campaign}\n"
+            f"Grid Size          : {summary['grid_size']} x {summary['grid_size']}\n"
         )
 
         fp.write(
-            f"Version               : {certificate.version}\n"
+            f"Points             : {summary['number_of_points']}\n"
         )
 
         fp.write(
-            f"Execution Date        : {certificate.execution_date}\n\n"
+            f"Delta              : {summary['delta']:.6e}\n\n"
         )
 
         fp.write(
-            f"Grid Size             : {certificate.grid_size} x {certificate.grid_size}\n"
+            "Response Norm\n"
         )
 
         fp.write(
-            f"Points                : {certificate.number_of_points}\n"
+            f"  Mean             : {summary['response_norm']['mean']:.6e}\n"
         )
 
         fp.write(
-            f"Variables             : {certificate.number_of_variables}\n\n"
+            f"  Std              : {summary['response_norm']['std']:.6e}\n"
         )
 
         fp.write(
-            f"Mean Response         : {certificate.response_mean:.6e}\n"
+            f"  Min              : {summary['response_norm']['minimum']:.6e}\n"
         )
 
         fp.write(
-            f"Mean Propagation      : {certificate.propagation_mean:.6e}\n"
+            f"  Max              : {summary['response_norm']['maximum']:.6e}\n\n"
         )
 
         fp.write(
-            f"Mean Stability        : {certificate.stability_mean:.6e}\n"
+            "Relative Response\n"
         )
 
         fp.write(
-            f"Stable Fraction       : {certificate.stable_fraction:.6f}\n"
-        )
-
-
-def write_markdown_certificate(
-    certificate,
-):
-
-    with open(
-
-        CERTIFICATE_MD,
-
-        "w",
-
-        encoding="utf-8",
-
-    ) as fp:
-
-        fp.write("# GER\n\n")
-
-        fp.write(
-            "## S29 — E10.1.3 Propagation Certificate\n\n"
+            f"  Mean             : {summary['relative_response']['mean']:.6e}\n"
         )
 
         fp.write(
-            f"- Campaign: **{certificate.campaign}**\n"
+            f"  Std              : {summary['relative_response']['std']:.6e}\n"
         )
 
         fp.write(
-            f"- Version: **{certificate.version}**\n"
+            f"  Min              : {summary['relative_response']['minimum']:.6e}\n"
         )
 
         fp.write(
-            f"- Execution: **{certificate.execution_date}**\n"
+            f"  Max              : {summary['relative_response']['maximum']:.6e}\n\n"
         )
 
         fp.write(
-            f"- Grid: **{certificate.grid_size} × {certificate.grid_size}**\n"
-        )
-
-        fp.write(
-            f"- Points: **{certificate.number_of_points}**\n"
-        )
-
-        fp.write(
-            f"- Variables: **{certificate.number_of_variables}**\n"
-        )
-
-        fp.write(
-            f"- Mean Response: **{certificate.response_mean:.6e}**\n"
-        )
-
-        fp.write(
-            f"- Mean Propagation: **{certificate.propagation_mean:.6e}**\n"
-        )
-
-        fp.write(
-            f"- Mean Stability: **{certificate.stability_mean:.6e}**\n"
-        )
-
-        fp.write(
-            f"- Stable Fraction: **{certificate.stable_fraction:.6f}**\n"
+            f"Stable Fraction    : {summary['stable_fraction']:.6f}\n"
         )
 
 
@@ -700,76 +746,69 @@ def write_markdown_certificate(
 
 def main():
 
-    atlas, summary, certificate = build_certificate()
+    initialize()
 
-    certificate_dict = certificate_to_dict(
-        certificate
+    global DELTA
+
+    DELTA = load_recommended_delta()
+
+    print(
+        f"[OK] Delta           : {DELTA:.6e}"
     )
 
-    manifest = build_manifest()
+    engine_kwargs = {
 
-    inventory = build_inventory()
+        "dt": DEFAULT_DT,
+
+    }
+
+    response_field = build_response_field(
+
+        engine_kwargs,
+
+    )
+
+    save_dataframe(
+
+        response_field,
+
+    )
+
+    summary = build_summary(
+
+        response_field,
+
+    )
 
     save_json(
 
-        certificate_dict,
-
-        CERTIFICATE_JSON,
-
-    )
-
-    save_json(
-
-        manifest,
-
-        MANIFEST_FILE,
+        summary,
+        SUMMARY_JSON,
 
     )
 
-    save_json(
+    write_summary(
 
-        inventory,
-
-        INVENTORY_FILE,
-
-    )
-
-    write_text_certificate(
-
-        certificate,
-
-    )
-
-    write_markdown_certificate(
-
-        certificate,
+        summary,
 
     )
 
     print()
 
     print("=" * 72)
-    print("PROPAGATION CERTIFICATE COMPLETED")
+    print("RESPONSE FIELD COMPLETED")
     print("=" * 72)
 
     print(
-        f"Campaign        : {certificate.campaign}"
+        f"Points Processed : {summary['number_of_points']}"
     )
 
     print(
-        f"Version         : {certificate.version}"
+        f"Delta Used       : {summary['delta']:.6e}"
     )
 
     print(
-        f"Grid            : {certificate.grid_size} x {certificate.grid_size}"
-    )
-
-    print(
-        f"Points          : {certificate.number_of_points}"
-    )
-
-    print(
-        f"Stable Fraction : {certificate.stable_fraction:.6f}"
+        f"Stable Fraction  : {summary['stable_fraction']:.6f}"
     )
 
     print()
