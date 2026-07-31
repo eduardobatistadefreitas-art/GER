@@ -1098,7 +1098,12 @@ section("Generating figures")
 # SURFACES
 # =============================================================================
 
-reserved = {"gamma", "omega"}
+reserved = {
+    "i",
+    "j",
+    "gamma",
+    "omega",
+}
 
 surface_columns = [
     c
