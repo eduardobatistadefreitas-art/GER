@@ -11,6 +11,7 @@ produces the initial state consumed by the GER CORE.
 At the current stage, the historical initialization is
 preserved. The Γ–Ω coupling will be introduced in future
 E10 revisions.
+=============================================================
 """
 
 from __future__ import annotations
@@ -34,10 +35,11 @@ def compose_initial_state(
 
     omega
         Ω parameter.
+        Reserved for future E10 implementations.
 
     **kwargs
         Additional parameters forwarded to the
-        parametrization layers.
+        initialization routine.
 
     Returns
     -------
@@ -47,29 +49,40 @@ def compose_initial_state(
             initial_state(theta) -> ndarray
     """
 
+    #
+    # Build Gamma parametrization.
+    #
+    # It is intentionally kept available for
+    # future Γ–Ω coupling.
+    #
+
     gamma_object = build_gamma(
         value=gamma,
         **kwargs,
     )
 
-    omega_generator = build_initial_state(
-        omega=omega,
-        **kwargs,
-    )
-
     def initial_state(theta):
         """
-        Compose the initial state.
+        Produce the initial state expected by GER CORE.
 
-        The Γ object is intentionally kept available
-        but does not yet modify the historical Ω
-        initialization.
+        The current implementation intentionally preserves
+        the historical initialization while keeping the
+        Gamma parametrization available for future
+        developments.
         """
 
-        _ = gamma_object
+        #
+        # Prevent unused-variable warnings.
+        # Gamma will be used once the Γ–Ω coupling
+        # is formally introduced.
+        #
 
-        return omega_generator(
+        _ = gamma_object
+        _ = omega
+
+        return build_initial_state(
             theta=theta,
+            **kwargs,
         )
 
     return initial_state
