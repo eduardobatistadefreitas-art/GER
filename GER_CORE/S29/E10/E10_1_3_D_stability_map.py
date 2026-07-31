@@ -369,18 +369,7 @@ print(f"[OK] Input            : {INPUT_DIR}")
 print(f"[OK] Output           : {OUTPUT_DIR}")
 print(f"[OK] Grid             : {GRID_SIZE} x {GRID_SIZE}")
 print(f"[OK] Total Points     : {GRID_SIZE * GRID_SIZE}")
-print(
-    f"[OK] Mean Gradient    : "
-    f"{summary['gradient']['mean']:.6e}"
-)
-print(
-    f"[OK] Mean Propagation : "
-    f"{summary['propagation_index']['mean']:.6e}"
-)
-print(
-    f"[OK] Stable Fraction  : "
-    f"{summary['stable_fraction']:.6f}"
-)
+
 
 # ============================================================
 # VIZINHANÇA
@@ -868,6 +857,23 @@ def write_summary(
 # ============================================================
 
 def main():
+
+    global summary
+    
+    summary = load_summary()
+
+    print(
+        f"[OK] Mean Gradient    : "
+        f"{summary['gradient']['mean']:.6e}"
+    )
+    print(
+        f"[OK] Mean Propagation : "
+        f"{summary['propagation_index']['mean']:.6e}"
+    )
+    print(
+        f"[OK] Stable Fraction  : "
+        f"{summary['stable_fraction']:.6f}"
+    )
 
     stability_df, levels_df = build_stability_map()
 
