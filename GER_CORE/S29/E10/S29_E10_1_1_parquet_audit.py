@@ -35,7 +35,9 @@ import pandas as pd
 # CONFIGURAÇÃO
 # =============================================================================
 
-ROOT = Path.cwd()
+ROOT = Path(
+    "/content/drive/MyDrive/GER_RESULTS/S29/E10/E10_1_1"
+)
 
 SIGNATURE_FILE = ROOT / "signature_surface.parquet"
 CERTIFICATE_FILE = ROOT / "certificate_surface.parquet"
