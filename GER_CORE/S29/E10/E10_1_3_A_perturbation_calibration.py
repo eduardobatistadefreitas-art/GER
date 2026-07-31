@@ -571,7 +571,7 @@ def compute_response_metrics(
     
     reference_pipeline = run_signature_pipeline(
         reference_observables,
-        DT,
+        dt,
     )
     
     reference_signature = np.asarray(
@@ -586,7 +586,7 @@ def compute_response_metrics(
     
     perturbed_pipeline = run_signature_pipeline(
         perturbed_observables,
-        DT,
+        dt,
     )
     perturbed_signature = np.asarray(
         perturbed_pipeline["signature"],
