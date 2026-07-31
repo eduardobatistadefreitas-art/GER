@@ -558,20 +558,26 @@ def flush_signatures():
 
 def flush_certificates():
 
-    if not certificate_records:
-        return
+    df = pd.DataFrame(certificate_records)
 
-    pd.DataFrame(
+    print("\n" + "=" * 80)
+    print("CERTIFICATE DATAFRAME")
+    print("=" * 80)
 
-        certificate_records,
+    print(df.head())
 
-    ).to_parquet(
+    print("\nDTYPES")
+    print(df.dtypes)
 
-        CERTIFICATE_FILE,
+    print("\nCOLUMN TYPES")
 
-        index=False,
+    for col in df.columns:
+        value = df.iloc[0][col]
+        print(f"\n{col}")
+        print(type(value))
+        print(repr(value))
 
-    )
+    raise RuntimeError("Audit finished before Parquet write.")
 
 # =============================================================================
 # EXECUÇÃO DA SUPERFÍCIE
