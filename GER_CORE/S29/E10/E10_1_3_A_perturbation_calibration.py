@@ -550,6 +550,7 @@ print("[OK] CORE remains isolated from Γ–Ω parametrization.")
 def compute_response_metrics(
     reference_state,
     perturbed_state,
+    dt,
 ):
     """
     Calcula as métricas de resposta entre
@@ -565,7 +566,7 @@ def compute_response_metrics(
 
     reference_observables = run_persistence_observatory(
         snapshots=reference_state["snapshots"],
-        dt=DT,
+        dt=dt,
     )
     
     reference_pipeline = run_signature_pipeline(
@@ -580,7 +581,7 @@ def compute_response_metrics(
     
     perturbed_observables = run_persistence_observatory(
         snapshots=perturbed_state["snapshots"],
-        dt=DT,
+        dt=dt,
     )
     
     perturbed_pipeline = run_signature_pipeline(
