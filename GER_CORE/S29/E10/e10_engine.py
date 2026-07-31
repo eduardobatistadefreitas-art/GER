@@ -5,53 +5,64 @@ E10 ENGINE
 
 Adapter layer for the E10 experimental series.
 
-This module introduces the Γ and Ω parametrization layers
-while delegating all numerical evolution to the validated
-GER CORE.
+This module connects the E10 parametrization layers to the
+validated GER CORE without introducing new numerical logic.
+
+Responsibilities
+----------------
+
+- Build the E10 initial state.
+- Delegate numerical evolution to the GER CORE.
+- Return the standard engine output.
 """
 
 from __future__ import annotations
 
 from GER.CORE.ger_engine import run_engine
 
-from .gamma import build_gamma
-from .omega import build_initial_state
+from .e10_initial_state import compose_initial_state
 
 
 def run_e10_engine(
+    *,
     n=384,
     timesteps=2000,
     dt=2.5e-4,
     beta=1.0,
     potential="A",
     snapshot_stride=50,
-    gamma_generator="linear",
-    omega_generator="gaussian",
+    gamma=1.0,
+    omega=1.0,
     **kwargs,
 ):
     """
-    Execute the E10 experiment.
+    Execute an E10 simulation.
 
-    Workflow
-    --------
-        Γ generator
-            ↓
-        Ω initial-state generator
-            ↓
-        GER CORE integrator
+    Parameters
+    ----------
+    gamma
+        Γ parametrization.
+
+    omega
+        Ω parametrization.
+
+    Remaining parameters are forwarded directly to the
+    validated GER CORE.
     """
 
-    gamma = build_gamma(
-        generator=gamma_generator,
+    # ---------------------------------------------------------
+    # Build initial state
+    # ---------------------------------------------------------
+
+    initial_state = compose_initial_state(
+        gamma=gamma,
+        omega=omega,
         **kwargs,
     )
 
-    def initial_state(**state_kwargs):
-        return build_initial_state(
-            generator=omega_generator,
-            gamma=gamma,
-            **state_kwargs,
-        )
+    # ---------------------------------------------------------
+    # GER CORE
+    # ---------------------------------------------------------
 
     return run_engine(
         n=n,
