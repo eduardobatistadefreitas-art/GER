@@ -360,7 +360,7 @@ print(f"[OK] Total Executions: {len(generate_sampling_indices()) * len(DEFAULT_M
 # CONSTRUÇÃO DA CAMPANHA EXPERIMENTAL
 # ============================================================
 
-from GER.CORE.e10_engine import run_e10_engine
+from GER_CORE.S29.E10.e10_engine import run_e10_engine
 
 
 def build_calibration_points(
