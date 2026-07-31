@@ -309,6 +309,8 @@ def ensure_output_structure():
 
 def save_json(data, filename):
 
+    ensure_output_structure()
+
     filepath = OUTPUT_DIR / filename
 
     with open(
@@ -326,6 +328,8 @@ def save_json(data, filename):
 
 
 def save_dataframe(df, filename):
+
+    ensure_output_structure()
 
     filepath = OUTPUT_DIR / filename
 
@@ -876,11 +880,14 @@ def main():
         recommendation,
         "recommended_perturbation.json",
     )
-
+    
+    ensure_output_structure()
+    
     with open(
-
-        OUTPUT_DIR
-        / "perturbation_calibration_summary.txt",
+        OUTPUT_DIR / 
+        "perturbation_calibration_summary.txt",
+        ...
+    )
 
         "w",
         encoding="utf-8",
