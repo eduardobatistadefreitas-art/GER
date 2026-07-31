@@ -197,8 +197,8 @@ for component in components:
 
     c = continuity["components"][component]
 
-    continuity_ok = bool(
-        c["continuous"]
+    continuity_ok = (
+    c["continuous_fraction"] == 1.0
     )
 
     if continuity_ok:
