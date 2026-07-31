@@ -556,42 +556,73 @@ def compute_response_metrics(
     Calcula as métricas de resposta entre
     o estado original e o perturbado.
 
-    Espera-se que o adaptador run_e10_engine()
-    devolva um objeto contendo um vetor de
-    assinaturas em "signature".
+    A assinatura é obtida pelo pipeline
+    oficial da E10.1.1:
 
-    Caso a estrutura interna evolua,
-    somente o adaptador deverá ser alterado.
+        run_e10_engine()
+            ↓
+        run_persistence_observatory()
+            ↓
+        run_signature_pipeline()
+            ↓
+        Signature
     """
+
+    # ---------------------------------------------------------
+    # Estado de referência
+    # ---------------------------------------------------------
 
     reference_observables = run_persistence_observatory(
         snapshots=reference_state["snapshots"],
         dt=dt,
     )
-    
+
     reference_pipeline = run_signature_pipeline(
         reference_observables,
         dt,
     )
-    
-    reference_signature = np.asarray(
-        reference_pipeline["signature"],
+
+    reference = reference_pipeline["signature"]
+
+    reference_signature = np.array(
+        [
+            reference.diameter,
+            reference.convergence,
+            reference.recurrence,
+            reference.drift,
+        ],
         dtype=float,
     )
-    
+
+    # ---------------------------------------------------------
+    # Estado perturbado
+    # ---------------------------------------------------------
+
     perturbed_observables = run_persistence_observatory(
         snapshots=perturbed_state["snapshots"],
         dt=dt,
     )
-    
+
     perturbed_pipeline = run_signature_pipeline(
         perturbed_observables,
         dt,
     )
-    perturbed_signature = np.asarray(
-        perturbed_pipeline["signature"],
+
+    perturbed = perturbed_pipeline["signature"]
+
+    perturbed_signature = np.array(
+        [
+            perturbed.diameter,
+            perturbed.convergence,
+            perturbed.recurrence,
+            perturbed.drift,
+        ],
         dtype=float,
     )
+
+    # ---------------------------------------------------------
+    # Métricas
+    # ---------------------------------------------------------
 
     delta_signature = (
         perturbed_signature
