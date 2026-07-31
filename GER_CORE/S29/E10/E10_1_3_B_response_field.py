@@ -12,141 +12,21 @@ perturbação calibrada.
 
 Este módulo constitui a Fase II da E10.1.3.
 
-A magnitude da perturbação não é escolhida aqui.
-
-Ela é obtida automaticamente pelo módulo
-
-    E10_1_3_A_perturbation_calibration.py
-
-através do arquivo
+A magnitude da perturbação é obtida automaticamente pela
+E10.1.3.A através do arquivo
 
     recommended_perturbation.json
 
-e utilizada em todos os pontos da malha.
+Para cada ponto da malha oficial Γ–Ω, o módulo executa o estado
+de referência e o estado perturbado, reconstrói a assinatura pelo
+pipeline oficial da E10.1.1 e calcula a resposta local.
 
-O objetivo é caracterizar quantitativamente como as assinaturas do
-GER respondem a pequenas variações dos parâmetros
-(γ, ω).
-
---------------------------------------------------------------------
-Entrada
---------------------------------------------------------------------
-
-Este módulo utiliza:
-
-• malha oficial da E10.1.1;
-
-• magnitude recomendada pela E10.1.3.A;
-
-• adaptador run_e10_engine().
-
---------------------------------------------------------------------
-Estratégia Experimental
---------------------------------------------------------------------
-
-Todos os pontos da malha são processados.
-
-Malha:
-
-    21 × 21
-
-Total:
-
-    441 pontos.
-
-Para cada ponto:
-
-1.
-
-Executar o estado original
-
-        (γ, ω)
-
-2.
-
-Aplicar a perturbação calibrada
-
-        (γ + δγ,
-         ω + δω)
-
-3.
-
-Executar novamente o adaptador.
-
-4.
-
-Calcular
-
-        ΔS
-
-entre as duas assinaturas.
-
-Nenhuma análise global é realizada neste módulo.
-
-O objetivo é exclusivamente construir o campo completo de resposta.
-
---------------------------------------------------------------------
-Grandezas Calculadas
---------------------------------------------------------------------
-
-Para cada ponto serão registrados:
-
-• γ
-
-• ω
-
-• δ
-
-• assinatura original
-
-• assinatura perturbada
-
-• ΔS
-
-• ||ΔS||
-
-• resposta relativa
-
-• estabilidade local
-
-Essas informações formarão o campo de resposta utilizado pelos
-módulos seguintes.
-
---------------------------------------------------------------------
-Produtos
---------------------------------------------------------------------
-
-Produz:
-
-response_field.parquet
-
-response_field_summary.json
-
-response_field_summary.txt
-
-FIGURES/
-
---------------------------------------------------------------------
-Saída para E10.1.3.C
---------------------------------------------------------------------
-
-O módulo seguinte utilizará o campo completo de resposta para
-investigar:
-
-• propagação;
-
-• anisotropias;
-
-• alcance espacial;
-
-• comprimentos característicos;
-
-• organização relacional da resposta.
-
-Nenhuma dessas análises é realizada neste módulo.
+Não realiza qualquer interpretação espacial; produz apenas o
+campo completo de resposta utilizado pelos módulos seguintes.
 
 ====================================================================
 """
+
 from __future__ import annotations
 
 import json
@@ -156,8 +36,23 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from GER_CORE.S29.E10.e10_engine import run_e10_engine
+# ============================================================
+# GER CORE
+# ============================================================
 
+from GER.CORE.bootstrap import initialize
+
+from GER.CORE.experiment_pipeline import (
+    run_signature_pipeline,
+)
+
+from GER_CORE.S26.S26_B35_persistence_metrics import (
+    run_persistence_observatory,
+)
+
+from GER_CORE.S29.E10.e10_engine import (
+    run_e10_engine,
+)
 
 # ============================================================
 # CONFIGURAÇÃO
@@ -166,7 +61,7 @@ from GER_CORE.S29.E10.e10_engine import run_e10_engine
 EXPERIMENT_NAME = "S29_E10_1_3_B"
 
 GRID_SIZE = 21
-
+DEFAULT_DT = 2.5e-4
 
 # ============================================================
 # DIRETÓRIOS
@@ -188,7 +83,10 @@ OUTPUT_DIR = (
     / "E10_1_3_B_ResponseField"
 )
 
-FIGURES_DIR = OUTPUT_DIR / "FIGURES"
+FIGURES_DIR = (
+    OUTPUT_DIR
+    / "FIGURES"
+)
 
 OUTPUT_DIR.mkdir(
     parents=True,
@@ -277,11 +175,9 @@ def ensure_output_structure():
 def load_recommended_delta():
 
     with open(
-
         RECOMMENDED_DELTA_FILE,
         "r",
         encoding="utf-8",
-
     ) as fp:
 
         data = json.load(fp)
@@ -313,11 +209,8 @@ def save_json(
 def save_dataframe(df):
 
     df.to_parquet(
-
         RESPONSE_FIELD_FILE,
-
         index=False,
-
     )
 
 
@@ -395,8 +288,8 @@ def apply_perturbation(
     delta,
 ):
     """
-    Aplica a perturbação calibrada aos parâmetros
-    da superfície relacional.
+    Aplica a perturbação calibrada aos
+    parâmetros Γ–Ω.
     """
 
     gamma_p = (
@@ -468,32 +361,89 @@ def run_perturbed_state(
 def compute_response_metrics(
     reference_state,
     perturbed_state,
+    dt,
 ):
     """
     Calcula as métricas locais de resposta.
 
-    A interpretação científica dessas métricas
-    será realizada apenas nos módulos C–F.
+    A assinatura é reconstruída pelo
+    pipeline oficial da E10.1.1.
     """
 
-    signature_reference = np.asarray(
+    # ---------------------------------------------------------
+    # Estado de referência
+    # ---------------------------------------------------------
 
-        reference_state["signature"],
+    reference_observables = run_persistence_observatory(
+
+        snapshots=reference_state["snapshots"],
+        dt=dt,
+
+    )
+
+    reference_pipeline = run_signature_pipeline(
+
+        reference_observables,
+        dt,
+
+    )
+
+    reference = reference_pipeline["signature"]
+
+    reference_signature = np.array(
+
+        [
+            reference.diameter,
+            reference.convergence,
+            reference.recurrence,
+            reference.drift,
+        ],
+
         dtype=float,
 
     )
 
-    signature_perturbed = np.asarray(
+    # ---------------------------------------------------------
+    # Estado perturbado
+    # ---------------------------------------------------------
 
-        perturbed_state["signature"],
+    perturbed_observables = run_persistence_observatory(
+
+        snapshots=perturbed_state["snapshots"],
+        dt=dt,
+
+    )
+
+    perturbed_pipeline = run_signature_pipeline(
+
+        perturbed_observables,
+        dt,
+
+    )
+
+    perturbed = perturbed_pipeline["signature"]
+
+    perturbed_signature = np.array(
+
+        [
+            perturbed.diameter,
+            perturbed.convergence,
+            perturbed.recurrence,
+            perturbed.drift,
+        ],
+
         dtype=float,
 
     )
+
+    # ---------------------------------------------------------
+    # Métricas
+    # ---------------------------------------------------------
 
     delta_signature = (
 
-        signature_perturbed
-        - signature_reference
+        perturbed_signature
+        - reference_signature
 
     )
 
@@ -508,7 +458,7 @@ def compute_response_metrics(
     reference_norm = float(
 
         np.linalg.norm(
-            signature_reference
+            reference_signature
         )
 
     )
@@ -549,12 +499,8 @@ def build_response_field(
     engine_kwargs,
 ):
     """
-    Executa os 441 pontos da malha.
-
-    Produz apenas o campo de resposta.
-
-    Nenhuma análise espacial é realizada
-    neste módulo.
+    Executa os 441 pontos da malha
+    e constrói o campo de resposta.
     """
 
     grid = build_full_grid()
@@ -569,18 +515,14 @@ def build_response_field(
     print("=" * 72)
 
     for index, point in enumerate(
-
         grid,
         start=1,
-
     ):
 
         print(
 
             f"[{index:03d}/{total}] "
-
             f"γ={point.gamma:.6f} "
-
             f"ω={point.omega:.6f}"
 
         )
@@ -604,6 +546,7 @@ def build_response_field(
 
             reference_state,
             perturbed_state,
+            engine_kwargs["dt"],
 
         )
 
@@ -709,17 +652,15 @@ def build_summary(df):
 
 
 # ============================================================
-# RELATÓRIO TEXTO
+# RELATÓRIO
 # ============================================================
 
 def write_summary(summary):
 
     with open(
-
         SUMMARY_TXT,
         "w",
         encoding="utf-8",
-
     ) as fp:
 
         fp.write(
@@ -805,13 +746,21 @@ def write_summary(summary):
 
 def main():
 
-    global DELTA
-    
-    DELTA = load_recommended_delta()
-    
-    print(f"[OK] Delta           : {DELTA:.6e}")
+    initialize()
 
-    engine_kwargs = {}
+    global DELTA
+
+    DELTA = load_recommended_delta()
+
+    print(
+        f"[OK] Delta           : {DELTA:.6e}"
+    )
+
+    engine_kwargs = {
+
+        "dt": DEFAULT_DT,
+
+    }
 
     response_field = build_response_field(
 
@@ -834,7 +783,6 @@ def main():
     save_json(
 
         summary,
-
         SUMMARY_JSON,
 
     )
