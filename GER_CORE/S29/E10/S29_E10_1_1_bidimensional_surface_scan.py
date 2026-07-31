@@ -14,10 +14,19 @@ Bidimensional Surface Scan
 OBJETIVO
 
 Construir uma malha bidimensional (γ, ω) para exploração do
-espaço de parâmetros do módulo Ω.
+espaço de parâmetros da arquitetura E10.
 
-Esta implementação utiliza exclusivamente a infraestrutura oficial
-do GER CORE.
+Fluxo oficial:
+
+    E10 Engine
+          ↓
+    Persistence Observatory (S26-B35)
+          ↓
+    Signature Pipeline
+          ↓
+    Structural Certificate
+
+Toda a evolução numérica permanece delegada ao GER CORE.
 
 ===============================================================================
 """
@@ -27,8 +36,8 @@ from __future__ import annotations
 import json
 import time
 
-from dataclasses import dataclass
 from dataclasses import asdict
+from dataclasses import dataclass
 
 from datetime import datetime
 
@@ -53,6 +62,10 @@ from GER.CORE.experiment_pipeline import (
     run_signature_pipeline,
 )
 
+from GER_CORE.S26.S26_B35_persistence_metrics import (
+    run_persistence_observatory,
+)
+
 from GER_CORE.S29.E10.e10_engine import (
     run_e10_engine,
 )
@@ -70,11 +83,17 @@ GAMMA_MAX = 2.0
 OMEGA_MIN = 0.5
 OMEGA_MAX = 2.5
 
-DT = 2.5e-4
+N = 384
 
 TIMESTEPS = 2000
 
+DT = 2.5e-4
+
+BETA = 1.0
+
 POTENTIAL = "A"
+
+SNAPSHOT_STRIDE = 50
 
 
 # =============================================================================
@@ -131,6 +150,10 @@ class ExecutionResult:
 
     certificate: Optional[Any]
 
+    observables: Optional[Any]
+
+    engine: Optional[Any]
+
     error: Optional[str]
 
 
@@ -171,11 +194,17 @@ def build_metadata():
 
         "omega_max": OMEGA_MAX,
 
+        "n": N,
+
         "timesteps": TIMESTEPS,
 
         "dt": DT,
 
+        "beta": BETA,
+
         "potential": POTENTIAL,
+
+        "snapshot_stride": SNAPSHOT_STRIDE,
 
         "engine": "run_e10_engine",
 
@@ -201,15 +230,10 @@ def save_metadata():
     ) as fp:
 
         json.dump(
-
             build_metadata(),
-
             fp,
-
             indent=4,
-
             ensure_ascii=False,
-
         )
 
 
@@ -231,7 +255,7 @@ def build_parameter_grid():
         GRID_SIZE,
     )
 
-    grid = []
+    grid: List[GridPoint] = []
 
     for i, gamma in enumerate(gammas):
 
@@ -256,7 +280,9 @@ def build_parameter_grid():
     return grid
 
 
-def save_grid(grid):
+def save_grid(
+    grid: List[GridPoint],
+):
 
     df = pd.DataFrame(
 
@@ -276,84 +302,146 @@ def save_grid(grid):
 
         index=False,
 
-        )
+    )
 
-# ============================================================
-# Execução de um ponto da malha
-# ============================================================
+# =============================================================================
+# EXECUÇÃO DE UM PONTO DA MALHA
+# =============================================================================
 
 def run_grid_point(
-    gamma: float,
-    omega: float,
-) -> dict:
+    point: GridPoint,
+) -> ExecutionResult:
+    """
+    Executa um único ponto da superfície bidimensional.
+    """
 
     print(
-        f"γ={gamma:.6f}   ω={omega:.6f}"
+        f"γ={point.gamma:.6f}   ω={point.omega:.6f}"
     )
 
-    # --------------------------------------------------------
-    # Motor E10
-    # --------------------------------------------------------
+    t0 = time.perf_counter()
 
-    engine_result = run_e10_engine(
+    try:
 
-        n=N,
-        timesteps=TIMESTEPS,
-        dt=DT,
-        beta=BETA,
-        potential=POTENTIAL,
+        # ---------------------------------------------------------------------
+        # Motor E10
+        # ---------------------------------------------------------------------
 
-        gamma=gamma,
-        omega=omega,
+        engine_result = run_e10_engine(
 
-        snapshot_stride=SNAPSHOT_STRIDE,
-    )
+            n=N,
 
-    # --------------------------------------------------------
-    # Observatório de Persistência (S26-B35)
-    # --------------------------------------------------------
+            timesteps=TIMESTEPS,
 
-    observables = run_persistence_observatory(
+            dt=DT,
 
-        snapshots=engine_result["snapshots"],
-        dt=DT,
-    )
+            beta=BETA,
 
-    # --------------------------------------------------------
-    # Assinatura Geométrica
-    # --------------------------------------------------------
+            potential=POTENTIAL,
 
-    pipeline = run_signature_pipeline(
+            snapshot_stride=SNAPSHOT_STRIDE,
 
-        observables,
-        DT,
-    )
+            gamma=point.gamma,
 
-    signature = pipeline["signature"]
-    certificate = pipeline["certificate"]
+            omega=point.omega,
 
-    # --------------------------------------------------------
-    # Resultado
-    # --------------------------------------------------------
+        )
 
-    return {
+        # ---------------------------------------------------------------------
+        # Observatório de Persistência (S26-B35)
+        # ---------------------------------------------------------------------
 
-        "gamma": gamma,
-        "omega": omega,
+        observables = run_persistence_observatory(
 
-        "signature": signature,
-        "certificate": certificate,
+            snapshots=engine_result["snapshots"],
 
-        "engine": engine_result,
-        "observables": observables,
-    }
+            dt=DT,
+
+        )
+
+        # ---------------------------------------------------------------------
+        # Assinatura Geométrica
+        # ---------------------------------------------------------------------
+
+        pipeline = run_signature_pipeline(
+
+            observables,
+
+            DT,
+
+        )
+
+        signature = pipeline["signature"]
+
+        certificate = pipeline["certificate"]
+
+        elapsed = time.perf_counter() - t0
+
+        return ExecutionResult(
+
+            i=point.i,
+
+            j=point.j,
+
+            gamma=point.gamma,
+
+            omega=point.omega,
+
+            success=True,
+
+            elapsed_seconds=elapsed,
+
+            signature=signature,
+
+            certificate=certificate,
+
+            observables=observables,
+
+            engine=engine_result,
+
+            error=None,
+
+        )
+
+    except Exception as exc:
+
+        elapsed = time.perf_counter() - t0
+
+        return ExecutionResult(
+
+            i=point.i,
+
+            j=point.j,
+
+            gamma=point.gamma,
+
+            omega=point.omega,
+
+            success=False,
+
+            elapsed_seconds=elapsed,
+
+            signature=None,
+
+            certificate=None,
+
+            observables=None,
+
+            engine=None,
+
+            error=str(exc),
+
+        )
 
 
-# ============================================================
-# Conversão da assinatura para dicionário
-# ============================================================
+# =============================================================================
+# CONVERSORES
+# =============================================================================
 
 def signature_to_dict(signature):
+
+    if signature is None:
+        return {}
 
     if hasattr(signature, "to_dict"):
         return signature.to_dict()
@@ -364,17 +452,20 @@ def signature_to_dict(signature):
     return {
 
         "diameter": signature.diameter,
+
         "convergence": signature.convergence,
+
         "recurrence": signature.recurrence,
+
         "drift": signature.drift,
+
     }
 
 
-# ============================================================
-# Conversão do certificado
-# ============================================================
-
 def certificate_to_dict(certificate):
+
+    if certificate is None:
+        return {}
 
     if isinstance(certificate, dict):
         return certificate
@@ -383,7 +474,104 @@ def certificate_to_dict(certificate):
         return certificate.to_dict()
 
     return dict(certificate)
-        
+
+
+def signature_to_record(
+    result: ExecutionResult,
+):
+
+    record = {
+
+        "i": result.i,
+
+        "j": result.j,
+
+        "gamma": result.gamma,
+
+        "omega": result.omega,
+
+    }
+
+    record.update(
+
+        signature_to_dict(
+
+            result.signature,
+
+        )
+
+    )
+
+    return record
+
+
+def certificate_to_record(
+    result: ExecutionResult,
+):
+
+    record = {
+
+        "i": result.i,
+
+        "j": result.j,
+
+        "gamma": result.gamma,
+
+        "omega": result.omega,
+
+    }
+
+    record.update(
+
+        certificate_to_dict(
+
+            result.certificate,
+
+        )
+
+    )
+
+    return record
+
+
+# =============================================================================
+# PERSISTÊNCIA
+# =============================================================================
+
+def flush_signatures():
+
+    if not signature_records:
+        return
+
+    pd.DataFrame(
+
+        signature_records,
+
+    ).to_parquet(
+
+        SIGNATURE_FILE,
+
+        index=False,
+
+    )
+
+
+def flush_certificates():
+
+    if not certificate_records:
+        return
+
+    pd.DataFrame(
+
+        certificate_records,
+
+    ).to_parquet(
+
+        CERTIFICATE_FILE,
+
+        index=False,
+
+    )
 
 # =============================================================================
 # EXECUÇÃO DA SUPERFÍCIE
@@ -468,9 +656,9 @@ def audit_surface():
 
     successful = sum(
 
-        r.success
+        result.success
 
-        for r in execution_log
+        for result in execution_log
 
     )
 
@@ -488,9 +676,9 @@ def audit_surface():
 
     elapsed = sum(
 
-        r.elapsed_seconds
+        result.elapsed_seconds
 
-        for r in execution_log
+        for result in execution_log
 
     )
 
@@ -577,6 +765,14 @@ def write_summary(
 
         fp.write(
 
+            f"Processed .......... "
+
+            f"{audit['processed_points']}\n"
+
+        )
+
+        fp.write(
+
             f"Successful ......... "
 
             f"{audit['successful_points']}\n"
@@ -614,7 +810,6 @@ def write_summary(
             f"{audit['average_seconds']:.3f} s\n"
 
         )
-
 
 # =============================================================================
 # RELATÓRIO
@@ -709,6 +904,7 @@ def print_final_report(
     print("E10.1.1 COMPLETED")
     print("=" * 80)
 
+
 # =============================================================================
 # MAIN
 # =============================================================================
@@ -762,6 +958,10 @@ def main():
     # -------------------------------------------------------------------------
     # Persistência
     # -------------------------------------------------------------------------
+
+    flush_signatures()
+
+    flush_certificates()
 
     write_summary(audit)
 
