@@ -366,8 +366,6 @@ print(f"[OK] Input          : {INPUT_DIR}")
 print(f"[OK] Output         : {OUTPUT_DIR}")
 print(f"[OK] Grid Size      : {GRID_SIZE} x {GRID_SIZE}")
 print(f"[OK] Total Points   : {GRID_SIZE * GRID_SIZE}")
-print(f"[OK] Mean Response  : {response_summary['response_norm']['mean']:.6e}")
-print(f"[OK] Stable Fraction: {response_summary['stable_fraction']:.6f}")
 
 # ============================================================
 # VIZINHANÇA
@@ -774,6 +772,8 @@ def main():
     global response_summary
     
     response_summary = load_summary()
+    print(f"[OK] Mean Response  : {response_summary['response_norm']['mean']:.6e}")
+    print(f"[OK] Stable Fraction: {response_summary['stable_fraction']:.6f}")
 
     propagation_df, graph_df = analyze_propagation()
 
