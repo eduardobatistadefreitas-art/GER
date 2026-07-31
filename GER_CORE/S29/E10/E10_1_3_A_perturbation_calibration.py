@@ -172,7 +172,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
+from GER.CORE.bootstrap import initialize
 
 # ============================================================
 # CONFIGURAÇÃO
@@ -798,6 +798,8 @@ def recommend_delta(summary):
 # ============================================================
 
 def main():
+
+    initialize()
 
     gamma_values = np.linspace(
         0.0,
