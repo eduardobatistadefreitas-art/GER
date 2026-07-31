@@ -45,7 +45,13 @@ GRID_FILE = ROOT / "grid.parquet"
 METADATA_FILE = ROOT / "metadata.json"
 
 OUTPUT = ROOT / "E10_1_1_PARQUET_AUDIT"
-OUTPUT.mkdir(parents=True, exist_ok=True)
+
+OUTPUT.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+assert OUTPUT.exists()
 
 
 # =============================================================================
@@ -1071,8 +1077,19 @@ print("=" * 80)
 
 import matplotlib.pyplot as plt
 
+OUTPUT.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
 FIGURES = OUTPUT / "FIGURES"
-FIGURES.mkdir(exist_ok=True)
+
+FIGURES.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+assert FIGURES.exists()
 
 section("Generating figures")
 
