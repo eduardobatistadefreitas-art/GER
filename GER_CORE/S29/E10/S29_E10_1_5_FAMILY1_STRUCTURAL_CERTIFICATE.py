@@ -1520,6 +1520,3 @@ def main():
     print()
 
     print("Experiment completed successfully.")
-
-if __name__ == "__main__":
-    main()
