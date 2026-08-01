@@ -65,6 +65,7 @@ def compose_initial_state(
     #
 
     gamma_value = build_gamma(
+        generator="constant",
         value=gamma,
     )
 
