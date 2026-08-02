@@ -22,7 +22,6 @@ import numpy as np
 import pandas as pd
 
 from GER.CORE.ger_graph import gaussian_packet_family2
-
 # ==============================================================================
 # INPUT
 # ==============================================================================
