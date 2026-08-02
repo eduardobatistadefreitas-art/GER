@@ -770,14 +770,16 @@ else:
 # Save
 # ------------------------------------------------------------------------------
 
-save_json(
+with open(
+    OUTPUT_DIR / "family2_operator_audit.json",
+    "w",
+) as f:
 
-    report,
-
-    OUTPUT_DIR /
-    "family2_operator_audit.json",
-
-)
+    json.dump(
+        report,
+        f,
+        indent=4,
+    )
 
 with open(
 
@@ -886,23 +888,27 @@ metadata = {
 
 }
 
-save_json(
+with open(
+    OUTPUT_DIR / "campaign_manifest.json",
+    "w",
+) as f:
 
-    manifest,
+    json.dump(
+        manifest,
+        f,
+        indent=4,
+    )
 
-    OUTPUT_DIR /
-    "campaign_manifest.json",
+with open(
+    OUTPUT_DIR / "metadata.json",
+    "w",
+) as f:
 
-)
-
-save_json(
-
-    metadata,
-
-    OUTPUT_DIR /
-    "metadata.json",
-
-)
+    json.dump(
+        metadata,
+        f,
+        indent=4,
+    )
 
 # --------------------------------------------------------------------------
 # Execution summary
