@@ -21,6 +21,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from GER.CORE.ger_graph import gaussian_packet_family2
+
 # ==============================================================================
 # INPUT
 # ==============================================================================
@@ -301,14 +303,10 @@ for gamma in gamma_values:
 
     for omega in omega_values:
 
-        signal = gaussian_packet_family2(
-
+        signal = gaussian_packet(
             theta,
-
             sigma=0.10,
-
             omega=float(omega),
-
         )
 
         # ----------------------------------------------------------
