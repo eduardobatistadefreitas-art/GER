@@ -24,6 +24,7 @@ import json
 from pathlib import Path
 
 import pandas as pd
+from datetime import datetime, UTC
 
 # ==============================================================================
 # INPUT
@@ -973,7 +974,7 @@ manifest = {
 
     "status": "COMPLETED",
 
-    "generated_at": datetime.utcnow().isoformat(),
+    "generated_at": datetime.now(UTC).isoformat(),
 
     "selected_candidate":
         certificate["selected_candidate"],
