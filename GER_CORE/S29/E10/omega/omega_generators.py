@@ -19,7 +19,7 @@ class GaussianPacketGenerator(OmegaGenerator):
 
     This generator reproduces the current initial condition
     implemented by the GER CORE while accepting the E10
-    Gamma parametrization.
+    Gamma and Omega parametrizations.
     """
 
     name = "gaussian"
@@ -28,6 +28,7 @@ class GaussianPacketGenerator(OmegaGenerator):
         self,
         theta,
         gamma=None,
+        omega=0.0,
         sigma=0.1,
         center=np.pi,
     ):
@@ -41,8 +42,9 @@ class GaussianPacketGenerator(OmegaGenerator):
 
         gamma : optional
             E10 Gamma parametrization.
-            Currently accepted for interface compatibility.
-            It is reserved for future implementations.
+
+        omega : float
+            E10 Omega parametrization.
 
         sigma : float
             Gaussian width.
@@ -51,8 +53,15 @@ class GaussianPacketGenerator(OmegaGenerator):
             Gaussian center.
         """
 
+        #
+        # Gamma remains handled by compose_initial_state().
+        #
+
+        _ = gamma
+
         return gaussian_packet(
             theta=theta,
             center=center,
             sigma=sigma,
+            omega=omega,
         )
