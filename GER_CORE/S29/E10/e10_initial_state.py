@@ -18,10 +18,8 @@ The Γ module provides the parametrization.
 
 The Ω module builds the historical initial state.
 
-compose_initial_state() applies the first admissible operator
+compose_initial_state() applies the canonical E10 operators
 defined by the E10 specification.
-
-Ω remains reserved for future operator families.
 =============================================================
 """
 
@@ -46,7 +44,6 @@ def compose_initial_state(
 
     omega
         Ω experimental coordinate.
-        Reserved for future operator families.
 
     **kwargs
         Additional parameters forwarded to the
@@ -75,36 +72,50 @@ def compose_initial_state(
         """
 
         #
-        # Historical initial state.
+        # Historical state.
+        #
+        # The historical generator is now selected through the
+        # Omega infrastructure. The active generator receives
+        # omega and may decide how to use it.
         #
 
         historical_state = build_initial_state(
+
             theta=theta,
+
+            gamma=gamma,
+
+            omega=omega,
+
             **kwargs,
+
         )
 
         #
         # -----------------------------------------------------
-        # Canonical Operator E10-v1
+        # Canonical Operator
         #
         # Family 1:
-        # Global Scale Operator
         #
-        # S' = (1 + gamma) S
+        #     S' = (1 + gamma) S
         #
-        # Ω remains reserved for future families.
+        # Family 2:
+        #
+        #     Implemented inside the selected Omega generator.
+        #
+        # The two operator families therefore compose naturally:
+        #
+        #     Generator(Ω)
+        #          ↓
+        #     Global Scale(Γ)
         # -----------------------------------------------------
         #
 
         deformed_state = (
+
             1.0 + gamma_value
+
         ) * historical_state
-
-        #
-        # Ω intentionally inactive in E10-v1.
-        #
-
-        _ = omega
 
         return deformed_state
 
